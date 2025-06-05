@@ -1,0 +1,358 @@
+#root {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  overflow-x: hidden;
+}
+
+/* Y tế theme colors - đồng bộ với các màu trong AppHeader và ConfigProvider */
+:root {
+  --color-primary: #1976d2;
+  --color-secondary: #64b5f6;
+  --color-accent: #e91e63;
+  --color-light: #f5f5f5;
+  --color-white: #ffffff;
+  --color-text-dark: #37474f;
+  --color-success: #4caf50;
+  --color-warning: #ff9800;
+  --color-error: #f44336;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 24px;
+  margin: 12px 0;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.app-content {
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  width: 100%;
+}
+
+/* Loading screen styles */
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--color-white);
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loading-logo {
+  margin-bottom: 20px;
+}
+
+.heart-icon {
+  font-size: 60px;
+  color: var(--color-accent);
+  animation: pulse 1.5s infinite;
+}
+
+.loading-text {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: 20px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(25, 118, 210, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--color-primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hero section */
+.hero-section {
+  text-align: center;
+  padding: 40px 0;
+  background: linear-gradient(135deg, #e3f2fd 0%, var(--color-white) 100%);
+  width: 100%;
+  margin: 0;
+}
+
+.hero-title {
+  font-size: 52px;
+  margin-bottom: 24px;
+  color: var(--color-primary);
+}
+
+.hero-subtitle {
+  font-size: 22px;
+  margin-bottom: 40px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--color-text-dark);
+}
+
+/* Carousel styles */
+.ant-carousel {
+  width: 100%;
+  margin: 0;
+}
+
+.ant-carousel .slick-slide {
+  text-align: center;
+  height: 500px;
+  line-height: 160px;
+  background: #364d79;
+  overflow: hidden;
+}
+
+.ant-carousel .slick-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Feature cards */
+.feature-section {
+  padding: 60px 0;
+  background: var(--color-white);
+  width: 100%;
+  margin: 30px 0;
+}
+
+.feature-card {
+  height: 100%;
+  transition: all 0.3s;
+  margin: 0;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+}
+
+.feature-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+}
+
+.feature-icon {
+  font-size: 48px;
+  color: var(--color-primary);
+  margin-bottom: 20px;
+}
+
+.feature-card .ant-card-meta-title {
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: var(--color-text-dark);
+}
+
+.feature-card .ant-card-meta-description {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(55, 71, 79, 0.8);
+}
+
+/* Dashboard cards */
+.dashboard-card {
+  box-shadow: var(--box-shadow);
+  border-radius: 8px;
+  margin: 10px;
+  padding: 20px;
+  background-color: var(--color-white);
+}
+
+.dashboard-icon {
+  font-size: 28px;
+  margin-right: 12px;
+  color: var(--color-primary);
+}
+
+/* Form styles */
+.form-container {
+  max-width: 100%;
+  margin: 24px auto;
+  padding: 30px;
+  background: var(--color-white);
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+}
+
+/* Footer */
+.app-footer {
+  text-align: center;
+  padding: 30px 0;
+  background: var(--color-primary);
+  color: var(--color-white);
+  width: 100%;
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Button styles */
+.ant-btn {
+  font-size: 16px;
+  height: auto;
+  padding: 10px 20px;
+  border-radius: 6px;
+}
+
+.ant-btn-lg {
+  font-size: 18px;
+  padding: 12px 24px;
+}
+
+/* Text styles */
+.section-title {
+  font-size: 36px;
+  margin-bottom: 30px;
+  color: var(--color-text-dark);
+}
+
+.section-subtitle {
+  font-size: 20px;
+  margin-bottom: 30px;
+  color: rgba(55, 71, 79, 0.8);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Section spacing */
+.section {
+  margin: 40px 0;
+  padding: 40px 0;
+}
+
+/* Responsive container */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Card styles */
+.ant-card {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: var(--color-text-dark);
+}
+
+a {
+  color: var(--color-primary);
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: var(--color-secondary);
+}
+
+/* Statistic styles */
+.ant-statistic-title {
+  color: rgba(55, 71, 79, 0.8);
+}
+
+.ant-statistic-content-value {
+  color: var(--color-primary);
+}
+
+/* Dropdown and menu styles */
+.ant-dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12),
+    0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ant-dropdown-menu-item:hover {
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+.ant-menu-item-selected {
+  color: var(--color-primary) !important;
+}

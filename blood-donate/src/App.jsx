@@ -1,35 +1,94 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ConfigProvider, App as AntdApp } from "antd";
+import { useState, useEffect } from "react";
+import "./styles/App.css";
+
+// Import global component styles
+import "./styles/components.css";
+
+// Pages - using new structure
+
+
+// Components
+import { MainLayout } from "./components/layout";
+
+
+// Context
+
+import { HomePage, NotFoundPage } from "./pages/common";
+
+// Y tế theme colors
+const healthTheme = {
+  token: {
+    colorPrimary: "#1976D2", // Xanh dương y tế
+    colorInfo: "#1976D2",
+    colorSuccess: "#4CAF50", // Xanh lá
+    colorWarning: "#FF9800", // Cam
+    colorError: "#F44336", // Đỏ
+    colorTextBase: "#37474F",
+    fontFamily:
+      "Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif",
+    borderRadius: 6,
+    fontSize: 16,
+  },
+  components: {
+    Button: {
+      colorPrimary: "#1976D2",
+      algorithm: true,
+    },
+    Card: {
+      colorBgContainer: "#ffffff",
+      borderRadius: 8,
+    },
+  },
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [loading, setLoading] = useState(true);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+  useEffect(() => {
+    // Simulate loading time
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <ConfigProvider theme={healthTheme}>
+        <AntdApp>
+          <div className="loading-screen">
+            <div className="loading-content">
+              <div className="loading-logo">
+                <span className="heart-icon">❤</span>
+              </div>
+              <div className="loading-text">BloodDonate</div>
+              <div className="loading-spinner"></div>
+            </div>
+          </div>
+        </AntdApp>
+      </ConfigProvider>
+    );
+  }
+
+  return(
+    <ConfigProvider>
+      <Router>
+        {/* <AuthProvider> - TODO: Import and setup authentication provider */}
+          <AntdApp>
+            <MainLayout>
+              <Routes>
+                {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
+                <Route path="/" element={<HomePage />} />
+
+                {/* 404 route */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </MainLayout>
+          </AntdApp>
+        {/* </AuthProvider> */}
+      </Router>
+    </ConfigProvider>
   )
-}
 
-export default App
+}
+export default App;

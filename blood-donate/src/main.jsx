@@ -1,10 +1,15 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
+// Import Ant Design styles
+import './styles/index.css'
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
+// Import locale configuration
+import { ConfigProvider } from 'antd'
+import viVN from 'antd/locale/vi_VN'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ConfigProvider locale={viVN}>
     <App />
-  </StrictMode>,
+  </ConfigProvider>,
 )
