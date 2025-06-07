@@ -51,7 +51,7 @@ const AppFooter = () => {
             <Title level={4} style={{ color: '#fff' }}>Liên kết nhanh</Title>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               <li style={{ marginBottom: '10px' }}>
-                <Link to="/register-donor" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Đăng ký hiến máu</Link>
+                <Link to="/register" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Đăng ký hiến máu</Link>
               </li>
               <li style={{ marginBottom: '10px' }}>
                 <Link to="/search-blood" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Tìm kiếm nhóm máu</Link>
