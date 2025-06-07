@@ -1,0 +1,1042 @@
+/* ========================================
+   PAGE-SPECIFIC STYLES
+   ======================================== */
+
+/* ========================================
+   HOME PAGE
+   ======================================== */
+
+.homepage {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Statistics Section */
+.statistics-section {
+  padding: 60px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.statistics-card {
+  transition: all 0.4s ease;
+  background: linear-gradient(135deg, #fff, #f8f9fa);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  height: 100%;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.statistics-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(220, 53, 69, 0.15);
+}
+
+.statistics-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dc3545, #e74c3c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  animation: pulse 3s infinite;
+}
+
+.statistics-number {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #dc3545;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.statistics-label {
+  font-size: 1.1rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Blood Types Section */
+.blood-types-section-new {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f1f3f4 100%);
+  position: relative;
+}
+
+.blood-types-section-new::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(220, 53, 69, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(220, 53, 69, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(220, 53, 69, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.section-header-modern {
+  max-width: 700px;
+  margin: 0 auto 4rem;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #dc3545, #e74c3c);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.section-title-modern {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #dc3545, #e74c3c, #c82333);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #dc3545;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.section-subtitle-modern {
+  font-size: 1.2rem;
+  color: #6c757d;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.blood-type-grid {
+  margin-bottom: 3rem;
+}
+
+.blood-type-card-modern {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.blood-type-card-modern:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-background-pattern {
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  opacity: 0.05;
+  transition: all 0.4s ease;
+}
+
+.blood-type-card-modern:hover .card-background-pattern {
+  transform: scale(1.5) rotate(45deg);
+  opacity: 0.1;
+}
+
+.blood-type-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.blood-type-symbol {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #dc3545, #e74c3c);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  position: relative;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.blood-type-symbol::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  border-radius: 50%;
+  animation: shimmer 3s infinite;
+}
+
+.blood-type-rh {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rh-positive, .rh-negative {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.rh-positive {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.rh-negative {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  color: white;
+}
+
+.blood-type-content {
+  text-align: left;
+}
+
+.blood-type-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.compatibility-info {
+  margin-bottom: 1.5rem;
+}
+
+.can-donate, .can-receive {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.compatibility-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.compatibility-types {
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 15px;
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.blood-type-stats {
+  border-top: 2px solid rgba(0, 0, 0, 0.05);
+  padding-top: 1rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #dc3545;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Individual blood type colors */
+.blood-type-a .blood-type-symbol {
+  background: linear-gradient(135deg, #dc3545, #e63946);
+}
+
+.blood-type-a .card-background-pattern {
+  background: linear-gradient(135deg, #dc3545, #e63946);
+}
+
+.blood-type-b .blood-type-symbol {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.blood-type-b .card-background-pattern {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.blood-type-b .compatibility-types {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.blood-type-b .stat-number {
+  color: #007bff;
+}
+
+.blood-type-ab .blood-type-symbol {
+  background: linear-gradient(135deg, #6f42c1, #5a32a3);
+}
+
+.blood-type-ab .card-background-pattern {
+  background: linear-gradient(135deg, #6f42c1, #5a32a3);
+}
+
+.blood-type-ab .compatibility-types {
+  background: rgba(111, 66, 193, 0.1);
+  color: #6f42c1;
+}
+
+.blood-type-ab .stat-number {
+  color: #6f42c1;
+}
+
+.blood-type-o .blood-type-symbol {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+.blood-type-o .card-background-pattern {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+.blood-type-o .compatibility-types {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.blood-type-o .stat-number {
+  color: #28a745;
+}
+
+/* Blood Type Legend */
+.blood-type-legend {
+  background: linear-gradient(135deg, #fff, #f8f9fa);
+  padding: 2rem 0;
+  border-radius: 20px;
+  margin-top: 2rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.legend-content {
+  text-align: center;
+}
+
+.legend-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+}
+
+.legend-items {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.legend-badge {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+/* Eligibility Criteria Section */
+.eligibility-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.eligibility-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23e3f2fd" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  opacity: 0.3;
+  z-index: 1;
+}
+
+.eligibility-section .container {
+  position: relative;
+  z-index: 2;
+}
+
+.eligibility-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(25, 118, 210, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.eligibility-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #52c41a 0%, #73d13d 100%);
+  transition: all 0.3s ease;
+}
+
+.eligibility-card.eligibility-restricted::before {
+  background: linear-gradient(90deg, #ff4d4f 0%, #ff7875 100%);
+}
+
+.eligibility-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 20px 60px rgba(25, 118, 210, 0.25);
+}
+
+.eligibility-card:hover::before {
+  height: 8px;
+}
+
+.eligibility-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  margin-bottom: 32px;
+  padding: 32px 24px 24px;
+  border-bottom: 2px solid rgba(25, 118, 210, 0.1);
+}
+
+.eligibility-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(82, 196, 26, 0.15) 0%, rgba(115, 209, 61, 0.15) 100%);
+  border: 3px solid rgba(82, 196, 26, 0.3);
+  transition: all 0.4s ease;
+  box-shadow: 0 8px 24px rgba(82, 196, 26, 0.2);
+}
+
+.eligibility-restricted .eligibility-icon {
+  background: linear-gradient(135deg, rgba(255, 77, 79, 0.15) 0%, rgba(255, 120, 117, 0.15) 100%);
+  border: 3px solid rgba(255, 77, 79, 0.3);
+  box-shadow: 0 8px 24px rgba(255, 77, 79, 0.2);
+}
+
+.eligibility-card:hover .eligibility-icon {
+  transform: scale(1.15);
+  box-shadow: 0 12px 32px rgba(82, 196, 26, 0.4);
+}
+
+.eligibility-restricted:hover .eligibility-icon {
+  box-shadow: 0 12px 32px rgba(255, 77, 79, 0.4);
+}
+
+.eligibility-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1976d2;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.eligibility-content {
+  padding: 0 24px 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.criteria-group {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 20px;
+  border-left: 4px solid #1976d2;
+  transition: all 0.3s ease;
+}
+
+.criteria-group:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.1);
+}
+
+.criteria-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.criteria-title::before {
+  content: '';
+  width: 6px;
+  height: 20px;
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.criteria-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.criteria-list li {
+  padding: 12px 16px 12px 44px;
+  font-size: 15px;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(25, 118, 210, 0.1);
+  transition: all 0.3s ease;
+  line-height: 1.5;
+}
+
+.criteria-list li:hover {
+  background: rgba(245, 248, 255, 1);
+  border-color: rgba(25, 118, 210, 0.2);
+  transform: translateX(8px);
+  color: #1976d2;
+}
+
+.criteria-list li::before {
+  content: '✓';
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+  position: absolute;
+  left: 12px;
+}
+
+.eligibility-restricted .criteria-list li::before {
+  content: '✗';
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+}
+
+.eligibility-note {
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+  border: 2px solid rgba(24, 144, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.eligibility-note::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+}
+
+.note-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3);
+}
+
+.note-content h6 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1890ff;
+  margin: 0 0 12px 0;
+}
+
+.note-content p {
+  font-size: 15px;
+  color: #4a5568;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* CTA Section */
+.cta-section {
+  padding: 80px 0;
+}
+
+.cta-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.cta-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.cta-description {
+  font-size: 1.2rem;
+  color: #6c757d;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.cta-button {
+  min-width: 250px;
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.blood-type-card-modern:hover .blood-type-symbol {
+  animation: pulse 1.5s ease-in-out;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 1200px) {
+  .section-title-modern {
+    font-size: 2.5rem;
+  }
+  
+  .blood-type-card-modern {
+    padding: 1.5rem 1.2rem;
+  }
+  
+  .blood-type-symbol {
+    width: 60px;
+    height: 60px;
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .blood-types-section-new {
+    padding: 60px 0;
+  }
+  
+  .section-header-modern {
+    margin-bottom: 2.5rem;
+  }
+  
+  .section-title-modern {
+    font-size: 2.2rem;
+  }
+  
+  .section-subtitle-modern {
+    font-size: 1.1rem;
+  }
+  
+  .blood-type-card-modern {
+    margin-bottom: 1.5rem;
+  }
+  
+  .legend-items {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .blood-types-section-new {
+    padding: 40px 0;
+  }
+  
+  .section-header-modern {
+    margin-bottom: 2.5rem;
+  }
+  
+  .section-title-modern {
+    font-size: 1.9rem;
+  }
+  
+  .section-subtitle-modern {
+    font-size: 1rem;
+  }
+  
+  .blood-type-card-modern {
+    padding: 1.2rem 1rem;
+  }
+  
+  .blood-type-header {
+    margin-bottom: 1rem;
+  }
+  
+  .blood-type-symbol {
+    width: 50px;
+    height: 50px;
+    font-size: 1.4rem;
+  }
+  
+  .blood-type-name {
+    font-size: 1.1rem;
+  }
+  
+  .compatibility-label,
+  .compatibility-types {
+    font-size: 0.8rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .blood-type-legend {
+    padding: 1.5rem 0;
+  }
+  
+  .legend-title {
+    font-size: 1.1rem;
+  }
+    .eligibility-section {
+    padding: 60px 0 40px;
+  }
+    .eligibility-card {
+    margin-bottom: 2rem;
+  }
+  
+  .eligibility-card .card-body {
+    min-height: 420px;
+  }
+  
+  .eligibility-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+    padding: 24px 20px 20px;
+  }
+  
+  .eligibility-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .eligibility-title {
+    font-size: 20px;
+  }
+  
+  .eligibility-content {
+    padding: 0 20px 24px;
+    gap: 20px;
+  }
+  
+  .criteria-group {
+    padding: 16px;
+  }
+  
+  .criteria-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .criteria-list li {
+    padding: 10px 12px;
+    font-size: 14px;
+    gap: 12px;
+  }
+  
+  .criteria-list li::before {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+  
+  .eligibility-note {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+    gap: 16px;
+  }
+  
+  .note-icon {
+    align-self: center;
+    width: 45px;
+    height: 45px;
+  }
+  
+  .note-content h6 {
+    font-size: 16px;
+  }
+  
+  .note-content p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .blood-types-section-new {
+    padding: 20px 0;
+  }
+  
+  .section-header-modern {
+    margin-bottom: 2rem;
+  }
+  
+  .section-title-modern {
+    font-size: 1.7rem;
+  }
+  
+  .section-subtitle-modern {
+    font-size: 0.9rem;
+  }
+  
+  .blood-type-card-modern {
+    padding: 1rem 0.8rem;
+  }
+  
+  .blood-type-header {
+    margin-bottom: 0.8rem;
+  }
+  
+  .blood-type-symbol {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .eligibility-section {
+    padding: 40px 0 30px;
+  }
+    .eligibility-card {
+    margin-bottom: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .eligibility-card .card-body {
+    min-height: 380px;
+  }
+  
+  .eligibility-header {
+    padding: 20px 16px 16px;
+    gap: 12px;
+  }
+  
+  .eligibility-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .eligibility-title {
+    font-size: 18px;
+  }
+  
+  .eligibility-content {
+    padding: 0 16px 20px;
+    gap: 16px;
+  }
+  
+  .criteria-group {
+    padding: 14px;
+    border-radius: 10px;
+  }
+  
+  .criteria-title {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .criteria-title::before {
+    width: 5px;
+    height: 16px;
+  }
+  
+  .criteria-list {
+    gap: 8px;
+  }
+  
+  .criteria-list li {
+    padding: 8px 10px;
+    font-size: 13px;
+    gap: 10px;
+    border-radius: 6px;
+  }
+  
+  .criteria-list li::before {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+  
+  .eligibility-note {
+    padding: 16px;
+    gap: 12px;
+    margin-top: 20px;
+    border-radius: 12px;
+  }
+  
+  .note-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .note-content h6 {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  
+  .note-content p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  
+  .blood-type-name {
+    font-size: 1rem;
+  }
+  
+  .compatibility-label,
+  .compatibility-types {
+    font-size: 0.7rem;
+  }
+  
+  .stat-number {
+    font-size: 1.3rem;
+  }
+  
+  .blood-type-legend {
+    padding: 1rem 0;
+  }
+  
+  .legend-title {
+    font-size: 1rem;
+  }
+  
+  .eligibility-section {
+    padding: 40px 0;
+  }
+  
+  .criteria-list li {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+  
+  .eligibility-note {
+    padding: 16px;
+  }
+}
+
+/* Ensure equal height for card bodies */
+.eligibility-card .card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+}
+
+/* Make eligibility content fill available space */
+.eligibility-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Ensure columns in eligibility section have equal height */
+.eligibility-section .row > .col-lg-6 {
+  display: flex;
+}

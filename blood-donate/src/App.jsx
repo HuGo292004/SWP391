@@ -3,9 +3,6 @@ import { ConfigProvider, App as AntdApp } from "antd";
 import { useState, useEffect } from "react";
 import "./styles/App.css";
 
-// Import global component styles
-import "./styles/components.css";
-
 // Pages - using new structure
 
 
@@ -69,9 +66,8 @@ function App() {
       </ConfigProvider>
     );
   }
-
   return(
-    <ConfigProvider>
+    <ConfigProvider theme={healthTheme}>
       <Router>
         {/* <AuthProvider> - TODO: Import and setup authentication provider */}
           <AntdApp>

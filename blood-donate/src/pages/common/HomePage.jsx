@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Button, Row, Col, Card, Statistic, Carousel, Divider, Space } from 'antd';
+import { Typography, Button as AntButton, Statistic, Space } from 'antd';
 import { 
   HeartOutlined, 
   CalendarOutlined, 
@@ -10,29 +10,26 @@ import {
   MedicineBoxOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { BenefitsSlider } from '../../components/ui';
+import { 
+  Container, 
+  Row, 
+  Col, 
+  Card, 
+  Button, 
+  Badge,
+  OverlayTrigger,
+  Tooltip
+} from 'react-bootstrap';
+import '../../styles/HomePage.css';
+import '../../styles/banners.css';
+import '../../styles/RedBanner.css';
+import '../../styles/GoldenBanner.css';
+import '../../styles/pages.css';
+import '../../styles/criteria-fix.css'; // Import the CSS fixes for criteria list
 
 
 const { Title, Paragraph } = Typography;
-const { Meta } = Card;
-
-// Carousel images - base64 encoded placeholders (thay thế với URL thực tế khi có thể)
-const carouselImages = [
-  {
-    url: "https://images.unsplash.com/photo-1615461066841-6116e61058f4?q=80&w=1470&auto=format&fit=crop",
-    alt: "Người hiến máu",
-    caption: "Mỗi giọt máu là một món quà quý giá"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=1470&auto=format&fit=crop",
-    alt: "Túi máu hiến tặng",
-    caption: "Hiến máu cứu người - Một nghĩa cử cao đẹp"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1631815588090-d1bcbe9d4881?q=80&w=1471&auto=format&fit=crop",
-    alt: "Bác sĩ và bệnh nhân",
-    caption: "Chung tay vì sức khỏe cộng đồng"
-  }
-];
 
 const bloodTypeCards = [
   {
@@ -61,16 +58,22 @@ const HomePage = () => {
   // TODO: Replace with actual authentication context/hook
   // For now, using fallback to prevent crashes
   const user = null; // This should come from authentication context
-  
-  // Function to render primary button based on user role
+    // Function to render primary button based on user role
   const renderPrimaryButton = () => {
     const userRole = user?.role;
     
     switch(userRole) {
       case 'staff':
         return (
-          <Button type="primary" size="large" icon={<AlertOutlined />} style={{ fontSize: '18px', height: 'auto', padding: '10px 20px', background: '#f5222d', borderColor: '#f5222d' }}>
-            <Link to="/emergency-request">Yêu cầu khẩn cấp</Link>
+          <Button 
+            variant="danger" 
+            size="lg" 
+            as={Link} 
+            to="/emergency-request"
+            className="d-flex align-items-center gap-2 px-4 py-3"
+          >
+            <AlertOutlined style={{ fontSize: '18px' }} />
+            Yêu cầu khẩn cấp
           </Button>
         );
       
@@ -80,251 +83,489 @@ const HomePage = () => {
       
       default: // guest hoặc member
         return (
-          <Button type="primary" size="large" icon={<HeartOutlined />} style={{ fontSize: '18px', height: 'auto', padding: '10px 20px' }}>
-            <Link to="/register-donor">Đăng ký hiến máu</Link>
+          <Button 
+            variant="primary" 
+            size="lg" 
+            as={Link} 
+            to="/register-donor"
+            className="d-flex align-items-center gap-2 px-4 py-3"
+          >
+            <HeartOutlined style={{ fontSize: '18px' }} />
+            Đăng ký hiến máu
           </Button>
         );
     }
-  };
-
-  // Function to render CTA section based on user role
+  };  // Function to render CTA section based on user role
   const renderCTASection = () => {
     const userRole = user?.role;
     
     switch(userRole) {
       case 'staff':
         return (
-          <div style={{ width: '100%', textAlign: 'center', padding: '60px 0', margin: '40px 0 0 0', background: '#f5f5f5' }}>
-            <Title level={2} style={{ fontSize: '38px', marginBottom: '20px' }}>Xử lý yêu cầu khẩn cấp?</Title>
-            <Paragraph style={{ fontSize: '20px', margin: '20px auto', maxWidth: '800px', padding: '0 20px' }}>
-              Truy cập hệ thống để xử lý các yêu cầu hiến máu khẩn cấp một cách nhanh chóng và hiệu quả.
-            </Paragraph>
-            <Button type="primary" size="large" icon={<AlertOutlined />} style={{ fontSize: '18px', height: 'auto', padding: '12px 24px', marginTop: '20px', background: '#f5222d', borderColor: '#f5222d' }}>
-              <Link to="/emergency-request">Yêu cầu khẩn cấp</Link>
-            </Button>
-          </div>
+          <section className="cta-section bg-light">
+            <Container>
+              <Row className="justify-content-center text-center">
+                <Col lg={8}>
+                  <div className="cta-content">
+                    <h2 className="cta-title text-danger">Xử lý yêu cầu khẩn cấp?</h2>
+                    <p className="cta-description">
+                      Truy cập hệ thống để xử lý các yêu cầu hiến máu khẩn cấp một cách nhanh chóng và hiệu quả.
+                    </p>
+                    <Button 
+                      variant="danger" 
+                      size="lg" 
+                      as={Link} 
+                      to="/emergency-request"
+                      className="cta-button d-flex align-items-center gap-2 mx-auto"
+                    >
+                      <AlertOutlined style={{ fontSize: '18px' }} />
+                      Yêu cầu khẩn cấp
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            </Container>
+          </section>
         );
       
       case 'admin':
         return (
-          <div style={{ width: '100%', textAlign: 'center', padding: '60px 0', margin: '40px 0 0 0', background: '#f5f5f5' }}>
-            <Title level={2} style={{ fontSize: '38px', marginBottom: '20px' }}>Quản lý hệ thống hiến máu</Title>
-            <Paragraph style={{ fontSize: '20px', margin: '20px auto', maxWidth: '800px', padding: '0 20px' }}>
-              Truy cập bảng điều khiển quản trị để giám sát và quản lý toàn bộ hệ thống hiến máu.
-            </Paragraph>
-            <Button type="primary" size="large" icon={<SearchOutlined />} style={{ fontSize: '18px', height: 'auto', padding: '12px 24px', marginTop: '20px' }}>
-              <Link to="/search-blood">Tìm kiếm nhóm máu</Link>
-            </Button>
-          </div>
+          <section className="cta-section bg-light">
+            <Container>
+              <Row className="justify-content-center text-center">
+                <Col lg={8}>
+                  <div className="cta-content">
+                    <h2 className="cta-title text-primary">Quản lý hệ thống hiến máu</h2>
+                    <p className="cta-description">
+                      Truy cập bảng điều khiển quản trị để giám sát và quản lý toàn bộ hệ thống hiến máu.
+                    </p>
+                    <Button 
+                      variant="primary" 
+                      size="lg" 
+                      as={Link} 
+                      to="/search-blood"
+                      className="cta-button d-flex align-items-center gap-2 mx-auto"
+                    >
+                      <SearchOutlined style={{ fontSize: '18px' }} />
+                      Tìm kiếm nhóm máu
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            </Container>
+          </section>
         );
       
       default: // guest hoặc member
         return (
-          <div style={{ width: '100%', textAlign: 'center', padding: '60px 0', margin: '40px 0 0 0', background: '#f5f5f5' }}>
-            <Title level={2} style={{ fontSize: '38px', marginBottom: '20px' }}>Sẵn sàng hiến máu?</Title>
-            <Paragraph style={{ fontSize: '20px', margin: '20px auto', maxWidth: '800px', padding: '0 20px' }}>
-              Đăng ký ngay hôm nay và trở thành một phần của cộng đồng hiến máu cứu người.
-            </Paragraph>
-            <Button type="primary" size="large" icon={<HeartOutlined />} style={{ fontSize: '18px', height: 'auto', padding: '12px 24px', marginTop: '20px' }}>
-              <Link to="/register-donor">Đăng ký hiến máu</Link>
-            </Button>
-          </div>
-        );
-    }
-  };
-
-  return (
-    <div style={{ width: '100%', padding: 0, margin: 0, overflow: 'hidden' }}>
-      {/* Hero Carousel Section */}
-      <Carousel autoplay effect="fade" style={{ width: '100%' }}>
-        {carouselImages.map((image, index) => (
-          <div key={index}>
-            <div style={{ 
-              height: '500px', 
-              background: `url(${image.url}) center center / cover no-repeat`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column',
-              position: 'relative'
-            }}>
-              <div style={{ 
-                position: 'absolute', 
-                top: 0, 
-                left: 0, 
-                width: '100%', 
-                height: '100%', 
-                backgroundColor: 'rgba(0,0,0,0.4)'
-              }}></div>
-              <div style={{ 
-                zIndex: 1, 
-                color: '#fff', 
-                textAlign: 'center',
-                padding: '0 20px'
-              }}>
-                <Title style={{ color: '#fff', marginBottom: '20px', fontSize: '52px' }}>Hiến Máu Cứu Người</Title>
-                <Paragraph style={{ color: '#fff', fontSize: '22px', maxWidth: '800px', marginBottom: '30px' }}>
-                  {image.caption}
-                </Paragraph>
-                <Space size="large">
-                  {renderPrimaryButton()}
-                  {/* <Button size="large" icon={<MedicineBoxOutlined />} style={{ background: '#e91e63', color: '#fff', fontSize: '18px', height: 'auto', padding: '10px 20px' }}>
-                    <Link to="/request-blood" style={{ color: '#fff' }}>Đăng ký nhận máu</Link>
-                  </Button> */}
-                  <Button size="large" icon={<SearchOutlined />} style={{ background: 'rgba(255,255,255,0.9)', fontSize: '18px', height: 'auto', padding: '10px 20px' }}>
-                    <Link to="/search-blood">Tìm kiếm nhóm máu</Link>
-                  </Button>
-                </Space>
-              </div>
-            </div>
-          </div>
-        ))}
-      </Carousel>
-
-      {/* Statistics Section */}
-      <div style={{ width: '100%', margin: '40px 0', padding: 0, background: '#f5f5f5' }}>
-        <Row gutter={[16, 16]} justify="center" style={{ margin: 0, padding: '20px' }}>
-          <Col xs={24} sm={12} md={6} style={{ padding: '10px' }}>
-            <Card variant="borderless" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <Statistic 
-                title={<span style={{ fontSize: '18px' }}>Người hiến máu</span>}
-                value={2500}
-                valueStyle={{ color: '#f5222d', fontSize: '28px' }}
-                prefix={<TeamOutlined style={{ fontSize: '24px' }} />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6} style={{ padding: '10px' }}>
-            <Card variant="borderless" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <Statistic 
-                title={<span style={{ fontSize: '18px' }}>Đơn vị máu</span>}
-                value={3750}
-                valueStyle={{ color: '#f5222d', fontSize: '28px' }}
-                prefix={<HeartOutlined style={{ fontSize: '24px' }} />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6} style={{ padding: '10px' }}>
-            <Card variant="borderless" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <Statistic 
-                title={<span style={{ fontSize: '18px' }}>Người được cứu</span>}
-                value={7800}
-                valueStyle={{ color: '#f5222d', fontSize: '28px' }}
-                prefix={<TeamOutlined style={{ fontSize: '24px' }} />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6} style={{ padding: '10px' }}>
-            <Card variant="borderless" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <Statistic 
-                title={<span style={{ fontSize: '18px' }}>Yêu cầu khẩn cấp</span>}
-                value={15}
-                valueStyle={{ color: '#f5222d', fontSize: '28px' }}
-                prefix={<AlertOutlined style={{ fontSize: '24px' }} />}
-              />
-            </Card>
-          </Col>
-        </Row>
-      </div>
-
-      {/* Features Section */}
-      <div style={{ width: '100%', margin: '40px 0', padding: '40px 0', background: '#fff' }}>
-        <Title level={2} style={{ textAlign: 'center', margin: '0 0 30px 0', fontSize: '36px' }}>
-          Tính năng chính
-        </Title>
-        <Row gutter={[24, 24]} style={{ margin: 0, padding: '0 20px' }}>
-          <Col xs={24} sm={12} md={8} style={{ padding: '10px' }}>
-            <Card className="feature-card" variant="borderless" style={{ margin: 0, borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <HeartOutlined className="feature-icon" style={{ fontSize: '42px' }} />
-              <Meta
-                title={<span style={{ fontSize: '20px', marginBottom: '10px', display: 'block' }}>Đăng ký hiến máu</span>}
-                description={<span style={{ fontSize: '16px' }}>Đăng ký nhóm máu và thời điểm sẵn sàng để hiến máu, thông tin sẽ được lưu trong hệ thống.</span>}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} style={{ padding: '10px' }}>
-            <Card className="feature-card" variant="borderless" style={{ margin: 0, borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <MedicineBoxOutlined className="feature-icon" style={{ fontSize: '42px', color: '#e91e63' }} />
-              <Meta
-                title={<span style={{ fontSize: '20px', marginBottom: '10px', display: 'block' }}>Đăng ký nhận máu</span>}
-                description={<span style={{ fontSize: '16px' }}>Đăng ký nhu cầu nhận máu với đầy đủ thông tin y tế để tìm kiếm nguồn máu phù hợp.</span>}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} style={{ padding: '10px' }}>
-            <Card className="feature-card" variant="borderless" style={{ margin: 0, borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <SearchOutlined className="feature-icon" style={{ fontSize: '42px' }} />
-              <Meta
-                title={<span style={{ fontSize: '20px', marginBottom: '10px', display: 'block' }}>Tìm kiếm nhóm máu</span>}
-                description={<span style={{ fontSize: '16px' }}>Tìm kiếm thông tin về các nhóm máu phù hợp cho việc truyền máu và các thành phần máu.</span>}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} style={{ padding: '10px' }}>
-            <Card className="feature-card" variant="borderless" style={{ margin: 0, borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <AlertOutlined className="feature-icon" style={{ fontSize: '42px' }} />
-              <Meta
-                title={<span style={{ fontSize: '20px', marginBottom: '10px', display: 'block' }}>Yêu cầu khẩn cấp</span>}
-                description={<span style={{ fontSize: '16px' }}>Đăng ký các trường hợp cần máu khẩn cấp để tìm kiếm người hiến máu nhanh chóng.</span>}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} style={{ padding: '10px' }}>
-            <Card className="feature-card" variant="borderless" style={{ margin: 0, borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <BarChartOutlined className="feature-icon" style={{ fontSize: '42px' }} />
-              <Meta
-                title={<span style={{ fontSize: '20px', marginBottom: '10px', display: 'block' }}>Quản lý đơn vị máu</span>}
-                description={<span style={{ fontSize: '16px' }}>Quản lý số lượng các đơn vị máu của cơ sở y tế và theo dõi tình trạng hiện tại.</span>}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} style={{ padding: '10px' }}>
-            <Card className="feature-card" variant="borderless" style={{ margin: 0, borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <CalendarOutlined className="feature-icon" style={{ fontSize: '42px' }} />
-              <Meta
-                title={<span style={{ fontSize: '20px', marginBottom: '10px', display: 'block' }}>Nhắc nhở phục hồi</span>}
-                description={<span style={{ fontSize: '16px' }}>Nhắc nhở thời gian phục hồi giữa các lần hiến máu để đảm bảo sức khỏe người hiến.</span>}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} style={{ padding: '10px' }}>
-            <Card className="feature-card" variant="borderless" style={{ margin: 0, borderRadius: '8px', height: '100%', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-              <TeamOutlined className="feature-icon" style={{ fontSize: '42px' }} />
-              <Meta
-                title={<span style={{ fontSize: '20px', marginBottom: '10px', display: 'block' }}>Quản lý hồ sơ</span>}
-                description={<span style={{ fontSize: '16px' }}>Quản lý hồ sơ người dùng và lịch sử hiến máu, theo dõi các thông tin quan trọng.</span>}
-              />
-            </Card>
-          </Col>
-        </Row>
-      </div>
-
-      {/* Blood Types Section */}
-      <div style={{ width: '100%', margin: '40px 0', padding: '20px 0', background: '#fff1f0' }}>
-        <Title level={2} style={{ textAlign: 'center', margin: '0 0 30px 0', padding: '20px 0', fontSize: '36px' }}>
-          Thông tin về các nhóm máu
-        </Title>
-        <Row gutter={[16, 16]} style={{ margin: 0, padding: '0 20px' }}>
-          {bloodTypeCards.map((card, index) => (
-            <Col key={index} xs={24} sm={12} md={6} style={{ padding: '10px' }}>
-              <Card
-                variant="borderless"
-                style={{ textAlign: 'center', height: '100%', margin: 0, borderRadius: '8px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
-                cover={
-                  <div style={{ padding: '30px', background: '#fff' }}>
-                    {React.cloneElement(card.icon, { style: { fontSize: '48px', color: '#f5222d' } })}
+          <section className="cta-section bg-light">
+            <Container>
+              <Row className="justify-content-center text-center">
+                <Col lg={8}>
+                  <div className="cta-content">
+                    <h2 className="cta-title text-danger">Sẵn sàng hiến máu?</h2>
+                    <p className="cta-description">
+                      Đăng ký ngay hôm nay và trở thành một phần của cộng đồng hiến máu cứu người.
+                    </p>                    <Button 
+                      variant="danger" 
+                      size="lg" 
+                      as={Link} 
+                      to="/register-donor"
+                      className="cta-button d-flex align-items-center justify-content-center gap-2 mx-auto"
+                    >
+                      <HeartOutlined style={{ fontSize: '18px' }} />
+                      <span>Đăng ký hiến máu</span>
+                    </Button>
                   </div>
-                }
-              >
-                <Meta 
-                  title={<span style={{ fontSize: '22px', marginBottom: '10px', display: 'block' }}>{card.title}</span>} 
-                  description={<span style={{ fontSize: '16px' }}>{card.description}</span>} 
-                />
+                </Col>
+              </Row>
+            </Container>
+          </section>
+        );
+    }  };return (
+    <div className="homepage">      {/* Hero Banner Section */}
+      <section className="hero-banner-new">        <div className="banner-image-container">
+          <img 
+            src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?q=80&w=1920&h=1080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+            alt="Blood Donation" 
+            className="banner-image"
+          />
+        </div>
+        
+        <Container>
+          <Row className="align-items-center min-vh-75">
+            <Col lg={8} className="mx-auto text-center">              <div className="hero-banner-content">                <h1 className="hero-banner-title-red mb-4">
+                  Hiến máu nhân đạo
+                  <span className="title-highlight-red">Phần mềm hỗ trợ hiến máu</span>
+                </h1><p className="hero-banner-subtitle-red mb-5">
+                  Nỗ lực nhỏ của bạn có thể cho người khác cơ hội thứ hai để sống.
+                  <br />
+                  Hãy gia nhập cộng đồng hiến máu nhân đạo, lan tỏa yêu thương.
+                </p>
+                
+                <div className="hero-banner-buttons-new">
+                  <Button 
+                    variant="danger" 
+                    size="lg" 
+                    as={Link} 
+                    to="/register-donor"
+                    className="hero-cta-btn-new me-3 mb-3"
+                  >
+                    <HeartOutlined className="me-2" />
+                    Đăng Ký Hiến Máu
+                  </Button>
+                  
+                  <Button 
+                    variant="outline-danger" 
+                    size="lg" 
+                    as={Link} 
+                    to="/search-blood"
+                    className="hero-cta-btn-new mb-3"
+                  >
+                    <SearchOutlined className="me-2" />
+                    Tìm Kiếm Nhóm Máu
+                  </Button>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>{/* Statistics Section */}
+      <section className="statistics-section">
+        <Container>
+          <Row className="g-4">
+            <Col md={6} lg={3}>
+              <Card className="statistics-card hover-card">
+                <Card.Body>
+                  <div className="statistics-icon">
+                    <TeamOutlined style={{ fontSize: '32px', color: 'white' }} />
+                  </div>
+                  <div className="statistics-number">2,500</div>
+                  <p className="statistics-label">Người hiến máu</p>
+                </Card.Body>
               </Card>
             </Col>
-          ))}
-        </Row>
-      </div>
+            <Col md={6} lg={3}>
+              <Card className="statistics-card hover-card">
+                <Card.Body>
+                  <div className="statistics-icon">
+                    <HeartOutlined style={{ fontSize: '32px', color: 'white' }} />
+                  </div>
+                  <div className="statistics-number">3,750</div>
+                  <p className="statistics-label">Đơn vị máu</p>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={6} lg={3}>
+              <Card className="statistics-card hover-card">
+                <Card.Body>
+                  <div className="statistics-icon">
+                    <TeamOutlined style={{ fontSize: '32px', color: 'white' }} />
+                  </div>
+                  <div className="statistics-number">7,800</div>
+                  <p className="statistics-label">Người được cứu</p>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col md={6} lg={3}>
+              <Card className="statistics-card hover-card">
+                <Card.Body>
+                  <div className="statistics-icon">
+                    <AlertOutlined style={{ fontSize: '32px', color: 'white' }} />
+                  </div>
+                  <div className="statistics-number">15</div>
+                  <p className="statistics-label">Yêu cầu khẩn cấp</p>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      {/* Benefits Slider Section */}
+      <BenefitsSlider />      {/* Eligibility Criteria Section */}      <section className="eligibility-section">
+        <Container>
+          <div className="section-header-modern">
+            <div className="section-badge">
+              <MedicineBoxOutlined style={{ fontSize: '18px' }} />
+              <span>Tiêu chuẩn</span>
+            </div>
+            <h2 className="section-title-modern">Tiêu chuẩn tham gia hiến máu</h2>
+            <p className="section-subtitle-modern">
+              Đảm bảo an toàn cho người hiến và người nhận máu
+            </p>
+          </div>
+          
+          <Row className="g-3 d-flex align-items-stretch">
+            <Col lg={6}>
+              <Card className="eligibility-card eligibility-allowed">
+                <Card.Body>
+                  <div className="eligibility-header">
+                    <div className="eligibility-icon">
+                      <HeartOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
+                    </div>
+                    <h5 className="eligibility-title">Được phép hiến máu</h5>
+                  </div>                  <div className="eligibility-content">
+                    <div className="criteria-group">
+                      <h6 className="criteria-title">Điều kiện cơ bản</h6>
+                      <ul className="criteria-list">
+                        <li>Nam: 18-60 tuổi, ≥ 45kg</li>
+                        <li>Nữ: 18-55 tuổi, ≥ 45kg</li>
+                        <li>Khỏe mạnh, không sốt, không mệt mỏi</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="criteria-group">
+                      <h6 className="criteria-title">Các chỉ số sức khỏe</h6>
+                      <ul className="criteria-list">
+                        <li>Huyết áp: 100-160/60-100 mmHg</li>
+                        <li>Mạch: 60-100 lần/phút</li>
+                        <li>Hemoglobin: Nam ≥125g/L, Nữ ≥120g/L</li>
+                      </ul>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            
+            <Col lg={6}>
+              <Card className="eligibility-card eligibility-restricted">
+                <Card.Body>
+                  <div className="eligibility-header">
+                    <div className="eligibility-icon">
+                      <AlertOutlined style={{ fontSize: '24px', color: '#ff4d4f' }} />
+                    </div>
+                    <h5 className="eligibility-title">Không được hiến máu khi</h5>
+                  </div>                  <div className="eligibility-content">
+                    <div className="criteria-group">
+                      <h6 className="criteria-title">Vấn đề sức khỏe</h6>
+                      <ul className="criteria-list">
+                        <li>Bệnh tim mạch, huyết áp cao, tiểu đường</li>
+                        <li>Đang mắc bệnh cấp tính hoặc mãn tính</li>
+                        <li>Vừa phẫu thuật hoặc đang dùng kháng sinh</li>
+                        <li>Bệnh gan, thận mãn tính</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="criteria-group">
+                      <h6 className="criteria-title">Các trường hợp đặc biệt</h6>
+                      <ul className="criteria-list">
+                        <li>Phụ nữ đang mang thai hoặc cho con bú</li>
+                        <li>Uống rượu trong vòng 24h trước hiến máu</li>
+                        <li>Tiêm vaccine trong vòng 7-14 ngày</li>
+                        <li>Có nguy cơ cao về HIV hoặc viêm gan</li>
+                      </ul>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+            <Row className="mt-4">
+            <Col>
+              <div className="eligibility-note">
+                <div className="note-icon">
+                  <MedicineBoxOutlined style={{ fontSize: '20px', color: 'white' }} />
+                </div>
+                <div className="note-content">
+                  <h6>Lưu ý quan trọng</h6>
+                  <p>
+                    <strong>Khoảng cách giữa các lần hiến máu:</strong> Nam tối thiểu 12 tuần, nữ tối thiểu 16 tuần.
+                  </p>
+                  <p>
+                    <strong>Hồi phục sau hiến máu:</strong> Uống nhiều nước, nghỉ ngơi đủ, tránh các hoạt động gắng sức trong 24 giờ.
+                  </p>
+                  <p>
+                    <strong>Xét nghiệm sàng lọc:</strong> Trước khi hiến máu, bạn sẽ được kiểm tra các chỉ số sức khỏe và xét nghiệm sàng lọc các bệnh lây truyền qua đường máu.
+                  </p>
+                  <p>
+                    <strong>Lượng máu hiến:</strong> Mỗi lần hiến máu toàn phần là 250-450ml tùy theo cân nặng và thể trạng.
+                  </p>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      {/* Blood Types Section - Redesigned */}
+      <section className="blood-types-section-new">
+        <Container>
+          <div className="section-header-modern">
+            <div className="section-badge">
+              <MedicineBoxOutlined style={{ fontSize: '20px' }} />
+              <span>Kiến thức y tế</span>
+            </div>
+            <h2 className="section-title-modern">Thông tin các nhóm máu</h2>
+            <p className="section-subtitle-modern">
+              Khám phá sự tương thích và đặc điểm độc đáo của từng nhóm máu
+            </p>
+          </div>
+          
+          <Row className="g-4 blood-type-grid">
+            <Col md={6} lg={3}>
+              <div className="blood-type-card-modern blood-type-a">
+                <div className="card-background-pattern"></div>
+                <div className="blood-type-header">
+                  <div className="blood-type-symbol">A</div>
+                  <div className="blood-type-rh">
+                    <span className="rh-positive">Rh+</span>
+                    <span className="rh-negative">Rh-</span>
+                  </div>
+                </div>
+                <div className="blood-type-content">
+                  <h4 className="blood-type-name">Nhóm máu A</h4>
+                  <div className="compatibility-info">
+                    <div className="can-donate">
+                      <div className="compatibility-label">Có thể cho:</div>
+                      <div className="compatibility-types">A, AB</div>
+                    </div>
+                    <div className="can-receive">
+                      <div className="compatibility-label">Có thể nhận:</div>
+                      <div className="compatibility-types">A, O</div>
+                    </div>
+                  </div>
+                  <div className="blood-type-stats">
+                    <div className="stat-item">
+                      <div className="stat-number">42%</div>
+                      <div className="stat-label">Dân số</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Col>
+            
+            <Col md={6} lg={3}>
+              <div className="blood-type-card-modern blood-type-b">
+                <div className="card-background-pattern"></div>
+                <div className="blood-type-header">
+                  <div className="blood-type-symbol">B</div>
+                  <div className="blood-type-rh">
+                    <span className="rh-positive">Rh+</span>
+                    <span className="rh-negative">Rh-</span>
+                  </div>
+                </div>
+                <div className="blood-type-content">
+                  <h4 className="blood-type-name">Nhóm máu B</h4>
+                  <div className="compatibility-info">
+                    <div className="can-donate">
+                      <div className="compatibility-label">Có thể cho:</div>
+                      <div className="compatibility-types">B, AB</div>
+                    </div>
+                    <div className="can-receive">
+                      <div className="compatibility-label">Có thể nhận:</div>
+                      <div className="compatibility-types">B, O</div>
+                    </div>
+                  </div>
+                  <div className="blood-type-stats">
+                    <div className="stat-item">
+                      <div className="stat-number">10%</div>
+                      <div className="stat-label">Dân số</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Col>
+            
+            <Col md={6} lg={3}>
+              <div className="blood-type-card-modern blood-type-ab">
+                <div className="card-background-pattern"></div>
+                <div className="blood-type-header">
+                  <div className="blood-type-symbol">AB</div>
+                  <div className="blood-type-rh">
+                    <span className="rh-positive">Rh+</span>
+                    <span className="rh-negative">Rh-</span>
+                  </div>
+                </div>
+                <div className="blood-type-content">
+                  <h4 className="blood-type-name">Nhóm máu AB</h4>
+                  <div className="compatibility-info">
+                    <div className="can-donate">
+                      <div className="compatibility-label">Có thể cho:</div>
+                      <div className="compatibility-types">AB</div>
+                    </div>
+                    <div className="can-receive">
+                      <div className="compatibility-label">Có thể nhận:</div>
+                      <div className="compatibility-types">Tất cả</div>
+                    </div>
+                  </div>
+                  <div className="blood-type-stats">
+                    <div className="stat-item">
+                      <div className="stat-number">4%</div>
+                      <div className="stat-label">Dân số</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Col>
+            
+            <Col md={6} lg={3}>
+              <div className="blood-type-card-modern blood-type-o">
+                <div className="card-background-pattern"></div>
+                <div className="blood-type-header">
+                  <div className="blood-type-symbol">O</div>
+                  <div className="blood-type-rh">
+                    <span className="rh-positive">Rh+</span>
+                    <span className="rh-negative">Rh-</span>
+                  </div>
+                </div>
+                <div className="blood-type-content">
+                  <h4 className="blood-type-name">Nhóm máu O</h4>
+                  <div className="compatibility-info">
+                    <div className="can-donate">
+                      <div className="compatibility-label">Có thể cho:</div>
+                      <div className="compatibility-types">Tất cả</div>
+                    </div>
+                    <div className="can-receive">
+                      <div className="compatibility-label">Có thể nhận:</div>
+                      <div className="compatibility-types">O</div>
+                    </div>
+                  </div>
+                  <div className="blood-type-stats">
+                    <div className="stat-item">
+                      <div className="stat-number">44%</div>
+                      <div className="stat-label">Dân số</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Col>
+          </Row>
+          
+          <div className="blood-type-legend">
+            <Container>
+              <Row className="justify-content-center">
+                <Col lg={10}>
+                  <div className="legend-content">
+                    <h5 className="legend-title">
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Thông tin về yếu tố Rh trong máu</Tooltip>}
+                      >
+                        <span>Tìm hiểu về yếu tố Rh <AlertOutlined /></span>
+                      </OverlayTrigger>
+                    </h5>
+                    <div className="legend-items">
+                      <div className="legend-item">
+                        <Badge bg="success" className="legend-badge">Rh+</Badge>
+                        <span>Có protein Rh trên bề mặt hồng cầu</span>
+                      </div>
+                      <div className="legend-item">
+                        <Badge bg="warning" className="legend-badge">Rh-</Badge>
+                        <span>Không có protein Rh trên bề mặt hồng cầu</span>
+                      </div>
+                      <div className="legend-item">
+                        <Badge bg="info" className="legend-badge">Lưu ý</Badge>
+                        <span>Yếu tố Rh quyết định khả năng tương thích khi truyền máu</span>
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </Container>
+          </div>
+        </Container>
+      </section>
 
       {/* CTA Section */}
       {renderCTASection()}
@@ -332,4 +573,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage; 
+export default HomePage;

@@ -23,13 +23,11 @@ import {
     Menu,
     Space,
     Typography,
-  } from "antd";
+  } from "antd";  
   import { useEffect, useState } from "react";
   import { Link, useLocation, useNavigate } from "react-router-dom";
+  import '../../styles/components.css';
 
-  
-  // Import CSS components
-  import "../../styles/components.css";
   
   const { Header } = Layout;
   const { Text } = Typography;
@@ -936,4 +934,3 @@ import {
   };
   
   export default AppHeader;
-  
