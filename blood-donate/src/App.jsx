@@ -13,6 +13,7 @@ import { MainLayout } from "./components/layout";
 // Context
 
 import { HomePage, NotFoundPage } from "./pages/common";
+import { LoginPage, RegisterPage } from "./pages/auth";
 
 // Y tế theme colors
 const healthTheme = {
@@ -78,6 +79,10 @@ function App() {
 
                 {/* 404 route */}
                 <Route path="*" element={<NotFoundPage />} />
+
+                <Route path="/login" element={<LoginPage />} />
+
+                <Route path="/register" element={<RegisterPage />} />
               </Routes>
             </MainLayout>
           </AntdApp>

@@ -213,8 +213,8 @@ import {
               label: "Hiến máu",
               children: [
                 {
-                  key: "/register-donor",
-                  label: <Link to="/register-donor">Đăng ký hiến máu</Link>,
+                          key: "/register",
+        label: <Link to="/register">Đăng ký hiến máu</Link>,
                 },
                 {
                   key: "/donor-guide",
