@@ -106,7 +106,21 @@
   font-weight: 600;
   border-radius: 50px;
   text-transform: uppercase;
-  letter-spacing: 1px;  transition: all 0.3s ease;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+/* White search button styles */
+.hero-cta-btn-white {
+  transition: all 0.3s ease;
+}
+
+.hero-cta-btn-white:hover {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: #dc3545 !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
 }
 
 /* Hero Banner Styles */

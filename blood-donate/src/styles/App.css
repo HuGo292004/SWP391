@@ -6,6 +6,18 @@
   overflow-x: hidden;
 }
 
+/* Import Google Fonts - Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Global font family */
+* {
+  font-family: var(--font-family) !important;
+}
+
+body {
+  font-family: var(--font-family) !important;
+}
+
 /* Y tế theme colors - đồng bộ với các màu trong AppHeader và ConfigProvider */
 :root {
   --color-primary: #1976d2;
@@ -18,6 +30,7 @@
   --color-warning: #ff9800;
   --color-error: #f44336;
   --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .logo {

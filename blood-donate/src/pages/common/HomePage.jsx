@@ -216,11 +216,17 @@ const HomePage = () => {
                   </Button>
                   
                   <Button 
-                    variant="outline-danger" 
+                    variant="light" 
                     size="lg" 
                     as={Link} 
                     to="/search-blood"
-                    className="hero-cta-btn-new mb-3"
+                    className="hero-cta-btn-new hero-cta-btn-white mb-3"
+                    style={{ 
+                      backgroundColor: 'white',
+                      color: '#dc3545',
+                      border: '2px solid white',
+                      fontWeight: '600'
+                    }}
                   >
                     <SearchOutlined className="me-2" />
                     Tìm Kiếm Nhóm Máu

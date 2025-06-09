@@ -9,7 +9,7 @@
 
 /* Left Panel - Login Form */
 .login-left-panel {
-  flex: 1;
+  flex: 1.2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,8 +17,9 @@
     linear-gradient(135deg, #ffffff 0%, #f8fafc 100%),
     url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%231976d2' opacity='0.02'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3Ccircle cx='10' cy='10' r='0.5'/%3E%3Ccircle cx='50' cy='10' r='0.5'/%3E%3Ccircle cx='10' cy='50' r='0.5'/%3E%3Ccircle cx='50' cy='50' r='0.5'/%3E%3C/g%3E%3C/svg%3E");
   background-size: cover, 60px 60px;
-  padding: 80px 60px;
+  padding: 60px 40px;
   position: relative;
+  overflow-y: auto;
 }
 
 .login-left-panel::before {
@@ -34,10 +35,10 @@
 
 /* Right Panel - Branding Section */
 .login-right-panel {
-  flex: 1;
+  flex: 0.8;
   background: 
     linear-gradient(135deg, rgba(25, 118, 210, 0.85) 0%, rgba(21, 101, 192, 0.8) 50%, rgba(13, 71, 161, 0.85) 100%),
-    url("https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"),
+    url("https://images.unsplash.com/photo-1615461066841-6116e61058f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"),
     linear-gradient(135deg, #1976d2 0%, #1565c0 50%, #0d47a1 100%);
   background-size: cover;
   background-position: center;
@@ -46,7 +47,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 80px 60px;
+  padding: 60px 40px;
   color: white;
   position: relative;
   overflow: hidden;
@@ -107,17 +108,17 @@
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 450px;
+  max-width: 400px;
   text-align: center;
 }
 
 .brand-logo {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
   text-align: center;
 }
 
 .brand-heart {
-  font-size: 56px;
+  font-size: 48px;
   color: #ff4757;
   animation: heartPulse 2.5s ease-in-out infinite;
   display: block;
@@ -135,7 +136,7 @@
 
 .brand-title {
   color: white !important;
-  font-size: 42px !important;
+  font-size: 36px !important;
   font-weight: 700 !important;
   margin: 0 0 12px 0 !important;
   letter-spacing: -0.5px;
@@ -146,9 +147,9 @@
 }
 
 .brand-subtitle {
-  font-size: 18px;
+  font-size: 16px;
   color: rgba(255, 255, 255, 0.95);
-  margin: 0 0 50px 0;
+  margin: 0 0 40px 0;
   font-weight: 400;
   line-height: 1.4;
   text-shadow: 
@@ -157,7 +158,7 @@
 }
 
 .features-list {
-  margin-bottom: 60px;
+  margin-bottom: 50px;
   width: 100%;
 }
 
@@ -165,10 +166,10 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 14px;
+  margin-bottom: 24px;
   text-align: left;
-  max-width: 350px;
+  max-width: 320px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -178,11 +179,11 @@
 }
 
 .feature-icon {
-  font-size: 22px;
+  font-size: 20px;
   color: #64b5f6;
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -196,7 +197,7 @@
 .feature-title {
   color: white;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
   margin: 0 0 4px 0;
   line-height: 1.3;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -204,7 +205,7 @@
 
 .feature-description {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.4;
   margin: 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -214,7 +215,7 @@
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 400px;
+  max-width: 360px;
   margin: 0 auto;
 }
 
@@ -224,7 +225,7 @@
 }
 
 .stats-section .ant-col {
-  padding: 0 16px;
+  padding: 0 12px;
   display: flex;
   justify-content: center;
 }
@@ -257,10 +258,10 @@
 
 .login-form-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 600px;
   position: relative;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 40px;
@@ -271,20 +272,20 @@
 }
 
 .login-form-container:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.15),
+    0 15px 50px rgba(0, 0, 0, 0.12),
     0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
 .form-header {
   text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
 }
 
 .form-title {
   color: #111827 !important;
-  font-size: 32px !important;
+  font-size: 28px !important;
   font-weight: 700 !important;
   margin: 0 0 8px 0 !important;
   line-height: 1.2;
@@ -386,11 +387,11 @@
 }
 
 .modern-input {
-  height: 48px !important;
+  height: 44px !important;
   border-radius: 8px !important;
   border: 1px solid #d1d5db !important;
   background: #ffffff !important;
-  font-size: 16px !important;
+  font-size: 15px !important;
   transition: all 0.2s ease !important;
   padding: 0 12px !important;
   width: 100%;
@@ -413,7 +414,7 @@
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
-  font-size: 16px !important;
+  font-size: 15px !important;
   line-height: 1.5 !important;
 }
 
@@ -436,9 +437,9 @@
 
 /* Modern Submit Button */
 .modern-submit-btn {
-  height: 48px !important;
+  height: 44px !important;
   border-radius: 8px !important;
-  font-size: 16px !important;
+  font-size: 15px !important;
   font-weight: 600 !important;
   background: #1976d2 !important;
   border: none !important;

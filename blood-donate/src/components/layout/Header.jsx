@@ -34,7 +34,7 @@ import {
   
   // Y tế theme colors - Cải thiện bảng màu
   const healthThemeColors = {
-    primary: "#1565C0", // Xanh dương y tế chuyên nghiệp hơn
+    primary: "#1976D2", // Xanh dương y tế giống footer
     secondary: "#42A5F5", // Xanh dương nhạt
     accent: "#E91E63", // Hồng accent
     light: "#F8FAFC", // Xám rất nhạt
@@ -43,10 +43,10 @@ import {
     success: "#2E7D32", // Xanh lá đậm hơn
     warning: "#F57C00", // Cam
     error: "#C62828", // Đỏ đậm
-    navBlue: "#0D47A1", // Xanh navbar đậm hơn
-    navLightBlue: "#1976D2", // Xanh active state
-    shadow: "rgba(13, 71, 161, 0.15)", // Shadow với màu xanh
-    gradient: "linear-gradient(135deg, #1565C0 0%, #1976D2 50%, #42A5F5 100%)",
+    navBlue: "#1976D2", // Xanh navbar giống primary
+    navLightBlue: "#1976D2", // Xanh active state giống primary
+    shadow: "rgba(25, 118, 210, 0.15)", // Shadow với màu xanh
+    gradient: "linear-gradient(135deg, #1976D2 0%, #1976D2 50%, #42A5F5 100%)",
   };
   
   const AppHeader = () => {
