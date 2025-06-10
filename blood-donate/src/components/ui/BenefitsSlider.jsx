@@ -175,10 +175,11 @@ const BenefitsSlider = () => {
           background: 'rgba(0,0,0,0.6)',
           opacity: 0.8
         }}
-      />      <Container fluid className="position-relative" style={{ zIndex: 2 }}>
+      />
+      <Container fluid className="position-relative" style={{ zIndex: 2 }}>
         <Row className="justify-content-center align-items-center h-100">
           <Col lg={10} xl={9}>
-            <Card className="border-0 shadow-lg bg-transparent" style={{ backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
+            <Card className="border-0 shadow-lg bg-transparent" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
               <Card.Body className="p-4">
                 <div className="text-center mb-4">
                   <div className="mb-3">

@@ -38,17 +38,11 @@ const LoginPage = () => {
         localStorage.setItem('userRole', account.role);
         localStorage.setItem('username', account.username);
         
-        // Navigate based on role
-        switch(account.role) {
-          case 'Admin':
-            navigate('/admin/dashboard');
-            break;
-          case 'Staff':
-            navigate('/staff/dashboard');
-            break;
-          default:
-            navigate('/member/dashboard');
-        }
+        // Trigger storage event to update header
+        window.dispatchEvent(new Event('storage'));
+        
+        // Navigate to home after login
+        navigate('/');
       } else {
         setError('Tên đăng nhập hoặc mật khẩu không đúng!');
       }
