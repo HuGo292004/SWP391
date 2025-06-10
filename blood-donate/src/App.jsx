@@ -14,6 +14,9 @@ import { MainLayout } from "./components/layout";
 
 import { HomePage, NotFoundPage } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
+import { AdminDashboard } from "./pages/admin";
+import { StaffDashboard } from "./pages/staff";
+import { MemberDashboard } from "./pages/member";
 
 // Y tế theme colors
 const healthTheme = {
@@ -77,12 +80,21 @@ function App() {
                 {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
                 <Route path="/" element={<HomePage />} />
 
+                {/* Auth routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+
+                {/* Admin routes */}
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+                {/* Staff routes */}
+                <Route path="/staff/dashboard" element={<StaffDashboard />} />
+
+                {/* Member routes */}
+                <Route path="/member/dashboard" element={<MemberDashboard />} />
+
                 {/* 404 route */}
                 <Route path="*" element={<NotFoundPage />} />
-
-                <Route path="/login" element={<LoginPage />} />
-
-                <Route path="/register" element={<RegisterPage />} />
               </Routes>
             </MainLayout>
           </AntdApp>

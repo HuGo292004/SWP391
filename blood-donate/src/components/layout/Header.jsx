@@ -56,13 +56,43 @@ import {
     const [scrolled, setScrolled] = useState(false);
     const [notificationVisible, setNotificationVisible] = useState(false);
     
-    // TODO: Replace with actual authentication context/hook
-    // For now, using fallbacks to prevent crashes
-    const user = null; // This should come from authentication context
-    const isAuthenticated = false; // This should come from authentication context
+    // Authentication state from localStorage
+    const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    
+    // Check authentication status on component mount and localStorage changes
+    useEffect(() => {
+      const checkAuth = () => {
+        const token = localStorage.getItem('userToken');
+        const username = localStorage.getItem('username');
+        const role = localStorage.getItem('userRole');
+        
+        if (token && username && role) {
+          setIsAuthenticated(true);
+          setUser({ username, role });
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      };
+      
+      checkAuth();
+      
+      // Listen for storage changes (e.g., when user logs in from another tab)
+      window.addEventListener('storage', checkAuth);
+      
+      return () => {
+        window.removeEventListener('storage', checkAuth);
+      };
+    }, []);
+    
     const logout = async () => { 
-      console.log('Logout function not implemented'); 
-      // This should come from authentication context
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userRole');
+      setIsAuthenticated(false);
+      setUser(null);
+      navigate('/');
     };
     
     const [notifications, setNotifications] = useState([
@@ -630,74 +660,122 @@ import {
                   {notificationVisible && <NotificationDropdown />}
                 </div>
   
-                {/* User Info Display - Desktop - Now Clickable */}
-                <div
-                  className="user-info-desktop"
-                  onClick={showDrawer}
-                  style={{
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    padding: "8px 12px",
-                    borderRadius: "12px",
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "rgba(255, 255, 255, 0.15)";
-                    e.target.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
-                    e.target.style.transform = "translateY(0)";
-                  }}
+                {/* User Info Display - Desktop - With Dropdown */}
+                <Dropdown
+                  overlay={
+                    <Menu
+                      items={[
+                        {
+                          key: 'profile',
+                          icon: <UserOutlined />,
+                          label: 'Hồ sơ cá nhân',
+                          onClick: () => navigate('/profile')
+                        },
+                        ...(user?.role === 'Admin' ? [{
+                          key: 'admin-dashboard',
+                          icon: <DashboardOutlined />,
+                          label: 'Admin Dashboard',
+                          onClick: () => navigate('/admin/dashboard')
+                        }] : []),
+                        ...(user?.role === 'Staff' ? [{
+                          key: 'staff-dashboard',
+                          icon: <DashboardOutlined />,
+                          label: 'Staff Dashboard',
+                          onClick: () => navigate('/staff/dashboard')
+                        }] : []),
+                        ...(user?.role === 'Member' ? [{
+                          key: 'member-dashboard',
+                          icon: <DashboardOutlined />,
+                          label: 'Member Dashboard',
+                          onClick: () => navigate('/member/dashboard')
+                        }] : []),
+                        { type: 'divider' },
+                        {
+                          key: 'logout',
+                          icon: <LogoutOutlined />,
+                          label: 'Đăng xuất',
+                          onClick: logout
+                        }
+                      ]}
+                      style={{
+                        backgroundColor: 'white',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}
+                    />
+                  }
+                  trigger={['click']}
+                  placement="bottomRight"
                 >
-                  <Avatar
-                    size={36}
-                    icon={<UserOutlined />}
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.2)",
-                      color: "white",
-                      border: "2px solid rgba(255, 255, 255, 0.3)",
-                    }}
-                  />
                   <div
+                    className="user-info-desktop"
                     style={{
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                      padding: "8px 12px",
+                      borderRadius: "12px",
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      backdropFilter: "blur(10px)",
+                      border: "1px solid rgba(255, 255, 255, 0.2)",
                       display: "flex",
-                      flexDirection: "column",
-                      lineHeight: "1.2",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.15)";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.transform = "translateY(0)";
                     }}
                   >
-                    <Text
-                      strong
+                    <Avatar
+                      size={36}
+                      icon={<UserOutlined />}
                       style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.2)",
                         color: "white",
-                        fontSize: "14px",
-                        marginBottom: "2px",
-                        display: "block",
+                        border: "2px solid rgba(255, 255, 255, 0.3)",
                       }}
-                    >
-                      {user?.fullName || "Người dùng"}
-                    </Text>
-                    <Text
+                    />
+                    <div
                       style={{
-                        color: "rgba(255, 255, 255, 0.8)",
-                        fontSize: "12px",
-                        display: "block",
+                        display: "flex",
+                        flexDirection: "column",
+                        lineHeight: "1.2",
                       }}
                     >
-                      {user?.email || "user@example.com"}
-                    </Text>
+                      <Text
+                        strong
+                        style={{
+                          color: "white",
+                          fontSize: "14px",
+                          marginBottom: "2px",
+                          display: "block",
+                        }}
+                      >
+                        {user?.username || "Người dùng"}
+                      </Text>
+                      <Text
+                        style={{
+                          color: "rgba(255, 255, 255, 0.8)",
+                          fontSize: "12px",
+                          display: "block",
+                        }}
+                      >
+                        {user?.role === 'Admin' ? 'Quản trị viên' : 
+                         user?.role === 'Staff' ? 'Nhân viên' : 
+                         user?.role === 'Member' ? 'Thành viên' : 'Người dùng'}
+                      </Text>
+                    </div>
+                    <MenuOutlined style={{ 
+                      fontSize: '16px', 
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      marginLeft: '8px'
+                    }} />
                   </div>
-                  {/* <MenuOutlined style={{ 
-                    fontSize: '16px', 
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    marginLeft: '8px'
-                  }} /> */}
-                </div>
+                </Dropdown>
               </>
             ) : (
               <Space size="middle">
@@ -833,14 +911,18 @@ import {
         >
           {isAuthenticated ? (
             <>
-              <div style={{ backgroundColor: healthThemeColors.light }}>
-                {/* <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ backgroundColor: healthThemeColors.light, padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                   <Avatar size={50} icon={<UserOutlined />} style={{ backgroundColor: healthThemeColors.primary }} />
                   <div>
-                    <Text strong style={{ display: 'block', fontSize: '16px' }}>{user?.fullName || 'Người dùng'}</Text>
-                    <Text type="secondary">{user?.email || 'user@example.com'}</Text>
+                    <Text strong style={{ display: 'block', fontSize: '16px' }}>{user?.username || 'Người dùng'}</Text>
+                    <Text type="secondary">
+                      {user?.role === 'Admin' ? 'Quản trị viên' : 
+                       user?.role === 'Staff' ? 'Nhân viên' : 
+                       user?.role === 'Member' ? 'Thành viên' : 'Người dùng'}
+                    </Text>
                   </div>
-                </div> */}
+                </div>
               </div>
   
               <Menu
