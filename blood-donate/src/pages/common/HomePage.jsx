@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Button as AntButton, Statistic, Space } from 'antd';
 import { 
   HeartOutlined, 
@@ -9,7 +9,7 @@ import {
   TeamOutlined,
   MedicineBoxOutlined
 } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { BenefitsSlider } from '../../components/ui';
 import { 
   Container, 
@@ -55,15 +55,43 @@ const bloodTypeCards = [
 ];
 
 const HomePage = () => {
-  // TODO: Replace with actual authentication context/hook
-  // For now, using fallback to prevent crashes
-  const user = null; // This should come from authentication context
-    // Function to render primary button based on user role
+  const location = useLocation();
+  const [user, setUser] = useState(null);
+  
+  // Check authentication status and user info
+  useEffect(() => {
+    const token = localStorage.getItem('userToken');
+    const username = localStorage.getItem('username');
+    const role = localStorage.getItem('userRole');
+    
+    if (token && username && role) {
+      setUser({ username, role });
+    }
+  }, []);
+  
+  // Determine if we're on the staff homepage
+  const isStaffHomepage = location.pathname === '/staff';    // Function to render primary button based on user role
   const renderPrimaryButton = () => {
     const userRole = user?.role;
     
+    // Override for staff homepage
+    if (isStaffHomepage) {
+      return (
+        <Button 
+          variant="danger" 
+          size="lg" 
+          as={Link} 
+          to="/staff/dashboard"
+          className="d-flex align-items-center gap-2 px-4 py-3"
+        >
+          <AlertOutlined style={{ fontSize: '18px' }} />
+          Vào Dashboard
+        </Button>
+      );
+    }
+    
     switch(userRole) {
-      case 'staff':
+      case 'Staff':
         return (
           <Button 
             variant="danger" 
@@ -77,7 +105,7 @@ const HomePage = () => {
           </Button>
         );
       
-      case 'admin':
+      case 'Admin':
         // Admin chỉ có tìm kiếm nhóm máu, không hiển thị primary button
         return null;
       
@@ -99,8 +127,37 @@ const HomePage = () => {
   const renderCTASection = () => {
     const userRole = user?.role;
     
-    switch(userRole) {
-      case 'staff':
+    // Override for staff homepage
+    if (isStaffHomepage) {
+      return (
+        <section className="cta-section bg-light">
+          <Container>
+            <Row className="justify-content-center text-center">
+              <Col lg={8}>
+                <div className="cta-content">
+                  <h2 className="cta-title text-danger">Chào mừng nhân viên y tế!</h2>
+                  <p className="cta-description">
+                    Truy cập dashboard để quản lý lịch hiến máu và xử lý các yêu cầu khẩn cấp.
+                  </p>
+                  <Button 
+                    variant="danger" 
+                    size="lg" 
+                    as={Link} 
+                    to="/staff/dashboard"
+                    className="cta-button d-flex align-items-center justify-content-center gap-2 mx-auto"
+                  >
+                    <AlertOutlined style={{ fontSize: '18px' }} />
+                    <span>Vào Dashboard</span>
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+          </Container>
+        </section>
+      );
+    }
+    
+    switch(userRole) {      case 'Staff':
         return (
           <section className="cta-section bg-light">
             <Container>
@@ -128,7 +185,7 @@ const HomePage = () => {
           </section>
         );
       
-      case 'admin':
+      case 'Admin':
         return (
           <section className="cta-section bg-light">
             <Container>
@@ -194,44 +251,92 @@ const HomePage = () => {
         
         <Container>
           <Row className="align-items-center min-vh-75">
-            <Col lg={8} className="mx-auto text-center">              <div className="hero-banner-content">                <h1 className="hero-banner-title-red mb-4">
-                  Hiến máu nhân đạo
-                  <span className="title-highlight-red">Phần mềm hỗ trợ hiến máu</span>
-                </h1><p className="hero-banner-subtitle-red mb-5">
-                  Nỗ lực nhỏ của bạn có thể cho người khác cơ hội thứ hai để sống.
-                  <br />
-                  Hãy gia nhập cộng đồng hiến máu nhân đạo, lan tỏa yêu thương.
-                </p>
-                
-                <div className="hero-banner-buttons-new">
-                  <Button 
-                    variant="danger" 
-                    size="lg" 
-                    as={Link} 
-                    to="/register"
-                    className="hero-cta-btn-new me-3 mb-3"
-                  >
-                    <HeartOutlined className="me-2" />
-                    Đăng Ký Hiến Máu
-                  </Button>
-                  
-                  <Button 
-                    variant="light" 
-                    size="lg" 
-                    as={Link} 
-                    to="/search-blood"
-                    className="hero-cta-btn-new hero-cta-btn-white mb-3"
-                    style={{ 
-                      backgroundColor: 'white',
-                      color: '#dc3545',
-                      border: '2px solid white',
-                      fontWeight: '600'
-                    }}
-                  >
-                    <SearchOutlined className="me-2" />
-                    Tìm Kiếm Nhóm Máu
-                  </Button>
-                </div>
+            <Col lg={8} className="mx-auto text-center">              <div className="hero-banner-content">
+                {isStaffHomepage ? (
+                  <>
+                    <h1 className="hero-banner-title-red mb-4">
+                      Chào mừng nhân viên y tế
+                      <span className="title-highlight-red">Hệ thống quản lý hiến máu</span>
+                    </h1>
+                    <p className="hero-banner-subtitle-red mb-5">
+                      Quản lý hiệu quả các hoạt động hiến máu và đáp ứng nhanh chóng các yêu cầu khẩn cấp.
+                      <br />
+                      Cùng nhau cứu sống nhiều người hơn mỗi ngày.
+                    </p>
+                    
+                    <div className="hero-banner-buttons-new">
+                      <Button 
+                        variant="danger" 
+                        size="lg" 
+                        as={Link} 
+                        to="/staff/dashboard"
+                        className="hero-cta-btn-new me-3 mb-3"
+                      >
+                        <AlertOutlined className="me-2" />
+                        Vào Dashboard
+                      </Button>
+                      
+                      <Button 
+                        variant="light" 
+                        size="lg" 
+                        as={Link} 
+                        to="/emergency-request"
+                        className="hero-cta-btn-new hero-cta-btn-white mb-3"
+                        style={{ 
+                          backgroundColor: 'white',
+                          color: '#dc3545',
+                          border: '2px solid white',
+                          fontWeight: '600'
+                        }}
+                      >
+                        <AlertOutlined className="me-2" />
+                        Yêu cầu khẩn cấp
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="hero-banner-title-red mb-4">
+                      Hiến máu nhân đạo
+                      <span className="title-highlight-red">Phần mềm hỗ trợ hiến máu</span>
+                    </h1>
+                    <p className="hero-banner-subtitle-red mb-5">
+                      Nỗ lực nhỏ của bạn có thể cho người khác cơ hội thứ hai để sống.
+                      <br />
+                      Hãy gia nhập cộng đồng hiến máu nhân đạo, lan tỏa yêu thương.
+                    </p>
+                    
+                    <div className="hero-banner-buttons-new">
+                      <Button 
+                        variant="danger" 
+                        size="lg" 
+                        as={Link} 
+                        to="/register"
+                        className="hero-cta-btn-new me-3 mb-3"
+                      >
+                        <HeartOutlined className="me-2" />
+                        Đăng Ký Hiến Máu
+                      </Button>
+                      
+                      <Button 
+                        variant="light" 
+                        size="lg" 
+                        as={Link} 
+                        to="/search-blood"
+                        className="hero-cta-btn-new hero-cta-btn-white mb-3"
+                        style={{ 
+                          backgroundColor: 'white',
+                          color: '#dc3545',
+                          border: '2px solid white',
+                          fontWeight: '600'
+                        }}
+                      >
+                        <SearchOutlined className="me-2" />
+                        Tìm Kiếm Nhóm Máu
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </Col>
           </Row>

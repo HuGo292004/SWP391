@@ -17,6 +17,9 @@ import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
 import { StaffDashboard } from "./pages/staff";
 import { MemberDashboard } from "./pages/member";
+import StaffFAQ from "./pages/staff/StaffFAQ";
+import StaffNews from "./pages/staff/StaffNews";
+import StaffSupport from "./pages/staff/StaffSupport";
 
 // Y tế theme colors
 const healthTheme = {
@@ -76,19 +79,21 @@ function App() {
         {/* <AuthProvider> - TODO: Import and setup authentication provider */}
           <AntdApp>
             <MainLayout>
-              <Routes>
-                {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
+              <Routes>                {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
                 <Route path="/" element={<HomePage />} />
 
                 {/* Auth routes */}
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/register" element={<RegisterPage />} />                {/* Staff routes - HomePage cho staff */}
+                <Route path="/staff" element={<HomePage />} />
+                <Route path="/staff/dashboard" element={<StaffDashboard />} />
+                  {/* Các trang khác cho staff context */}
+                <Route path="/staff/faq" element={<StaffFAQ />} />
+                <Route path="/staff/news" element={<StaffNews />} />
+                <Route path="/staff/support" element={<StaffSupport />} />
 
                 {/* Admin routes */}
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
-
-                {/* Staff routes */}
-                <Route path="/staff/dashboard" element={<StaffDashboard />} />
 
                 {/* Member routes */}
                 <Route path="/member/dashboard" element={<MemberDashboard />} />

@@ -37,12 +37,19 @@ const LoginPage = () => {
         localStorage.setItem('userToken', 'demo-token');
         localStorage.setItem('userRole', account.role);
         localStorage.setItem('username', account.username);
-        
-        // Trigger storage event to update header
+          // Trigger storage event to update header
         window.dispatchEvent(new Event('storage'));
         
-        // Navigate to home after login
-        navigate('/');
+        // Navigate based on role
+        if (account.role === 'Staff') {
+          navigate('/staff');
+        } else if (account.role === 'Admin') {
+          navigate('/admin/dashboard');
+        } else if (account.role === 'Member') {
+          navigate('/member/dashboard');
+        } else {
+          navigate('/');
+        }
       } else {
         setError('Tên đăng nhập hoặc mật khẩu không đúng!');
       }

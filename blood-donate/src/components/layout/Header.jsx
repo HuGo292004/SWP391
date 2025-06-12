@@ -59,8 +59,7 @@ import {
     // Authentication state from localStorage
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    
-    // Check authentication status on component mount and localStorage changes
+      // Check authentication status on component mount and localStorage changes
     useEffect(() => {
       const checkAuth = () => {
         const token = localStorage.getItem('userToken');
@@ -85,6 +84,25 @@ import {
         window.removeEventListener('storage', checkAuth);
       };
     }, []);
+
+    // Re-check authentication when location changes
+    useEffect(() => {
+      const checkAuth = () => {
+        const token = localStorage.getItem('userToken');
+        const username = localStorage.getItem('username');
+        const role = localStorage.getItem('userRole');
+        
+        if (token && username && role) {
+          setIsAuthenticated(true);
+          setUser({ username, role });
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      };
+      
+      checkAuth();
+    }, [location.pathname]);
     
     const logout = async () => { 
       localStorage.removeItem('userToken');
@@ -222,15 +240,20 @@ import {
         default:
           return "#1890FF";
       }
+    };    // Navigation items cho thanh màu xanh đậm - hiển thị dựa vào vai trò và location
+    const getNavItems = () => {
+      const isStaffPage = location.pathname.startsWith('/staff');
+      const baseItems = [
+        { key: "/", label: "TRANG CHỦ", path: isStaffPage ? "/staff" : "/" },
+        { key: "/faq", label: "HỎI - ĐÁP", path: isStaffPage ? "/staff/faq" : "/faq" },
+        { key: "/news", label: "TIN TỨC", path: isStaffPage ? "/staff/news" : "/news" },
+        { key: "/support", label: "LIÊN HỆ", path: isStaffPage ? "/staff/support" : "/support" },
+      ];
+      
+      return baseItems;
     };
-  
-    // Navigation items cho thanh màu xanh đậm - hiển thị dựa vào vai trò
-    const navItems = [
-      { key: "/", label: "TRANG CHỦ", path: "/" },
-      { key: "/faq", label: "HỎI - ĐÁP", path: "/faq" },
-      { key: "/news", label: "TIN TỨC", path: "/news" },
-      { key: "/support", label: "LIÊN HỆ", path: "/support" },
-    ];
+    
+    const navItems = getNavItems();
   
     // Thêm submenu cho các chức năng - hiển thị tất cả chức năng cho cả guest
     const menuItems = [
@@ -855,9 +878,13 @@ import {
                   height: "100%",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor:
-                    location.pathname === item.path
+                  justifyContent: "center",                  backgroundColor:
+                    (location.pathname === item.path) || 
+                    (item.label === "TRANG CHỦ" && location.pathname === "/" && item.path === "/") ||
+                    (item.label === "TRANG CHỦ" && location.pathname === "/staff" && item.path === "/staff") ||
+                    (item.label === "HỎI - ĐÁP" && (location.pathname === "/faq" || location.pathname === "/staff/faq")) ||
+                    (item.label === "TIN TỨC" && (location.pathname === "/news" || location.pathname === "/staff/news")) ||
+                    (item.label === "LIÊN HỆ" && (location.pathname === "/support" || location.pathname === "/staff/support"))
                       ? healthThemeColors.navLightBlue
                       : "transparent",
                   borderRight:
