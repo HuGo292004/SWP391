@@ -23,9 +23,9 @@ import {
     Menu,
     Space,
     Typography,
-  } from "antd";  
-  import { useEffect, useState } from "react";
+  } from "antd";    import { useEffect, useState } from "react";
   import { Link, useLocation, useNavigate } from "react-router-dom";
+  import { useAuth } from "../../contexts/AuthContext";
   import '../../styles/components.css';
 
   
@@ -48,13 +48,13 @@ import {
     shadow: "rgba(25, 118, 210, 0.15)", // Shadow với màu xanh
     gradient: "linear-gradient(135deg, #1976D2 0%, #1976D2 50%, #42A5F5 100%)",
   };
-  
-  const AppHeader = () => {
+    const AppHeader = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [visible, setVisible] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [notificationVisible, setNotificationVisible] = useState(false);
+    const { user: contextUser, logout: authLogout } = useAuth();
     
     // Check if current page is login or register
     const isAuthPage = location.pathname === '/login' || location.pathname === '/register';

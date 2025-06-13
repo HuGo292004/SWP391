@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, Alert, Spin, Space, Row, Col, message } from 'antd';
 import { UserOutlined, LockOutlined, HeartFilled, SafetyCertificateOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import '../../styles/LoginPage.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -11,6 +12,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Demo accounts
   const demoAccounts = {
@@ -27,9 +29,7 @@ const LoginPage = () => {
       // Check demo accounts
       const account = Object.values(demoAccounts).find(
         acc => acc.username === values.username && acc.password === values.password
-      );
-
-      if (account) {
+      );      if (account) {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1500));
         
@@ -37,6 +37,13 @@ const LoginPage = () => {
         localStorage.setItem('userToken', 'demo-token');
         localStorage.setItem('userRole', account.role);
         localStorage.setItem('username', account.username);
+        
+        // Update AuthContext
+        login({
+          username: account.username,
+          role: account.role,
+          token: 'demo-token'
+        });
         
         // Trigger storage event to update header
         window.dispatchEvent(new Event('storage'));

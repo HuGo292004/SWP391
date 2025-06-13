@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Carousel, Container, Row, Col, Button, Badge, Card } from 'react-bootstrap';
 import { HeartFilled, GiftOutlined, MedicineBoxOutlined, SafetyOutlined } from '@ant-design/icons';
-import styles from './BenefitsSlider.module.css';
+import '../../styles/BenefitsSlider.css';
 
 const BenefitsSlider = () => {
   const [index, setIndex] = useState(0);
@@ -96,7 +96,7 @@ const BenefitsSlider = () => {
     }
   ];  const renderIntroSlide = (benefit) => (
     <div 
-      className={styles.introSlide}
+      className="intro-slide"
       style={{ 
         backgroundImage: `url(${benefit.backgroundImage})`,
         backgroundSize: 'cover',
@@ -109,7 +109,7 @@ const BenefitsSlider = () => {
       }}
     >
       <div 
-        className={`position-absolute top-0 start-0 w-100 h-100 ${styles.gradientOverlay}`}
+        className="position-absolute top-0 start-0 w-100 h-100 gradient-overlay"
         style={{
           background: 'rgba(0,0,0,0.5)',
           opacity: 0.8
@@ -120,10 +120,10 @@ const BenefitsSlider = () => {
           <Col lg={6} xl={5} className="text-center">
             <div className="mb-4">
               {benefit.icon}
-            </div>            <h1 className={`display-5 fw-bold mb-3 ${styles.textShadow}`}>
+            </div>            <h1 className="display-5 fw-bold mb-3 text-shadow">
               {benefit.title}
             </h1>
-            <p className={`lead fs-4 mb-4 ${styles.textShadow}`}>
+            <p className="lead fs-4 mb-4 text-shadow">
               {benefit.subtitle}
             </p>
             <div className="d-flex justify-content-center">
@@ -131,7 +131,7 @@ const BenefitsSlider = () => {
                 <img 
                   src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?q=80&w=500&auto=format&fit=crop"
                   alt="Hiến máu"
-                  className={`rounded-circle shadow-lg ${styles.heartImage}`}
+                  className="rounded-circle shadow-lg heart-image"
                   style={{ 
                     width: '200px', 
                     height: '200px', 
@@ -157,7 +157,7 @@ const BenefitsSlider = () => {
     </div>
   );  const renderContentSlide = (benefit) => (
     <div 
-      className={styles.contentSlide}
+      className="content-slide"
       style={{ 
         backgroundImage: `url(${benefit.backgroundImage})`,
         backgroundSize: 'cover',

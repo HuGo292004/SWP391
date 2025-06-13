@@ -23,8 +23,6 @@ import {
 } from 'react-bootstrap';
 import '../../styles/HomePage.css';
 import '../../styles/banners.css';
-import '../../styles/RedBanner.css';
-import '../../styles/GoldenBanner.css';
 import '../../styles/pages.css';
 import '../../styles/criteria-fix.css'; // Import the CSS fixes for criteria list
 
@@ -196,7 +194,6 @@ const HomePage = () => {
           <Row className="align-items-center min-vh-75">
             <Col lg={8} className="mx-auto text-center">              <div className="hero-banner-content">                <h1 className="hero-banner-title-red mb-4">
                   Hiến máu nhân đạo
-                  <span className="title-highlight-red">Phần mềm hỗ trợ hiến máu</span>
                 </h1><p className="hero-banner-subtitle-red mb-5">
                   Nỗ lực nhỏ của bạn có thể cho người khác cơ hội thứ hai để sống.
                   <br />

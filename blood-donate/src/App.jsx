@@ -11,6 +11,7 @@ import { MainLayout } from "./components/layout";
 
 
 // Context
+import { AuthProvider } from "./contexts/AuthContext";
 
 import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
@@ -69,11 +70,10 @@ function App() {
         </AntdApp>
       </ConfigProvider>
     );
-  }
-  return(
+  }  return(
     <ConfigProvider theme={healthTheme}>
       <Router>
-        {/* <AuthProvider> - TODO: Import and setup authentication provider */}
+        <AuthProvider>
           <AntdApp>
             <MainLayout>
               <Routes>
@@ -104,7 +104,7 @@ function App() {
               </Routes>
             </MainLayout>
           </AntdApp>
-        {/* </AuthProvider> */}
+        </AuthProvider>
       </Router>
     </ConfigProvider>
   )
