@@ -12,7 +12,7 @@ import { MainLayout } from "./components/layout";
 
 // Context
 
-import { HomePage, NotFoundPage } from "./pages/common";
+import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
 import { StaffDashboard } from "./pages/staff";
@@ -79,6 +79,9 @@ function App() {
               <Routes>
                 {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
                 <Route path="/" element={<HomePage />} />
+                <Route path="/faq" element={<FAQPage />} />
+                <Route path="/news" element={<NewsPage />} />
+                <Route path="/support" element={<SupportPage />} />
 
                 {/* Auth routes */}
                 <Route path="/login" element={<LoginPage />} />
