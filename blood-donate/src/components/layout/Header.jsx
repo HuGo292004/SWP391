@@ -56,6 +56,9 @@ import {
     const [scrolled, setScrolled] = useState(false);
     const [notificationVisible, setNotificationVisible] = useState(false);
     
+    // Check if current page is login or register
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+    
     // Authentication state from localStorage
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -824,65 +827,67 @@ import {
           </Space>
         </Header>
   
-        {/* Blue Navigation Bar */}
-        <div
-          style={{
-            background: `linear-gradient(90deg, ${healthThemeColors.navBlue} 0%, #1565C0 100%)`,
-            borderBottom: "1px solid rgba(255,255,255,0.15)",
-            display: "flex",
-            justifyContent: "center",
-            height: "48px",
-            overflowX: "auto",
-            boxShadow: `0 2px 8px ${healthThemeColors.shadow}`,
-          }}
-        >
+        {/* Blue Navigation Bar - Hide on login and register pages */}
+        {!isAuthPage && (
           <div
             style={{
-              width: "100%",
-              maxWidth: "1200px",
+              background: `linear-gradient(90deg, ${healthThemeColors.navBlue} 0%, #1565C0 100%)`,
+              borderBottom: "1px solid rgba(255,255,255,0.15)",
               display: "flex",
               justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
+              height: "48px",
+              overflowX: "auto",
+              boxShadow: `0 2px 8px ${healthThemeColors.shadow}`,
             }}
           >
-            {navItems.map((item, index) => (
-              <Link
-                key={item.key}
-                to={item.path}
-                className="nav-item"
-                style={{
-                  color: "white",
-                  padding: "0 20px",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor:
-                    location.pathname === item.path
-                      ? healthThemeColors.navLightBlue
-                      : "transparent",
-                  borderRight:
-                    index !== navItems.length - 1
-                      ? "1px solid rgba(255,255,255,0.15)"
-                      : "none",
-                  fontWeight: "600",
-                  fontSize: "13px",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  flex: `1 1 ${100 / navItems.length}%`,
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                  textDecoration: "none",
-                  letterSpacing: "0.5px",
-                  textTransform: "uppercase",
-                  position: "relative",
-                }}
-              >
-                {item.label}
-              </Link>
-            ))}
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "1200px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
+              {navItems.map((item, index) => (
+                <Link
+                  key={item.key}
+                  to={item.path}
+                  className="nav-item"
+                  style={{
+                    color: "white",
+                    padding: "0 20px",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor:
+                      location.pathname === item.path
+                        ? healthThemeColors.navLightBlue
+                        : "transparent",
+                    borderRight:
+                      index !== navItems.length - 1
+                        ? "1px solid rgba(255,255,255,0.15)"
+                        : "none",
+                    fontWeight: "600",
+                    fontSize: "13px",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    flex: `1 1 ${100 / navItems.length}%`,
+                    textAlign: "center",
+                    whiteSpace: "nowrap",
+                    textDecoration: "none",
+                    letterSpacing: "0.5px",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
   
         {/* Mobile Drawer Menu */}
         <Drawer

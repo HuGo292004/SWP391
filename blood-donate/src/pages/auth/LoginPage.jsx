@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, Alert, Spin, Space, Row, Col } from 'antd';
+import { Form, Input, Button, Card, Typography, Alert, Spin, Space, Row, Col, message } from 'antd';
 import { UserOutlined, LockOutlined, HeartFilled, SafetyCertificateOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import '../../styles/LoginPage.css';
@@ -41,6 +41,15 @@ const LoginPage = () => {
         // Trigger storage event to update header
         window.dispatchEvent(new Event('storage'));
         
+        // Show success message
+        message.success({
+          content: `Chào mừng ${account.username} đã quay trở lại!`,
+          duration: 3,
+          style: {
+            marginTop: '2vh',
+          },
+        });
+
         // Navigate to home after login
         navigate('/');
       } else {
