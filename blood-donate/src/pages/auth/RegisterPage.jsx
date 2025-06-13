@@ -29,7 +29,7 @@ const RegisterPage = () => {
       
       console.log('Registration data:', values);
       
-      setSuccess('Đăng ký thành công! Chào mừng bạn đến với cộng đồng hiến máu.');
+      setSuccess('Đăng ký tài khoản thành công! Chào mừng bạn đến với cộng đồng hiến máu.');
       
       // Redirect to login after success
       setTimeout(() => {
@@ -37,7 +37,7 @@ const RegisterPage = () => {
       }, 2000);
       
     } catch (err) {
-      setError('Đăng ký thất bại. Vui lòng thử lại.');
+      setError('Đăng ký tài khoản thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -45,7 +45,7 @@ const RegisterPage = () => {
 
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
-    setError('Vui lòng kiểm tra lại thông tin đăng ký.');
+    setError('Vui lòng kiểm tra lại thông tin đăng ký tài khoản.');
   };
 
   const steps = [
@@ -207,7 +207,6 @@ const RegisterPage = () => {
                   <Radio.Group className="modern-radio-group">
                     <Radio value="male">Nam</Radio>
                     <Radio value="female">Nữ</Radio>
-                    <Radio value="other">Khác</Radio>
                   </Radio.Group>
                 </Form.Item>
               </Col>
@@ -394,8 +393,8 @@ const RegisterPage = () => {
       <div className="register-left-panel">
         <div className="register-form-container">
           <div className="form-header">
-            <Title level={2} className="form-title">Đăng ký hiến máu</Title>
-            <Text className="form-subtitle">Tham gia cộng đồng hiến máu nhân đạo</Text>
+            <Title level={2} className="form-title">Đăng ký tài khoản</Title>
+            <Text className="form-subtitle">Tạo tài khoản để tham gia cộng đồng hiến máu</Text>
           </div>
 
           {/* Steps */}
@@ -446,7 +445,7 @@ const RegisterPage = () => {
                   loading={loading}
                   className="submit-btn"
                 >
-                  {loading ? 'Đang xử lý...' : 'Hoàn tất đăng ký'}
+                  {loading ? 'Đang xử lý...' : 'Tạo tài khoản'}
                 </Button>
               )}
             </div>

@@ -16,7 +16,7 @@ import { HomePage, NotFoundPage } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
 import { StaffDashboard } from "./pages/staff";
-import { MemberDashboard } from "./pages/member";
+import { MemberDashboard, BloodDonationRegistration } from "./pages/member";
 
 // Y tế theme colors
 const healthTheme = {
@@ -83,6 +83,9 @@ function App() {
                 {/* Auth routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                
+                {/* Blood donation registration route - Public access */}
+                <Route path="/blood-donation-register" element={<BloodDonationRegistration />} />
 
                 {/* Admin routes */}
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />

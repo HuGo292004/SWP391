@@ -87,7 +87,7 @@ const HomePage = () => {
             variant="primary" 
             size="lg" 
             as={Link} 
-            to="/register"
+            to="/blood-donation-register"
             className="d-flex align-items-center gap-2 px-4 py-3"
           >
             <HeartOutlined style={{ fontSize: '18px' }} />
@@ -170,7 +170,7 @@ const HomePage = () => {
                       variant="danger" 
                       size="lg" 
                       as={Link} 
-                      to="/register"
+                      to="/blood-donation-register"
                       className="cta-button d-flex align-items-center justify-content-center gap-2 mx-auto"
                     >
                       <HeartOutlined style={{ fontSize: '18px' }} />
@@ -208,7 +208,7 @@ const HomePage = () => {
                     variant="danger" 
                     size="lg" 
                     as={Link} 
-                    to="/register"
+                    to="/blood-donation-register"
                     className="hero-cta-btn-new me-3 mb-3"
                   >
                     <HeartOutlined className="me-2" />
