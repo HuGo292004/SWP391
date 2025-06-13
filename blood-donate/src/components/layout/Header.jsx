@@ -243,8 +243,8 @@ import {
               label: "Hiến máu",
               children: [
                 {
-                          key: "/register",
-        label: <Link to="/register">Đăng ký hiến máu</Link>,
+                          key: "/blood-donation-register",
+        label: <Link to="/blood-donation-register">Đăng ký hiến máu</Link>,
                 },
                 {
                   key: "/donor-guide",
@@ -700,7 +700,9 @@ import {
                       style={{
                         backgroundColor: 'white',
                         borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        minWidth: '160px',
+                        padding: '4px 0'
                       }}
                     />
                   }

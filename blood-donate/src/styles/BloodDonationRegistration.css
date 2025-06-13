@@ -1,0 +1,446 @@
+/* Blood Donation Registration Styles */
+.blood-donation-registration-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e3f2fd 100%);
+  padding: 20px;
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  border-radius: 16px;
+  color: white;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+}
+
+.header-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.header-icon {
+  font-size: 60px;
+  color: #F44336;
+  margin-bottom: 20px;
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+.header-title {
+  color: white !important;
+  margin-bottom: 10px;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.header-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 1.2rem;
+  margin-bottom: 0;
+}
+
+.registration-content {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+}
+
+.steps-container {
+  margin-bottom: 40px;
+}
+
+.blood-donation-form .ant-steps {
+  margin-bottom: 40px;
+}
+
+.blood-donation-form .ant-steps .ant-steps-item {
+  cursor: default;
+}
+
+.blood-donation-form .ant-steps .ant-steps-item-content {
+  margin-top: 8px;
+}
+
+.blood-donation-form .ant-steps-item-title {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.blood-donation-form .ant-steps-item-description {
+  color: #7f8c8d;
+}
+
+.blood-donation-form .ant-steps-item-icon {
+  background-color: #1976D2 !important;
+  border-color: #1976D2 !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.blood-donation-form .ant-steps-item-icon .ant-steps-icon {
+  color: white !important;
+  font-size: 16px !important;
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.blood-donation-form .ant-steps-item-icon .anticon {
+  color: white !important;
+  font-size: 16px !important;
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.blood-donation-form .ant-steps-item-finish .ant-steps-item-icon {
+  background-color: #4CAF50 !important;
+  border-color: #4CAF50 !important;
+}
+
+.blood-donation-form .ant-steps-item-finish .ant-steps-item-icon .ant-steps-icon,
+.blood-donation-form .ant-steps-item-finish .ant-steps-item-icon .anticon {
+  color: white !important;
+}
+
+.blood-donation-form .ant-steps-item-process .ant-steps-item-icon {
+  background-color: #F44336 !important;
+  border-color: #F44336 !important;
+}
+
+.blood-donation-form .ant-steps-item-process .ant-steps-item-icon .ant-steps-icon,
+.blood-donation-form .ant-steps-item-process .ant-steps-item-icon .anticon {
+  color: white !important;
+}
+
+.blood-donation-form .ant-steps-item-wait .ant-steps-item-icon {
+  background-color: #e0e0e0 !important;
+  border-color: #e0e0e0 !important;
+}
+
+.blood-donation-form .ant-steps-item-wait .ant-steps-item-icon .ant-steps-icon,
+.blood-donation-form .ant-steps-item-wait .ant-steps-item-icon .anticon {
+  color: #9e9e9e !important;
+}
+
+/* Force display icons - override any hiding */
+.blood-donation-form .ant-steps-item-icon span[class*="anticon"] {
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  font-size: 16px !important;
+}
+
+.blood-donation-form .ant-steps-item-icon .ant-steps-icon span {
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.step-card {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.step-card .ant-card-head {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #e9ecef;
+  border-radius: 12px 12px 0 0;
+}
+
+.step-card .ant-card-head-title {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.step-card .ant-card-body {
+  padding: 30px;
+}
+
+.modern-input {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  transition: all 0.3s ease;
+  padding: 8px 12px;
+}
+
+.modern-input .anticon {
+  color: #1976D2;
+}
+
+.modern-input:focus,
+.modern-input:hover {
+  border-color: #1976D2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.modern-radio-group .ant-radio-wrapper {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.modern-radio-group .ant-radio-wrapper:hover {
+  background-color: #e3f2fd;
+}
+
+.form-actions {
+  margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 30px;
+  border-top: 1px solid #e9ecef;
+}
+
+.prev-btn {
+  background: #6c757d;
+  border-color: #6c757d;
+  color: white;
+  border-radius: 8px;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.prev-btn:hover {
+  background: #5a6268;
+  border-color: #5a6268;
+  color: white;
+}
+
+.next-btn,
+.submit-btn {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  min-width: 140px;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+}
+
+.next-btn:hover,
+.submit-btn:hover {
+  background: linear-gradient(135deg, #1565C0 0%, #0d47a1 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.submit-btn .anticon {
+  color: white;
+}
+
+.alert-message {
+  margin: 20px 0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.info-cards {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.info-card {
+  text-align: center;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.info-icon {
+  font-size: 3rem;
+  color: #1976D2;
+  margin-bottom: 1rem;
+}
+
+.info-card .ant-card-body {
+  padding: 30px 20px;
+}
+
+.info-card h4 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.info-card .ant-typography {
+  color: #6c757d;
+  line-height: 1.6;
+}
+
+.info-card .info-icon.anticon-heart {
+  color: #F44336 !important;
+}
+
+.info-card .info-icon.anticon-safety-certificate {
+  color: #4CAF50 !important;
+}
+
+.info-card .info-icon.anticon-medicine-box {
+  color: #1976D2 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .blood-donation-registration-container {
+    padding: 10px;
+  }
+
+  .registration-header {
+    padding: 30px 15px;
+    margin-bottom: 20px;
+  }
+
+  .header-title {
+    font-size: 2rem;
+  }
+
+  .header-subtitle {
+    font-size: 1rem;
+  }
+
+  .registration-content {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .step-card .ant-card-body {
+    padding: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .prev-btn,
+  .next-btn,
+  .submit-btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .info-cards .ant-col {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .header-icon {
+    font-size: 40px;
+  }
+
+  .header-title {
+    font-size: 1.8rem;
+  }
+
+  .registration-content {
+    padding: 15px;
+  }
+
+  .step-card .ant-card-body {
+    padding: 15px;
+  }
+}
+
+/* Form Field Enhancements */
+.ant-form-item-label > label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.ant-select-dropdown {
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.ant-picker-dropdown {
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.ant-checkbox-wrapper {
+  align-items: flex-start;
+  line-height: 1.5;
+}
+
+.ant-divider-horizontal.ant-divider-with-text {
+  margin: 30px 0;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Loading States */
+.blood-donation-form .ant-btn-loading {
+  pointer-events: none;
+}
+
+/* Success State */
+.ant-alert-success {
+  background-color: #e8f5e8;
+  border-color: #4CAF50;
+  color: #2e7d32;
+}
+
+/* Error State */
+.ant-alert-error {
+  background-color: #ffebee;
+  border-color: #F44336;
+  color: #c62828;
+}
+
+/* Tag styling for blood types */
+.ant-tag {
+  border-radius: 4px;
+  font-weight: 500;
+} 
