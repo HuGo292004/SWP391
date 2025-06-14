@@ -27,6 +27,7 @@ import {
   import { useEffect, useState } from "react";
   import { Link, useLocation, useNavigate } from "react-router-dom";
   import '../../styles/components.css';
+  import { getUserRoleFromPath, createRoleBasedPath } from '../../utils/roleUtils';
 
   
   const { Header } = Layout;
@@ -62,8 +63,7 @@ import {
     // Authentication state from localStorage
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    
-    // Check authentication status on component mount and localStorage changes
+      // Check authentication status on component mount and localStorage changes
     useEffect(() => {
       const checkAuth = () => {
         const token = localStorage.getItem('userToken');
@@ -88,6 +88,9 @@ import {
         window.removeEventListener('storage', checkAuth);
       };
     }, []);
+
+    // Get current role from URL or user object
+    const currentRole = getUserRoleFromPath(location.pathname) || user?.role;
     
     const logout = async () => { 
       localStorage.removeItem('userToken');
@@ -226,15 +229,29 @@ import {
           return "#1890FF";
       }
     };
-  
     // Navigation items cho thanh màu xanh đậm - hiển thị dựa vào vai trò
     const navItems = [
-      { key: "/", label: "TRANG CHỦ", path: "/" },
-      { key: "/faq", label: "HỎI - ĐÁP", path: "/faq" },
-      { key: "/news", label: "TIN TỨC", path: "/news" },
-      { key: "/support", label: "LIÊN HỆ", path: "/support" },
+      { 
+        key: currentRole ? `/${currentRole}` : "/", 
+        label: "TRANG CHỦ", 
+        path: currentRole ? `/${currentRole}` : "/" 
+      },
+      { 
+        key: currentRole ? `/${currentRole}/faq` : "/faq", 
+        label: "HỎI - ĐÁP", 
+        path: currentRole ? `/${currentRole}/faq` : "/faq" 
+      },
+      { 
+        key: currentRole ? `/${currentRole}/news` : "/news", 
+        label: "TIN TỨC", 
+        path: currentRole ? `/${currentRole}/news` : "/news" 
+      },
+      { 
+        key: currentRole ? `/${currentRole}/support` : "/support", 
+        label: "LIÊN HỆ", 
+        path: currentRole ? `/${currentRole}/support` : "/support" 
+      },
     ];
-  
     // Thêm submenu cho các chức năng - hiển thị tất cả chức năng cho cả guest
     const menuItems = [
       // Ẩn "Hiến máu" cho role staff và admin
@@ -246,17 +263,17 @@ import {
               label: "Hiến máu",
               children: [
                 {
-                          key: "/blood-donation-register",
-        label: <Link to="/blood-donation-register">Đăng ký hiến máu</Link>,
+                  key: createRoleBasedPath("/blood-donation-register", currentRole),
+                  label: <Link to={createRoleBasedPath("/blood-donation-register", currentRole)}>Đăng ký hiến máu</Link>,
                 },
                 {
-                  key: "/donor-guide",
-                  label: <Link to="/donor-guide">Hướng dẫn hiến máu</Link>,
+                  key: createRoleBasedPath("/donor-guide", currentRole),
+                  label: <Link to={createRoleBasedPath("/donor-guide", currentRole)}>Hướng dẫn hiến máu</Link>,
                 },
                 {
-                  key: "/donor-benefits",
+                  key: createRoleBasedPath("/donor-benefits", currentRole),
                   label: (
-                    <Link to="/donor-benefits">Quyền lợi người hiến máu</Link>
+                    <Link to={createRoleBasedPath("/donor-benefits", currentRole)}>Quyền lợi người hiến máu</Link>
                   ),
                 },
               ],
@@ -272,12 +289,12 @@ import {
               label: "Nhận máu",
               children: [
                 {
-                  key: "/request-blood",
-                  label: <Link to="/request-blood">Đăng ký nhận máu</Link>,
+                  key: createRoleBasedPath("/request-blood", currentRole),
+                  label: <Link to={createRoleBasedPath("/request-blood", currentRole)}>Đăng ký nhận máu</Link>,
                 },
                 {
-                  key: "/recipient-guide",
-                  label: <Link to="/recipient-guide">Hướng dẫn nhận máu</Link>,
+                  key: createRoleBasedPath("/recipient-guide", currentRole),
+                  label: <Link to={createRoleBasedPath("/recipient-guide", currentRole)}>Hướng dẫn nhận máu</Link>,
                 },
               ],
             },
@@ -292,24 +309,23 @@ import {
               label: "Tìm kiếm",
               children: [
                 {
-                  key: "/search-blood",
-                  label: <Link to="/search-blood">Tìm nhóm máu</Link>,
+                  key: createRoleBasedPath("/search-blood", currentRole),
+                  label: <Link to={createRoleBasedPath("/search-blood", currentRole)}>Tìm nhóm máu</Link>,
                 },
                 {
-                  key: "/blood-banks",
-                  label: <Link to="/blood-banks">Ngân hàng máu</Link>,
+                  key: createRoleBasedPath("/blood-banks", currentRole),
+                  label: <Link to={createRoleBasedPath("/blood-banks", currentRole)}>Ngân hàng máu</Link>,
                 },
               ],
             },
           ]
-        : []),
-      // Ẩn "Yêu cầu khẩn cấp" cho role member và admin
+        : []),      // Ẩn "Yêu cầu khẩn cấp" cho role member và admin
       ...(user?.role !== "member" && user?.role !== "admin"
         ? [
             {
-              key: "/emergency-request",
+              key: createRoleBasedPath("/emergency-request", currentRole),
               icon: <AlertOutlined />,
-              label: <Link to="/emergency-request">Yêu cầu khẩn cấp</Link>,
+              label: <Link to={createRoleBasedPath("/emergency-request", currentRole)}>Yêu cầu khẩn cấp</Link>,
             },
           ]
         : []),
@@ -317,10 +333,10 @@ import {
       ...(isAuthenticated
         ? [
             {
-              key: "/dashboard",
+              key: createRoleBasedPath("/dashboard", currentRole),
               icon: <DashboardOutlined />,
               label: (
-                <Link to={user?.role ? `/${user.role}/dashboard` : "/dashboard"}>
+                <Link to={createRoleBasedPath("/dashboard", currentRole)}>
                   Dashboard
                 </Link>
               ),
@@ -515,7 +531,7 @@ import {
             type="link"
             onClick={() => {
               setNotificationVisible(false);
-              navigate("/notifications");
+              navigate(createRoleBasedPath("/notifications", currentRole));
             }}
             style={{
               color: healthThemeColors.primary,
@@ -564,9 +580,8 @@ import {
               cursor: "pointer",
               letterSpacing: "-0.5px",
             }}
-          >
-            <Link
-              to="/"
+          >            <Link
+              to={currentRole ? `/${currentRole}` : "/"}
               style={{
                 color: "inherit",
                 textDecoration: "none",
@@ -672,25 +687,25 @@ import {
                           key: 'profile',
                           icon: <UserOutlined />,
                           label: 'Hồ sơ cá nhân',
-                          onClick: () => navigate('/profile')
+                          onClick: () => navigate(createRoleBasedPath('/profile', currentRole))
                         },
                         ...(user?.role === 'Admin' ? [{
                           key: 'admin-dashboard',
                           icon: <DashboardOutlined />,
                           label: 'Admin Dashboard',
-                          onClick: () => navigate('/admin/dashboard')
+                          onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
                         }] : []),
                         ...(user?.role === 'Staff' ? [{
                           key: 'staff-dashboard',
                           icon: <DashboardOutlined />,
                           label: 'Staff Dashboard',
-                          onClick: () => navigate('/staff/dashboard')
+                          onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
                         }] : []),
                         ...(user?.role === 'Member' ? [{
                           key: 'member-dashboard',
                           icon: <DashboardOutlined />,
                           label: 'Member Dashboard',
-                          onClick: () => navigate('/member/dashboard')
+                          onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
                         }] : []),
                         { type: 'divider' },
                         {

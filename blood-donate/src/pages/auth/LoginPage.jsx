@@ -48,10 +48,9 @@ const LoginPage = () => {
           style: {
             marginTop: '2vh',
           },
-        });
-
-        // Navigate to home after login
-        navigate('/');
+        });        // Navigate to role-based home after login
+        const role = account.role.toLowerCase();
+        navigate(`/${role}`);
       } else {
         setError('Tên đăng nhập hoặc mật khẩu không đúng!');
       }

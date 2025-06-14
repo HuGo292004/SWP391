@@ -9,7 +9,7 @@ import {
   TeamOutlined,
   MedicineBoxOutlined
 } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { BenefitsSlider } from '../../components/ui';
 import { 
   Container, 
@@ -21,6 +21,7 @@ import {
   OverlayTrigger,
   Tooltip
 } from 'react-bootstrap';
+import { getUserRoleFromPath, createRoleBasedPath } from '../../utils/roleUtils';
 import '../../styles/HomePage.css';
 import '../../styles/banners.css';
 import '../../styles/RedBanner.css';
@@ -55,13 +56,11 @@ const bloodTypeCards = [
 ];
 
 const HomePage = () => {
-  // TODO: Replace with actual authentication context/hook
-  // For now, using fallback to prevent crashes
-  const user = null; // This should come from authentication context
-    // Function to render primary button based on user role
+  const location = useLocation();
+  const userRole = getUserRoleFromPath(location.pathname);
+
+  // Function to render primary button based on user role
   const renderPrimaryButton = () => {
-    const userRole = user?.role;
-    
     switch(userRole) {
       case 'staff':
         return (
@@ -69,7 +68,7 @@ const HomePage = () => {
             variant="danger" 
             size="lg" 
             as={Link} 
-            to="/emergency-request"
+            to={createRoleBasedPath("/emergency-request", userRole)}
             className="d-flex align-items-center gap-2 px-4 py-3"
           >
             <AlertOutlined style={{ fontSize: '18px' }} />
@@ -87,7 +86,7 @@ const HomePage = () => {
             variant="primary" 
             size="lg" 
             as={Link} 
-            to="/blood-donation-register"
+            to={createRoleBasedPath("/blood-donation-register", userRole)}
             className="d-flex align-items-center gap-2 px-4 py-3"
           >
             <HeartOutlined style={{ fontSize: '18px' }} />
@@ -95,10 +94,10 @@ const HomePage = () => {
           </Button>
         );
     }
-  };  // Function to render CTA section based on user role
+  };
+  
+  // Function to render CTA section based on user role
   const renderCTASection = () => {
-    const userRole = user?.role;
-    
     switch(userRole) {
       case 'staff':
         return (
@@ -115,7 +114,7 @@ const HomePage = () => {
                       variant="danger" 
                       size="lg" 
                       as={Link} 
-                      to="/emergency-request"
+                      to={createRoleBasedPath("/emergency-request", userRole)}
                       className="cta-button d-flex align-items-center gap-2 mx-auto"
                     >
                       <AlertOutlined style={{ fontSize: '18px' }} />
@@ -143,7 +142,7 @@ const HomePage = () => {
                       variant="primary" 
                       size="lg" 
                       as={Link} 
-                      to="/search-blood"
+                      to={createRoleBasedPath("/search-blood", userRole)}
                       className="cta-button d-flex align-items-center gap-2 mx-auto"
                     >
                       <SearchOutlined style={{ fontSize: '18px' }} />
@@ -166,11 +165,12 @@ const HomePage = () => {
                     <h2 className="cta-title text-danger">Sẵn sàng hiến máu?</h2>
                     <p className="cta-description">
                       Đăng ký ngay hôm nay và trở thành một phần của cộng đồng hiến máu cứu người.
-                    </p>                    <Button 
+                    </p>
+                    <Button 
                       variant="danger" 
                       size="lg" 
                       as={Link} 
-                      to="/blood-donation-register"
+                      to={createRoleBasedPath("/blood-donation-register", userRole)}
                       className="cta-button d-flex align-items-center justify-content-center gap-2 mx-auto"
                     >
                       <HeartOutlined style={{ fontSize: '18px' }} />
@@ -182,9 +182,14 @@ const HomePage = () => {
             </Container>
           </section>
         );
-    }  };return (
-    <div className="homepage">      {/* Hero Banner Section */}
-      <section className="hero-banner-new">        <div className="banner-image-container">
+    }
+  };
+
+  return (
+    <div className="homepage">
+      {/* Hero Banner Section */}
+      <section className="hero-banner-new">
+        <div className="banner-image-container">
           <img 
             src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?q=80&w=1920&h=1080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
             alt="Blood Donation" 
@@ -194,10 +199,13 @@ const HomePage = () => {
         
         <Container>
           <Row className="align-items-center min-vh-75">
-            <Col lg={8} className="mx-auto text-center">              <div className="hero-banner-content">                <h1 className="hero-banner-title-red mb-4">
+            <Col lg={8} className="mx-auto text-center">
+              <div className="hero-banner-content">
+                <h1 className="hero-banner-title-red mb-4">
                   Hiến máu nhân đạo
                   <span className="title-highlight-red">Phần mềm hỗ trợ hiến máu</span>
-                </h1><p className="hero-banner-subtitle-red mb-5">
+                </h1>
+                <p className="hero-banner-subtitle-red mb-5">
                   Nỗ lực nhỏ của bạn có thể cho người khác cơ hội thứ hai để sống.
                   <br />
                   Hãy gia nhập cộng đồng hiến máu nhân đạo, lan tỏa yêu thương.
@@ -208,7 +216,7 @@ const HomePage = () => {
                     variant="danger" 
                     size="lg" 
                     as={Link} 
-                    to="/blood-donation-register"
+                    to={createRoleBasedPath("/blood-donation-register", userRole)}
                     className="hero-cta-btn-new me-3 mb-3"
                   >
                     <HeartOutlined className="me-2" />
@@ -219,7 +227,7 @@ const HomePage = () => {
                     variant="light" 
                     size="lg" 
                     as={Link} 
-                    to="/search-blood"
+                    to={createRoleBasedPath("/search-blood", userRole)}
                     className="hero-cta-btn-new hero-cta-btn-white mb-3"
                     style={{ 
                       backgroundColor: 'white',
@@ -236,340 +244,196 @@ const HomePage = () => {
             </Col>
           </Row>
         </Container>
-      </section>{/* Statistics Section */}
-      <section className="statistics-section">
+      </section>
+
+      {/* Statistics Section */}
+      <section className="statistics-section py-5 bg-light">
         <Container>
-          <Row className="g-4">
-            <Col md={6} lg={3}>
-              <Card className="statistics-card hover-card">
+          <Row className="text-center mb-5">
+            <Col>
+              <h2 className="section-title mb-4">Thống kê hệ thống</h2>
+              <p className="section-subtitle">
+                Những con số ấn tượng về hoạt động hiến máu
+              </p>
+            </Col>
+          </Row>
+          
+          <Row className="justify-content-center">
+            <Col md={3} sm={6} className="mb-4">
+              <Card className="stat-card text-center h-100 border-0 shadow-sm">
                 <Card.Body>
-                  <div className="statistics-icon">
-                    <TeamOutlined style={{ fontSize: '32px', color: 'white' }} />
+                  <div className="stat-icon text-danger mb-3">
+                    <HeartOutlined style={{ fontSize: '48px' }} />
                   </div>
-                  <div className="statistics-number">2,500</div>
-                  <p className="statistics-label">Người hiến máu</p>
+                  <Statistic
+                    title={<span className="stat-title">Người hiến máu</span>}
+                    value={15420}
+                    valueStyle={{ color: '#dc3545', fontSize: '2.5rem', fontWeight: 'bold' }}
+                  />
                 </Card.Body>
               </Card>
             </Col>
-            <Col md={6} lg={3}>
-              <Card className="statistics-card hover-card">
+            
+            <Col md={3} sm={6} className="mb-4">
+              <Card className="stat-card text-center h-100 border-0 shadow-sm">
                 <Card.Body>
-                  <div className="statistics-icon">
-                    <HeartOutlined style={{ fontSize: '32px', color: 'white' }} />
+                  <div className="stat-icon text-primary mb-3">
+                    <MedicineBoxOutlined style={{ fontSize: '48px' }} />
                   </div>
-                  <div className="statistics-number">3,750</div>
-                  <p className="statistics-label">Đơn vị máu</p>
+                  <Statistic
+                    title={<span className="stat-title">Đơn vị máu</span>}
+                    value={28750}
+                    valueStyle={{ color: '#0d6efd', fontSize: '2.5rem', fontWeight: 'bold' }}
+                  />
                 </Card.Body>
               </Card>
             </Col>
-            <Col md={6} lg={3}>
-              <Card className="statistics-card hover-card">
+            
+            <Col md={3} sm={6} className="mb-4">
+              <Card className="stat-card text-center h-100 border-0 shadow-sm">
                 <Card.Body>
-                  <div className="statistics-icon">
-                    <TeamOutlined style={{ fontSize: '32px', color: 'white' }} />
+                  <div className="stat-icon text-success mb-3">
+                    <TeamOutlined style={{ fontSize: '48px' }} />
                   </div>
-                  <div className="statistics-number">7,800</div>
-                  <p className="statistics-label">Người được cứu</p>
+                  <Statistic
+                    title={<span className="stat-title">Người thụ hưởng</span>}
+                    value={8960}
+                    valueStyle={{ color: '#198754', fontSize: '2.5rem', fontWeight: 'bold' }}
+                  />
                 </Card.Body>
               </Card>
             </Col>
-            <Col md={6} lg={3}>
-              <Card className="statistics-card hover-card">
+            
+            <Col md={3} sm={6} className="mb-4">
+              <Card className="stat-card text-center h-100 border-0 shadow-sm">
                 <Card.Body>
-                  <div className="statistics-icon">
-                    <AlertOutlined style={{ fontSize: '32px', color: 'white' }} />
+                  <div className="stat-icon text-warning mb-3">
+                    <BarChartOutlined style={{ fontSize: '48px' }} />
                   </div>
-                  <div className="statistics-number">15</div>
-                  <p className="statistics-label">Yêu cầu khẩn cấp</p>
+                  <Statistic
+                    title={<span className="stat-title">Tỷ lệ thành công</span>}
+                    value={97.2}
+                    suffix="%"
+                    valueStyle={{ color: '#fd7e14', fontSize: '2.5rem', fontWeight: 'bold' }}
+                  />
                 </Card.Body>
               </Card>
             </Col>
+          </Row>
+        </Container>
+      </section>
+
+      {/* Blood Type Information Section */}
+      <section className="blood-type-section py-5">
+        <Container>
+          <Row className="mb-5">
+            <Col lg={8} className="mx-auto text-center">
+              <h2 className="section-title mb-4">Thông tin nhóm máu</h2>
+              <p className="section-subtitle">
+                Hiểu rõ về các nhóm máu và khả năng tương thích trong việc hiến và nhận máu
+              </p>
+            </Col>
+          </Row>
+          
+          <Row>
+            {bloodTypeCards.map((card, index) => (
+              <Col lg={3} md={6} className="mb-4" key={index}>
+                <Card className="blood-type-card h-100 border-0 shadow-sm">
+                  <Card.Body className="text-center">
+                    <div className="mb-3">
+                      {card.icon}
+                    </div>
+                    <Card.Title className="mb-3">{card.title}</Card.Title>
+                    <Card.Text className="text-muted">
+                      {card.description}
+                    </Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
           </Row>
         </Container>
       </section>
 
       {/* Benefits Slider Section */}
-      <BenefitsSlider />      {/* Eligibility Criteria Section */}      <section className="eligibility-section">
+      <section className="benefits-section py-5 bg-light">
         <Container>
-          <div className="section-header-modern">
-            <div className="section-badge">
-              <MedicineBoxOutlined style={{ fontSize: '18px' }} />
-              <span>Tiêu chuẩn</span>
-            </div>
-            <h2 className="section-title-modern">Tiêu chuẩn tham gia hiến máu</h2>
-            <p className="section-subtitle-modern">
-              Đảm bảo an toàn cho người hiến và người nhận máu
-            </p>
-          </div>
-          
-          <Row className="g-3 d-flex align-items-stretch">
-            <Col lg={6}>
-              <Card className="eligibility-card eligibility-allowed">
-                <Card.Body>
-                  <div className="eligibility-header">
-                    <div className="eligibility-icon">
-                      <HeartOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
-                    </div>
-                    <h5 className="eligibility-title">Được phép hiến máu</h5>
-                  </div>                  <div className="eligibility-content">
-                    <div className="criteria-group">
-                      <h6 className="criteria-title">Điều kiện cơ bản</h6>
-                      <ul className="criteria-list">
-                        <li>Nam: 18-60 tuổi, ≥ 45kg</li>
-                        <li>Nữ: 18-55 tuổi, ≥ 45kg</li>
-                        <li>Khỏe mạnh, không sốt, không mệt mỏi</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="criteria-group">
-                      <h6 className="criteria-title">Các chỉ số sức khỏe</h6>
-                      <ul className="criteria-list">
-                        <li>Huyết áp: 100-160/60-100 mmHg</li>
-                        <li>Mạch: 60-100 lần/phút</li>
-                        <li>Hemoglobin: Nam ≥125g/L, Nữ ≥120g/L</li>
-                      </ul>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            
-            <Col lg={6}>
-              <Card className="eligibility-card eligibility-restricted">
-                <Card.Body>
-                  <div className="eligibility-header">
-                    <div className="eligibility-icon">
-                      <AlertOutlined style={{ fontSize: '24px', color: '#ff4d4f' }} />
-                    </div>
-                    <h5 className="eligibility-title">Không được hiến máu khi</h5>
-                  </div>                  <div className="eligibility-content">
-                    <div className="criteria-group">
-                      <h6 className="criteria-title">Vấn đề sức khỏe</h6>
-                      <ul className="criteria-list">
-                        <li>Bệnh tim mạch, huyết áp cao, tiểu đường</li>
-                        <li>Đang mắc bệnh cấp tính hoặc mãn tính</li>
-                        <li>Vừa phẫu thuật hoặc đang dùng kháng sinh</li>
-                        <li>Bệnh gan, thận mãn tính</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="criteria-group">
-                      <h6 className="criteria-title">Các trường hợp đặc biệt</h6>
-                      <ul className="criteria-list">
-                        <li>Phụ nữ đang mang thai hoặc cho con bú</li>
-                        <li>Uống rượu trong vòng 24h trước hiến máu</li>
-                        <li>Tiêm vaccine trong vòng 7-14 ngày</li>
-                        <li>Có nguy cơ cao về HIV hoặc viêm gan</li>
-                      </ul>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
+          <Row className="mb-5">
+            <Col lg={8} className="mx-auto text-center">
+              <h2 className="section-title mb-4">Lợi ích của việc hiến máu</h2>
+              <p className="section-subtitle">
+                Hiến máu không chỉ cứu sống người khác mà còn mang lại nhiều lợi ích cho bản thân bạn
+              </p>
             </Col>
           </Row>
-            <Row className="mt-4">
+          
+          <Row>
             <Col>
-              <div className="eligibility-note">
-                <div className="note-icon">
-                  <MedicineBoxOutlined style={{ fontSize: '20px', color: 'white' }} />
-                </div>
-                <div className="note-content">
-                  <h6>Lưu ý quan trọng</h6>
-                  <p>
-                    <strong>Khoảng cách giữa các lần hiến máu:</strong> Nam tối thiểu 12 tuần, nữ tối thiểu 16 tuần.
-                  </p>
-                  <p>
-                    <strong>Hồi phục sau hiến máu:</strong> Uống nhiều nước, nghỉ ngơi đủ, tránh các hoạt động gắng sức trong 24 giờ.
-                  </p>
-                  <p>
-                    <strong>Xét nghiệm sàng lọc:</strong> Trước khi hiến máu, bạn sẽ được kiểm tra các chỉ số sức khỏe và xét nghiệm sàng lọc các bệnh lây truyền qua đường máu.
-                  </p>
-                  <p>
-                    <strong>Lượng máu hiến:</strong> Mỗi lần hiến máu toàn phần là 250-450ml tùy theo cân nặng và thể trạng.
-                  </p>
-                </div>
-              </div>
+              <BenefitsSlider />
             </Col>
           </Row>
         </Container>
       </section>
 
-      {/* Blood Types Section - Redesigned */}
-      <section className="blood-types-section-new">
+      {/* Donation Criteria Section */}
+      <section className="criteria-section py-5">
         <Container>
-          <div className="section-header-modern">
-            <div className="section-badge">
-              <MedicineBoxOutlined style={{ fontSize: '20px' }} />
-              <span>Kiến thức y tế</span>
-            </div>
-            <h2 className="section-title-modern">Thông tin các nhóm máu</h2>
-            <p className="section-subtitle-modern">
-              Khám phá sự tương thích và đặc điểm độc đáo của từng nhóm máu
-            </p>
-          </div>
-          
-          <Row className="g-4 blood-type-grid">
-            <Col md={6} lg={3}>
-              <div className="blood-type-card-modern blood-type-a">
-                <div className="card-background-pattern"></div>
-                <div className="blood-type-header">
-                  <div className="blood-type-symbol">A</div>
-                  <div className="blood-type-rh">
-                    <span className="rh-positive">Rh+</span>
-                    <span className="rh-negative">Rh-</span>
-                  </div>
+          <Row>
+            <Col lg={6} className="mb-4">
+              <h2 className="section-title mb-4">Tiêu chí hiến máu</h2>
+              <div className="criteria-list">
+                <div className="criteria-item">
+                  <Badge bg="success" className="criteria-badge">✓</Badge>
+                  <span>Tuổi từ 18-60 (lần đầu hiến máu tối đa 55 tuổi)</span>
                 </div>
-                <div className="blood-type-content">
-                  <h4 className="blood-type-name">Nhóm máu A</h4>
-                  <div className="compatibility-info">
-                    <div className="can-donate">
-                      <div className="compatibility-label">Có thể cho:</div>
-                      <div className="compatibility-types">A, AB</div>
-                    </div>
-                    <div className="can-receive">
-                      <div className="compatibility-label">Có thể nhận:</div>
-                      <div className="compatibility-types">A, O</div>
-                    </div>
-                  </div>
-                  <div className="blood-type-stats">
-                    <div className="stat-item">
-                      <div className="stat-number">42%</div>
-                      <div className="stat-label">Dân số</div>
-                    </div>
-                  </div>
+                <div className="criteria-item">
+                  <Badge bg="success" className="criteria-badge">✓</Badge>
+                  <span>Cân nặng tối thiểu 45kg đối với nam, 42kg đối với nữ</span>
+                </div>
+                <div className="criteria-item">
+                  <Badge bg="success" className="criteria-badge">✓</Badge>
+                  <span>Huyết áp trong khoảng 90-160 mmHg (tâm thu)</span>
+                </div>
+                <div className="criteria-item">
+                  <Badge bg="success" className="criteria-badge">✓</Badge>
+                  <span>Không mắc các bệnh truyền nhiễm qua đường máu</span>
+                </div>
+                <div className="criteria-item">
+                  <Badge bg="success" className="criteria-badge">✓</Badge>
+                  <span>Khoảng cách giữa 2 lần hiến máu tối thiểu 12 tuần</span>
+                </div>
+                <div className="criteria-item">
+                  <Badge bg="success" className="criteria-badge">✓</Badge>
+                  <span>Sức khỏe tốt, không trong thời kỳ mang thai hoặc cho con bú</span>
                 </div>
               </div>
             </Col>
             
-            <Col md={6} lg={3}>
-              <div className="blood-type-card-modern blood-type-b">
-                <div className="card-background-pattern"></div>
-                <div className="blood-type-header">
-                  <div className="blood-type-symbol">B</div>
-                  <div className="blood-type-rh">
-                    <span className="rh-positive">Rh+</span>
-                    <span className="rh-negative">Rh-</span>
+            <Col lg={6}>
+              <h2 className="section-title mb-4">Yếu tố Rh</h2>
+              <p className="mb-4">
+                Yếu tố Rh là một protein có thể có hoặc không có trên bề mặt tế bào hồng cầu. 
+                Điều này quyết định nhóm máu của bạn là Rh dương tính (+) hay Rh âm tính (-).
+              </p>
+              
+              <div className="rh-info">
+                <div className="rh-legend">
+                  <div className="legend-item">
+                    <Badge bg="success" className="legend-badge">Rh+</Badge>
+                    <span>Có protein Rh trên bề mặt hồng cầu</span>
                   </div>
-                </div>
-                <div className="blood-type-content">
-                  <h4 className="blood-type-name">Nhóm máu B</h4>
-                  <div className="compatibility-info">
-                    <div className="can-donate">
-                      <div className="compatibility-label">Có thể cho:</div>
-                      <div className="compatibility-types">B, AB</div>
-                    </div>
-                    <div className="can-receive">
-                      <div className="compatibility-label">Có thể nhận:</div>
-                      <div className="compatibility-types">B, O</div>
-                    </div>
+                  <div className="legend-item">
+                    <Badge bg="warning" className="legend-badge">Rh-</Badge>
+                    <span>Không có protein Rh trên bề mặt hồng cầu</span>
                   </div>
-                  <div className="blood-type-stats">
-                    <div className="stat-item">
-                      <div className="stat-number">10%</div>
-                      <div className="stat-label">Dân số</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Col>
-            
-            <Col md={6} lg={3}>
-              <div className="blood-type-card-modern blood-type-ab">
-                <div className="card-background-pattern"></div>
-                <div className="blood-type-header">
-                  <div className="blood-type-symbol">AB</div>
-                  <div className="blood-type-rh">
-                    <span className="rh-positive">Rh+</span>
-                    <span className="rh-negative">Rh-</span>
-                  </div>
-                </div>
-                <div className="blood-type-content">
-                  <h4 className="blood-type-name">Nhóm máu AB</h4>
-                  <div className="compatibility-info">
-                    <div className="can-donate">
-                      <div className="compatibility-label">Có thể cho:</div>
-                      <div className="compatibility-types">AB</div>
-                    </div>
-                    <div className="can-receive">
-                      <div className="compatibility-label">Có thể nhận:</div>
-                      <div className="compatibility-types">Tất cả</div>
-                    </div>
-                  </div>
-                  <div className="blood-type-stats">
-                    <div className="stat-item">
-                      <div className="stat-number">4%</div>
-                      <div className="stat-label">Dân số</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Col>
-            
-            <Col md={6} lg={3}>
-              <div className="blood-type-card-modern blood-type-o">
-                <div className="card-background-pattern"></div>
-                <div className="blood-type-header">
-                  <div className="blood-type-symbol">O</div>
-                  <div className="blood-type-rh">
-                    <span className="rh-positive">Rh+</span>
-                    <span className="rh-negative">Rh-</span>
-                  </div>
-                </div>
-                <div className="blood-type-content">
-                  <h4 className="blood-type-name">Nhóm máu O</h4>
-                  <div className="compatibility-info">
-                    <div className="can-donate">
-                      <div className="compatibility-label">Có thể cho:</div>
-                      <div className="compatibility-types">Tất cả</div>
-                    </div>
-                    <div className="can-receive">
-                      <div className="compatibility-label">Có thể nhận:</div>
-                      <div className="compatibility-types">O</div>
-                    </div>
-                  </div>
-                  <div className="blood-type-stats">
-                    <div className="stat-item">
-                      <div className="stat-number">44%</div>
-                      <div className="stat-label">Dân số</div>
-                    </div>
+                  <div className="legend-item">
+                    <Badge bg="info" className="legend-badge">Lưu ý</Badge>
+                    <span>Yếu tố Rh quyết định khả năng tương thích khi truyền máu</span>
                   </div>
                 </div>
               </div>
             </Col>
           </Row>
-          
-          <div className="blood-type-legend">
-            <Container>
-              <Row className="justify-content-center">
-                <Col lg={10}>
-                  <div className="legend-content">
-                    <h5 className="legend-title">
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={<Tooltip>Thông tin về yếu tố Rh trong máu</Tooltip>}
-                      >
-                        <span>Tìm hiểu về yếu tố Rh <AlertOutlined /></span>
-                      </OverlayTrigger>
-                    </h5>
-                    <div className="legend-items">
-                      <div className="legend-item">
-                        <Badge bg="success" className="legend-badge">Rh+</Badge>
-                        <span>Có protein Rh trên bề mặt hồng cầu</span>
-                      </div>
-                      <div className="legend-item">
-                        <Badge bg="warning" className="legend-badge">Rh-</Badge>
-                        <span>Không có protein Rh trên bề mặt hồng cầu</span>
-                      </div>
-                      <div className="legend-item">
-                        <Badge bg="info" className="legend-badge">Lưu ý</Badge>
-                        <span>Yếu tố Rh quyết định khả năng tương thích khi truyền máu</span>
-                      </div>
-                    </div>
-                  </div>
-                </Col>
-              </Row>
-            </Container>
-          </div>
         </Container>
       </section>
 

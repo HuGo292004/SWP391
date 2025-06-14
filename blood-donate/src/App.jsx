@@ -75,8 +75,7 @@ function App() {
       <Router>
         {/* <AuthProvider> - TODO: Import and setup authentication provider */}
           <AntdApp>
-            <MainLayout>
-              <Routes>
+            <MainLayout>              <Routes>
                 {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/faq" element={<FAQPage />} />
@@ -91,12 +90,25 @@ function App() {
                 <Route path="/blood-donation-register" element={<BloodDonationRegistration />} />
 
                 {/* Admin routes */}
+                <Route path="/admin" element={<HomePage />} />
+                <Route path="/admin/faq" element={<FAQPage />} />
+                <Route path="/admin/news" element={<NewsPage />} />
+                <Route path="/admin/support" element={<SupportPage />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
                 {/* Staff routes */}
+                <Route path="/staff" element={<HomePage />} />
+                <Route path="/staff/faq" element={<FAQPage />} />
+                <Route path="/staff/news" element={<NewsPage />} />
+                <Route path="/staff/support" element={<SupportPage />} />
                 <Route path="/staff/dashboard" element={<StaffDashboard />} />
 
                 {/* Member routes */}
+                <Route path="/member" element={<HomePage />} />
+                <Route path="/member/faq" element={<FAQPage />} />
+                <Route path="/member/news" element={<NewsPage />} />
+                <Route path="/member/support" element={<SupportPage />} />
+                <Route path="/member/blood-donation-register" element={<BloodDonationRegistration />} />
                 <Route path="/member/dashboard" element={<MemberDashboard />} />
 
                 {/* 404 route */}
