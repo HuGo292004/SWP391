@@ -1,6 +1,43 @@
 /* Homepage Styles */
 .homepage {
   overflow-x: hidden;
+  background-color: #ffffff !important;
+}
+
+/* Ensure all sections have consistent white background */
+.homepage section {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  background: #ffffff !important;
+}
+
+.statistics-section,
+.benefits-section-enhanced,
+.blood-type-information-section,
+.donation-standards-section,
+.cta-section {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  background: #ffffff !important;
+}
+
+/* Override any Bootstrap bg-light or other background classes */
+.bg-light {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  background: #ffffff !important;
+}
+
+.bg-white {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  background: #ffffff !important;
+}
+
+/* Remove any pseudo-element backgrounds */
+.homepage section::before,
+.homepage section::after {
+  display: none !important;
 }
 
 /* Hero Carousel Styles */
@@ -303,232 +340,14 @@
   letter-spacing: 1px;
 }
 
-/* New Golden Hero Banner Styles */
-.hero-banner-new {
-  position: relative;
-  min-height: 75vh;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-
-.banner-image-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-}
-
-.banner-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.banner-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.8), rgba(255, 235, 59, 0.6));
-  z-index: 2;
-}
-
-.hero-banner-content {
-  position: relative;
-  z-index: 3;
-  text-align: center;
-}
-
-.hero-banner-title-golden {
-  font-size: 3.5rem;
-  font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
-  color: #b8860b;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
-  animation: fadeInUp 1s ease-out 0.2s both;
-}
-
-.title-highlight-golden {
-  display: block;
-  background: linear-gradient(45deg, #daa520, #ffd700);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 700;
-  font-size: 0.8em;
-}
-
-.hero-banner-subtitle-golden {
-  font-size: 1.3rem;
-  line-height: 1.6;
-  color: #b8860b;
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  font-weight: 500;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
-  animation: fadeInUp 1s ease-out 0.4s both;
-}
-
-.hero-banner-buttons-golden {
-  margin-bottom: 3rem;
-  animation: fadeInUp 1s ease-out 0.6s both;
-}
-
-.hero-cta-btn-golden {
-  min-width: 220px;
-  padding: 15px 30px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 50px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  border: 2px solid #daa520;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-  color: #b8860b !important;
-}
-
-.hero-cta-btn-golden.btn-warning {
-  background: linear-gradient(135deg, #ffd700, #daa520);
-  color: #8b4513 !important;
-}
-
-.hero-cta-btn-golden.btn-outline-warning {
-  background: rgba(255, 215, 0, 0.1);
-  backdrop-filter: blur(10px);
-  color: #b8860b !important;
-}
-
-.hero-cta-btn-golden:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-  color: #8b4513 !important;
-}
-
-.hero-cta-btn-golden.btn-warning:hover {
-  background: linear-gradient(135deg, #daa520, #ffd700);
-}
-
-.hero-cta-btn-golden.btn-outline-warning:hover {
-  background: linear-gradient(135deg, #ffd700, #daa520);
-  color: #8b4513 !important;
-}
-
-/* Animation keyframes */
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive adjustments for golden banner */
-@media (max-width: 768px) {
-  .hero-banner-title-golden {
-    font-size: 2.5rem;
-  }
-  
-  .hero-banner-subtitle-golden {
-    font-size: 1.1rem;
-  }
-  
-  .hero-cta-btn-golden {
-    min-width: 180px;
-    font-size: 1rem;
-    padding: 12px 24px;
-  }
-}
-
-@media (max-width: 576px) {
-  .hero-banner-title-golden {
-    font-size: 2rem;
-  }
-  
-  .hero-banner-subtitle-golden {
-    font-size: 1rem;
-  }
-  
-  .hero-cta-btn-golden {
-    min-width: 160px;
-    font-size: 0.9rem;
-    padding: 10px 20px;
-  }
-  
-  .hero-banner-buttons-golden .hero-cta-btn-golden {
-    width: 100%;
-    margin: 0 0 1rem 0 !important;
-  }
-}
-
-/* Statistics Section */
+/* Enhanced Statistics Section with Modern Bootstrap Design */
 .statistics-section {
-  padding: 60px 0;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.statistics-card {
-  transition: all 0.4s ease;
-  background: linear-gradient(135deg, #fff, #f8f9fa);
-  border-radius: 20px;
-  padding: 2rem 1.5rem;
-  text-align: center;
-  height: 100%;
-  border: none;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-}
-
-.statistics-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(220, 53, 69, 0.15);
-}
-
-.statistics-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #dc3545, #e74c3c);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  animation: pulse 3s infinite;
-}
-
-.statistics-number {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #dc3545;
-  margin-bottom: 0.5rem;
-  line-height: 1;
-}
-
-.statistics-label {
-  font-size: 1.1rem;
-  color: #6c757d;
-  font-weight: 500;
-  margin: 0;
-}
-
-/* New Modern Blood Types Section */
-.blood-types-section-new {
-  padding: 80px 0;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f1f3f4 100%);
   position: relative;
+  overflow: hidden;
 }
 
-.blood-types-section-new::before {
+.statistics-section::before {
   content: '';
   position: absolute;
   top: 0;
@@ -536,806 +355,157 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(220, 53, 69, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(220, 53, 69, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(220, 53, 69, 0.03) 0%, transparent 50%);
+    radial-gradient(circle at 20% 20%, rgba(220, 53, 69, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(13, 110, 253, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 90%, rgba(25, 135, 84, 0.05) 0%, transparent 50%);
   pointer-events: none;
 }
 
-.section-header-modern {
-  max-width: 700px;
-  margin: 0 auto 4rem;
-  text-align: center;
+.statistics-title {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.statistics-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #dc3545, #0d6efd);
+  border-radius: 2px;
+}
+
+.statistics-subtitle {
+  font-size: 1.2rem;
+  color: #6c757d;
+  font-weight: 400;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.statistics-card {
+  background: #fff;
+  border-radius: 20px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.statistics-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 250, 0.8));
+  z-index: 1;
+}
+
+.statistics-card .card-body {
   position: relative;
   z-index: 2;
 }
 
-.section-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #dc3545, #e74c3c);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+.statistics-card:hover {
+  transform: translateY(-15px) scale(1.03);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
 }
 
-.section-title-modern {
-  font-size: 3rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #dc3545, #e74c3c, #c82333);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: #dc3545;
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
-
-.section-subtitle-modern {
-  font-size: 1.2rem;
-  color: #6c757d;
-  font-weight: 400;
-  line-height: 1.6;
-}
-
-.blood-type-grid {
-  margin-bottom: 3rem;
-}
-
-.blood-type-card-modern {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 2rem 1.5rem;
-  height: 100%;
+.statistics-icon-wrapper {
   position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  display: inline-block;
 }
 
-.blood-type-card-modern:hover {
-  transform: translateY(-12px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-.card-background-pattern {
-  position: absolute;
-  top: -50%;
-  right: -30%;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  opacity: 0.05;
-  transition: all 0.4s ease;
-}
-
-.blood-type-card-modern:hover .card-background-pattern {
-  transform: scale(1.5) rotate(45deg);
-  opacity: 0.1;
-}
-
-.blood-type-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-}
-
-.blood-type-symbol {
-  width: 70px;
-  height: 70px;
+.statistics-icon {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  font-weight: 900;
   color: white;
-  position: relative;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.blood-type-symbol::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  border-radius: 50%;
-  animation: shimmer 3s infinite;
-}
-
-.blood-type-rh {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.rh-positive, .rh-negative {
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
-}
-
-.rh-positive {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
-}
-
-.rh-negative {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-  color: white;
-}
-
-.blood-type-content {
-  text-align: left;
-}
-
-.blood-type-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: #2c3e50;
-}
-
-.compatibility-info {
-  margin-bottom: 1.5rem;
-}
-
-.can-donate, .can-receive {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.8rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.compatibility-label {
-  font-size: 0.9rem;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.compatibility-types {
-  font-size: 0.9rem;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 15px;
-  background: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-}
-
-.blood-type-stats {
-  border-top: 2px solid rgba(0, 0, 0, 0.05);
-  padding-top: 1rem;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-number {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #dc3545;
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  color: #6c757d;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Individual blood type colors */
-.blood-type-a .blood-type-symbol {
-  background: linear-gradient(135deg, #dc3545, #e63946);
-}
-
-.blood-type-a .card-background-pattern {
-  background: linear-gradient(135deg, #dc3545, #e63946);
-}
-
-.blood-type-b .blood-type-symbol {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-}
-
-.blood-type-b .card-background-pattern {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-}
-
-.blood-type-b .compatibility-types {
-  background: rgba(0, 123, 255, 0.1);
-  color: #007bff;
-}
-
-.blood-type-b .stat-number {
-  color: #007bff;
-}
-
-.blood-type-ab .blood-type-symbol {
-  background: linear-gradient(135deg, #6f42c1, #5a32a3);
-}
-
-.blood-type-ab .card-background-pattern {
-  background: linear-gradient(135deg, #6f42c1, #5a32a3);
-}
-
-.blood-type-ab .compatibility-types {
-  background: rgba(111, 66, 193, 0.1);
-  color: #6f42c1;
-}
-
-.blood-type-ab .stat-number {
-  color: #6f42c1;
-}
-
-.blood-type-o .blood-type-symbol {
-  background: linear-gradient(135deg, #28a745, #1e7e34);
-}
-
-.blood-type-o .card-background-pattern {
-  background: linear-gradient(135deg, #28a745, #1e7e34);
-}
-
-.blood-type-o .compatibility-types {
-  background: rgba(40, 167, 69, 0.1);
-  color: #28a745;
-}
-
-.blood-type-o .stat-number {
-  color: #28a745;
-}
-
-/* Blood Type Legend */
-.blood-type-legend {
-  background: linear-gradient(135deg, #fff, #f8f9fa);
-  padding: 2rem 0;
-  border-radius: 20px;
-  margin-top: 2rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
-  z-index: 2;
-}
-
-.legend-content {
-  text-align: center;
-}
-
-.legend-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-  cursor: help;
-}
-
-.legend-items {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 2rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #6c757d;
-}
-
-.legend-badge {
-  font-size: 0.8rem;
-  padding: 0.4rem 0.8rem;
-}
-
-/* Animations */
-@keyframes shimmer {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.blood-type-card-modern:hover .blood-type-symbol {
-  animation: pulse 1.5s ease-in-out;
-}
-
-/* Responsive Design for New Blood Types Section */
-@media (max-width: 1200px) {
-  .section-title-modern {
-    font-size: 2.5rem;
-  }
-  
-  .blood-type-card-modern {
-    padding: 1.5rem 1.2rem;
-  }
-  
-  .blood-type-symbol {
-    width: 60px;
-    height: 60px;
-    font-size: 1.7rem;
-  }
-}
-
-@media (max-width: 992px) {
-  .blood-types-section-new {
-    padding: 60px 0;
-  }
-  
-  .section-title-modern {
-    font-size: 2.2rem;
-  }
-  
-  .section-subtitle-modern {
-    font-size: 1.1rem;
-  }
-  
-  .blood-type-card-modern {
-    margin-bottom: 1.5rem;
-  }
-  
-  .legend-items {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .blood-types-section-new {
-    padding: 40px 0;
-  }
-  
-  .section-header-modern {
-    margin-bottom: 2.5rem;
-  }
-  
-  .section-title-modern {
-    font-size: 1.9rem;
-  }
-  
-  .section-subtitle-modern {
-    font-size: 1rem;
-  }
-  
-  .blood-type-card-modern {
-    padding: 1.2rem 1rem;
-  }
-  
-  .blood-type-header {
-    margin-bottom: 1rem;
-  }
-  
-  .blood-type-symbol {
-    width: 50px;
-    height: 50px;
-    font-size: 1.4rem;
-  }
-  
-  .blood-type-name {
-    font-size: 1.1rem;
-  }
-  
-  .compatibility-label,
-  .compatibility-types {
-    font-size: 0.8rem;
-  }
-  
-  .stat-number {
-    font-size: 1.5rem;
-  }
-  
-  .blood-type-legend {
-    padding: 1.5rem 0;
-  }
-  
-  .legend-title {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 576px) {
-  .blood-types-section-new {
-    padding: 20px 0;
-  }
-  
-  .section-header-modern {
-    margin-bottom: 2rem;
-  }
-  
-  .section-title-modern {
-    font-size: 1.7rem;
-  }
-  
-  .section-subtitle-modern {
-    font-size: 0.9rem;
-  }
-  
-  .blood-type-card-modern {
-    padding: 1rem 0.8rem;
-  }
-  
-  .blood-type-header {
-    margin-bottom: 0.8rem;
-  }
-  
-  .blood-type-symbol {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-  }
-  
-  .blood-type-name {
-    font-size: 1rem;
-  }
-  
-  .compatibility-label,
-  .compatibility-types {
-    font-size: 0.7rem;
-  }
-  
-  .stat-number {
-    font-size: 1.3rem;
-  }
-  
-  .blood-type-legend {
-    padding: 1rem 0;
-  }
-  
-  .legend-title {
-    font-size: 1rem;
-  }
-}
-
-/* ========================================
-   ELIGIBILITY CRITERIA SECTION
-   ======================================== */
-
-.eligibility-section {
-  padding: 80px 0;
-  background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+  margin: 0 auto;
   position: relative;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
-.eligibility-section::before {
+.statistics-icon::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23e3f2fd" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-  opacity: 0.3;
-  z-index: 1;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.eligibility-section .container {
-  position: relative;
-  z-index: 2;
+.statistics-card:hover .statistics-icon::before {
+  opacity: 1;
 }
 
-.eligibility-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
-  border: none;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.12);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  position: relative;
-  height: 100%;
+.statistics-card:hover .statistics-icon {
+  transform: scale(1.1) rotate(5deg);
 }
 
-.eligibility-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #52c41a 0%, #73d13d 100%);
-  transition: all 0.3s ease;
-}
-
-.eligibility-card.eligibility-restricted::before {
-  background: linear-gradient(90deg, #ff4d4f 0%, #ff7875 100%);
-}
-
-.eligibility-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 48px rgba(25, 118, 210, 0.2);
-}
-
-.eligibility-card:hover::before {
-  height: 6px;
-}
-
-.eligibility-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(25, 118, 210, 0.1);
-}
-
-.eligibility-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(115, 209, 61, 0.1) 100%);
-  border: 2px solid rgba(82, 196, 26, 0.2);
-  transition: all 0.3s ease;
-}
-
-.eligibility-restricted .eligibility-icon {
-  background: linear-gradient(135deg, rgba(255, 77, 79, 0.1) 0%, rgba(255, 120, 117, 0.1) 100%);
-  border: 2px solid rgba(255, 77, 79, 0.2);
-}
-
-.eligibility-card:hover .eligibility-icon {
-  transform: scale(1.1);
-  box-shadow: 0 8px 20px rgba(82, 196, 26, 0.3);
-}
-
-.eligibility-restricted:hover .eligibility-icon {
-  box-shadow: 0 8px 20px rgba(255, 77, 79, 0.3);
-}
-
-.eligibility-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1976d2;
+.statistics-number {
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1;
   margin: 0;
-  line-height: 1.2;
+  background: linear-gradient(135deg, currentColor, rgba(0, 0, 0, 0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.eligibility-content {
-  padding: 0;
-}
-
-.criteria-group {
-  margin-bottom: 24px;
-}
-
-.criteria-group:last-child {
-  margin-bottom: 0;
-}
-
-.criteria-title {
-  font-size: 16px;
+.statistics-label {
+  font-size: 1rem;
   font-weight: 600;
-  color: #1976d2;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.criteria-title::before {
-  content: '';
-  width: 4px;
-  height: 16px;
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-  border-radius: 2px;
-}
-
-.criteria-list {
-  list-style: none;
-  padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6c757d;
   margin: 0;
 }
 
-.criteria-list li {
-  padding: 8px 0;
-  font-size: 14px;
-  color: #555;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-  padding-left: 24px;
-}
-
-.criteria-list li::before {
-  content: '✓';
-  position: absolute;
-  left: 0;
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.eligibility-restricted .criteria-list li::before {
-  content: '✗';
-  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
-}
-
-.criteria-list li:hover {
-  color: #1976d2;
-  transform: translateX(4px);
-}
-
-.eligibility-note {
-  background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
-  border: 1px solid rgba(24, 144, 255, 0.2);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.note-icon {
+.statistics-decoration {
   width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  height: 3px;
+  background: linear-gradient(90deg, currentColor, transparent);
+  margin: 15px auto 0;
+  border-radius: 2px;
+  opacity: 0.7;
 }
 
-.note-content h6 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1890ff;
-  margin: 0 0 8px 0;
+/* Color variations for different statistics */
+.bg-danger {
+  background: linear-gradient(135deg, #dc3545, #c82333) !important;
 }
 
-.note-content p {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
-  line-height: 1.6;
+.bg-primary {
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important;
 }
 
-/* Responsive Design for Eligibility Section */
-@media (max-width: 768px) {
-  .eligibility-section {
-    padding: 60px 0;
-  }
-  
-  .eligibility-header {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
-  }
-  
-  .eligibility-icon {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .eligibility-title {
-    font-size: 18px;
-  }
-  
-  .eligibility-note {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .note-icon {
-    align-self: center;
-  }
+.bg-success {
+  background: linear-gradient(135deg, #198754, #146c43) !important;
 }
 
-@media (max-width: 576px) {
-  .eligibility-section {
-    padding: 40px 0;
-  }
-  
-  .criteria-list li {
-    font-size: 13px;
-    padding: 6px 0;
-  }
-  
-  .eligibility-note {
-    padding: 16px;
-  }
+.bg-warning {
+  background: linear-gradient(135deg, #fd7e14, #e55d00) !important;
 }
 
-/* Loading Animation */
-.loading-spinner {
-  animation: spin 1s linear infinite;
-}
-
-/* Gradient Backgrounds */
-.bg-gradient-danger {
-  background: linear-gradient(135deg, #dc3545, #e74c3c) !important;
-}
-
-.bg-gradient-primary {
-  background: linear-gradient(135deg, #007bff, #0056b3) !important;
-}
-
-.bg-gradient-light {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
-}
-
-/* Section Padding */
-.section-padding {
-  padding: 80px 0;
-}
-
-/* Text Shadows */
-.text-shadow {
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Animations */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-
+/* Animation effects */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -1347,272 +517,74 @@
   }
 }
 
-@keyframes slideInFromLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.statistics-card {
+  animation: fadeInUp 0.6s ease-out;
 }
 
-@keyframes slideInFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
+.statistics-card:nth-child(1) { animation-delay: 0.1s; }
+.statistics-card:nth-child(2) { animation-delay: 0.2s; }
+.statistics-card:nth-child(3) { animation-delay: 0.3s; }
+.statistics-card:nth-child(4) { animation-delay: 0.4s; }
 
-/* Animation Classes */
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out;
-}
-
-.animate-slide-in-left {
-  animation: slideInFromLeft 0.8s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slideInFromRight 0.8s ease-out;
-}
-
-/* Icon Animations */
-.icon-bounce {
-  animation: bounce 2s infinite;
-}
-
-.icon-pulse {
-  animation: pulse 2s infinite;
-}
-
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #dc3545, #e74c3c);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #c82333, #dc3545);
-}
-
-/* Text Shadows for better readability on background images */
-.text-shadow {
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Responsive design for hero section */
-@media (max-width: 768px) {
-  .hero-carousel .carousel-inner {
-    height: 50vh;
-    min-height: 350px;
+/* Responsive Design */
+@media (max-width: 992px) {
+  .statistics-title {
+    font-size: 2.25rem;
   }
   
-  .hero-title {
+  .statistics-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 1.75rem;
+  }
+  
+  .statistics-number {
+    font-size: 2.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .statistics-title {
     font-size: 2rem;
   }
   
-  .hero-subtitle {
-    font-size: 1rem;
+  .statistics-subtitle {
+    font-size: 1.1rem;
   }
   
-  .hero-buttons {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+  .statistics-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
   }
   
-  .hero-btn {
-    min-width: 250px;
-  }
-}
-
-@media (max-width: 576px) {
-  .hero-carousel .carousel-inner {
-    height: 45vh;
-    min-height: 300px;
+  .statistics-number {
+    font-size: 2rem;
   }
   
-  .hero-title {
-    font-size: 1.8rem;
-  }
-    .hero-subtitle {
+  .statistics-label {
     font-size: 0.9rem;
   }
 }
 
-/* Hero Banner Styles */
-.hero-banner {
-  position: relative;
-  min-height: 75vh;
-  display: flex;
-  align-items: center;
-  background: linear-gradient(135deg, #dc3545 0%, #e74c3c 50%, #c82333 100%);
-  overflow: hidden;
-}
-
-.hero-banner::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('https://images.unsplash.com/photo-1582750433449-648ed127bb54?q=80&w=1920&h=1280&auto=format&fit=crop');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.15;
-  z-index: 1;
-  animation: heroImageCycle 20s infinite;
-}
-
-.hero-banner-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(220, 53, 69, 0.8), rgba(231, 76, 60, 0.9));
-  z-index: 2;
-}
-
-.hero-banner-content {
-  position: relative;
-  z-index: 3;
-  text-align: center;
-  color: white;
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.8rem 1.5rem;
-  border-radius: 50px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: white;
-  margin-bottom: 2rem;
-  animation: fadeInUp 1s ease-out;
-}
-
-.hero-banner-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-  animation: fadeInUp 1s ease-out 0.2s both;
-}
-
-.title-highlight {
-  display: block;
-  background: linear-gradient(45deg, #fff, #f8f9fa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 700;
-  font-size: 0.8em;
-}
-
-.hero-banner-subtitle {
-  font-size: 1.3rem;
-  line-height: 1.6;
-  opacity: 0.95;
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  font-weight: 400;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
-  animation: fadeInUp 1s ease-out 0.4s both;
-}
-
-.hero-banner-buttons {
-  margin-bottom: 3rem;
-  animation: fadeInUp 1s ease-out 0.6s both;
-}
-
-.hero-cta-btn {
-  min-width: 220px;
-  padding: 15px 30px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 50px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  border: none;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-}
-
-.primary-btn {
-  background: linear-gradient(135deg, #ffffff, #f8f9fa);
-  color: #dc3545;
-  border: 2px solid transparent;
-}
-
-.primary-btn:hover {
-  background: linear-gradient(135deg, #f8f9fa, #ffffff);
-  color: #c82333;
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-}
-
-.secondary-btn {
-  background: transparent;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-}
-
-.secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: white;
-  color: white;
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-}
-
-.hero-stats {
-  animation: fadeInUp 1s ease-out 0.8s both;
-}
-
-.hero-stats .stat-item {
-  text-align: center;
-  padding: 1rem;
-}
-
-.hero-stats .stat-number {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: white;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.hero-stats .stat-label {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+@media (max-width: 576px) {
+  .statistics-card .card-body {
+    padding: 1.5rem !important;
+  }
+  
+  .statistics-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+  
+  .statistics-number {
+    font-size: 1.75rem;
+  }
+  
+  .statistics-label {
+    font-size: 0.85rem;
+  }
 }
 
 /* New Golden Hero Banner Styles */
@@ -1734,113 +706,14 @@
   color: #8b4513 !important;
 }
 
-/* Animation keyframes */
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive adjustments for golden banner */
-@media (max-width: 768px) {
-  .hero-banner-title-golden {
-    font-size: 2.5rem;
-  }
-  
-  .hero-banner-subtitle-golden {
-    font-size: 1.1rem;
-  }
-  
-  .hero-cta-btn-golden {
-    min-width: 180px;
-    font-size: 1rem;
-    padding: 12px 24px;
-  }
-}
-
-@media (max-width: 576px) {
-  .hero-banner-title-golden {
-    font-size: 2rem;
-  }
-  
-  .hero-banner-subtitle-golden {
-    font-size: 1rem;
-  }
-  
-  .hero-cta-btn-golden {
-    min-width: 160px;
-    font-size: 0.9rem;
-    padding: 10px 20px;
-  }
-  
-  .hero-banner-buttons-golden .hero-cta-btn-golden {
-    width: 100%;
-    margin: 0 0 1rem 0 !important;
-  }
-}
-
-/* Statistics Section */
-.statistics-section {
-  padding: 60px 0;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.statistics-card {
-  transition: all 0.4s ease;
-  background: linear-gradient(135deg, #fff, #f8f9fa);
-  border-radius: 20px;
-  padding: 2rem 1.5rem;
-  text-align: center;
-  height: 100%;
-  border: none;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-}
-
-.statistics-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(220, 53, 69, 0.15);
-}
-
-.statistics-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #dc3545, #e74c3c);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  animation: pulse 3s infinite;
-}
-
-.statistics-number {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #dc3545;
-  margin-bottom: 0.5rem;
-  line-height: 1;
-}
-
-.statistics-label {
-  font-size: 1.1rem;
-  color: #6c757d;
-  font-weight: 500;
-  margin: 0;
-}
-
-/* New Modern Blood Types Section */
-.blood-types-section-new {
-  padding: 80px 0;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f1f3f4 100%);
+/* Enhanced Blood Type Information Section */
+.blood-type-information-section {
+  background: #ffffff !important;
   position: relative;
+  overflow: hidden;
 }
 
-.blood-types-section-new::before {
+.blood-type-information-section::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1848,349 +721,696 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(220, 53, 69, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(220, 53, 69, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(220, 53, 69, 0.03) 0%, transparent 50%);
+    radial-gradient(circle at 10% 20%, rgba(220, 53, 69, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(220, 53, 69, 0.03) 0%, transparent 50%);
   pointer-events: none;
 }
 
-.section-header-modern {
-  max-width: 700px;
-  margin: 0 auto 4rem;
-  text-align: center;
+.blood-type-title {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #2c3e50;
   position: relative;
-  z-index: 2;
-}
-
-.section-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #dc3545, #e74c3c);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-}
-
-.section-title-modern {
-  font-size: 3rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #dc3545, #e74c3c, #c82333);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: #dc3545;
   margin-bottom: 1rem;
-  line-height: 1.2;
 }
 
-.section-subtitle-modern {
+.blood-type-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #dc3545, #e74c3c);
+  border-radius: 2px;
+}
+
+.blood-type-subtitle {
   font-size: 1.2rem;
   color: #6c757d;
   font-weight: 400;
-  line-height: 1.6;
-}
-
-.blood-type-grid {
-  margin-bottom: 3rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .blood-type-card-modern {
-  background: #ffffff;
+  background: #fff;
   border-radius: 20px;
-  padding: 2rem 1.5rem;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-}
-
-.blood-type-card-modern:hover {
-  transform: translateY(-12px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-.card-background-pattern {
-  position: absolute;
-  top: -50%;
-  right: -30%;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  opacity: 0.05;
-  transition: all 0.4s ease;
-}
-
-.blood-type-card-modern:hover .card-background-pattern {
-  transform: scale(1.5) rotate(45deg);
-  opacity: 0.1;
-}
-
-/* ========================================
-   ELIGIBILITY CRITERIA SECTION
-   ======================================== */
-
-.eligibility-section {
-  padding: 80px 0;
-  background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(220, 53, 69, 0.1) !important;
 }
 
-.eligibility-section::before {
+.blood-type-card-modern::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23e3f2fd" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-  opacity: 0.3;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 250, 0.8));
   z-index: 1;
 }
 
-.eligibility-section .container {
+.blood-type-card-modern .card-body {
   position: relative;
   z-index: 2;
 }
 
-.eligibility-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
-  border: none;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.12);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  position: relative;
-  height: 100%;
+.blood-type-card-modern:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(220, 53, 69, 0.15);
+  border-color: rgba(220, 53, 69, 0.3) !important;
 }
 
-.eligibility-card::before {
+.blood-type-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.blood-type-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.2);
+}
+
+.blood-type-icon::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #52c41a 0%, #73d13d 100%);
-  transition: all 0.3s ease;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.eligibility-card.eligibility-restricted::before {
-  background: linear-gradient(90deg, #ff4d4f 0%, #ff7875 100%);
+.blood-type-card-modern:hover .blood-type-icon::before {
+  opacity: 1;
 }
 
-.eligibility-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 48px rgba(25, 118, 210, 0.2);
+.blood-type-card-modern:hover .blood-type-icon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 35px rgba(220, 53, 69, 0.3);
 }
 
-.eligibility-card:hover::before {
-  height: 6px;
+.blood-type-icon .anticon {
+  font-size: 2rem !important;
+  color: white !important;
 }
 
-.eligibility-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(25, 118, 210, 0.1);
+.blood-type-name {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #2c3e50 !important;
+  margin: 0 0 1rem 0 !important;
+  position: relative;
 }
 
-.eligibility-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(115, 209, 61, 0.1) 100%);
-  border: 2px solid rgba(82, 196, 26, 0.2);
-  transition: all 0.3s ease;
-}
-
-.eligibility-restricted .eligibility-icon {
-  background: linear-gradient(135deg, rgba(255, 77, 79, 0.1) 0%, rgba(255, 120, 117, 0.1) 100%);
-  border: 2px solid rgba(255, 77, 79, 0.2);
-}
-
-.eligibility-card:hover .eligibility-icon {
-  transform: scale(1.1);
-  box-shadow: 0 8px 20px rgba(82, 196, 26, 0.3);
-}
-
-.eligibility-restricted:hover .eligibility-icon {
-  box-shadow: 0 8px 20px rgba(255, 77, 79, 0.3);
-}
-
-.eligibility-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1976d2;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.eligibility-content {
-  padding: 0;
-}
-
-.criteria-group {
-  margin-bottom: 24px;
-}
-
-.criteria-group:last-child {
-  margin-bottom: 0;
-}
-
-.criteria-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1976d2;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.criteria-title::before {
+.blood-type-name::after {
   content: '';
-  width: 4px;
-  height: 16px;
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, #dc3545, transparent);
   border-radius: 2px;
 }
 
-.criteria-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.criteria-list li {
-  padding: 8px 0;
-  font-size: 14px;
-  color: #555;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-  padding-left: 24px;
-}
-
-.criteria-list li::before {
-  content: '✓';
-  position: absolute;
-  left: 0;
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.eligibility-restricted .criteria-list li::before {
-  content: '✗';
-  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
-}
-
-.criteria-list li:hover {
-  color: #1976d2;
-  transform: translateX(4px);
-}
-
-.eligibility-note {
-  background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
-  border: 1px solid rgba(24, 144, 255, 0.2);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.note-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.note-content h6 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1890ff;
-  margin: 0 0 8px 0;
-}
-
-.note-content p {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
+.blood-type-description {
+  font-size: 1rem !important;
+  color: #6c757d !important;
   line-height: 1.6;
+  margin-bottom: 1.5rem !important;
 }
 
-/* Responsive Design for Eligibility Section */
+.blood-type-compatibility {
+  margin-top: 1rem;
+}
+
+.compatibility-badge {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #007bff, #0056b3) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.blood-type-card-modern:hover .compatibility-badge {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.3);
+}
+
+/* Different color variations for each blood type */
+.blood-type-card-modern:nth-child(1) .blood-type-icon {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.blood-type-card-modern:nth-child(2) .blood-type-icon {
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+}
+
+.blood-type-card-modern:nth-child(3) .blood-type-icon {
+  background: linear-gradient(135deg, #198754, #146c43);
+}
+
+.blood-type-card-modern:nth-child(4) .blood-type-icon {
+  background: linear-gradient(135deg, #fd7e14, #e55d00);
+}
+
+/* Animation effects */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.blood-type-card-modern {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.blood-type-card-modern:nth-child(1) { animation-delay: 0.1s; }
+.blood-type-card-modern:nth-child(2) { animation-delay: 0.2s; }
+.blood-type-card-modern:nth-child(3) { animation-delay: 0.3s; }
+.blood-type-card-modern:nth-child(4) { animation-delay: 0.4s; }
+
+/* Modern Donation Standards Section */
+.donation-standards-section {
+  background: #ffffff !important;
+  position: relative;
+  overflow: hidden;
+  color: #2c3e50;
+}
+
+.donation-standards-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(220, 53, 69, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(25, 135, 84, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 40% 60%, rgba(220, 53, 69, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.standards-header {
+  position: relative;
+  z-index: 2;
+}
+
+.standards-title {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.text-gradient {
+  background: linear-gradient(45deg, #2c3e50, #34495e, #5a6c7d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+}
+
+.standards-subtitle {
+  color: #6c757d;
+  text-shadow: none;
+}
+
+/* Standard Cards */
+.standard-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+  position: relative;
+}
+
+.standard-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: height 0.3s ease;
+}
+
+.standard-card:hover {
+  transform: translateY(-15px) scale(1.05);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.standard-card:hover::before {
+  height: 8px;
+}
+
+/* Icon Styling */
+.standard-icon {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.icon-wrapper {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.age-icon,
+.weight-icon,
+.health-icon,
+.frequency-icon {
+  background: transparent;
+  color: #dc3545;
+}
+
+.age-icon i,
+.weight-icon i,
+.health-icon i,
+.frequency-icon i {
+  font-size: 3rem !important;
+  color: #dc3545;
+}
+
+.standard-card:hover .icon-wrapper {
+  transform: scale(1.1);
+}
+
+/* Typography */
+.standard-title {
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.range-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #667eea;
+  line-height: 1;
+}
+
+.range-unit,
+.unit {
+  font-size: 1.1rem;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.standard-note {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Weight Details */
+.weight-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weight-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* Health Indicators */
+.health-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #2c3e50;
+}
+
+/* Frequency Info */
+.frequency-number .number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fa709a;
+  line-height: 1;
+}
+
+.frequency-note {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Call to Action */
+.cta-wrapper {
+  background: rgba(248, 249, 250, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 3rem 2rem;
+  border: 2px solid rgba(220, 53, 69, 0.1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+.cta-title {
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 2.2rem;
+  text-shadow: none;
+}
+
+.cta-description {
+  color: #6c757d;
+  font-size: 1.1rem;
+  text-shadow: none;
+}
+
+.cta-primary-btn {
+  background: #dc3545 !important;
+  border: none !important;
+  border-radius: 50px;
+  padding: 1rem 2rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+  transition: all 0.3s ease;
+}
+
+.cta-primary-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(220, 53, 69, 0.6);
+  background: #c82333 !important;
+}
+
+.cta-secondary-btn {
+  border: 2px solid #dc3545;
+  border-radius: 50px;
+  padding: 1rem 2rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #dc3545;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.cta-secondary-btn:hover {
+  background: #dc3545;
+  border-color: #dc3545;
+  transform: translateY(-3px);
+  color: white;
+}
+
+/* Responsive Design for Criteria Section */
 @media (max-width: 768px) {
-  .eligibility-section {
-    padding: 60px 0;
-  }
-  
-  .eligibility-header {
+  .criteria-title,
+  .rh-title {
+    font-size: 1.5rem !important;
     flex-direction: column;
-    text-align: center;
-    gap: 12px;
+    align-items: flex-start !important;
+    gap: 0.5rem;
   }
   
-  .eligibility-icon {
-    width: 50px;
-    height: 50px;
+  .criteria-title .badge,
+  .rh-title .badge {
+    font-size: 0.9rem !important;
+    padding: 0.4rem 0.6rem !important;
   }
   
-  .eligibility-title {
-    font-size: 18px;
+  .criteria-item,
+  .legend-item {
+    padding: 0.5rem;
   }
   
-  .eligibility-note {
-    flex-direction: column;
-    text-align: center;
+  .criteria-item span,
+  .legend-item span {
+    font-size: 0.95rem;
   }
   
-  .note-icon {
-    align-self: center;
+  .rh-description {
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 576px) {
-  .eligibility-section {
-    padding: 40px 0;
+  .criteria-card .card-body,
+  .rh-info-card .card-body {
+    padding: 1.5rem !important;
   }
   
-  .criteria-list li {
-    font-size: 13px;
-    padding: 6px 0;
+  .criteria-title,
+  .rh-title {
+    font-size: 1.3rem !important;
   }
   
-  .eligibility-note {
-    padding: 16px;
+  .criteria-item span,
+  .legend-item span {
+    font-size: 0.9rem;
+  }
+}
+
+/* Enhanced Benefits Slider Section */
+.benefits-section-enhanced {
+  background: #ffffff !important;
+  position: relative;
+  overflow: hidden;
+  padding: 4rem 0;
+}
+
+.benefits-section-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(25, 135, 84, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(13, 110, 253, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 20%, rgba(220, 53, 69, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.benefits-title-enhanced {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.benefits-title-enhanced::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #25a244, #0d6efd);
+  border-radius: 2px;
+}
+
+.benefits-subtitle-enhanced {
+  font-size: 1.2rem;
+  color: #6c757d;  font-weight: 400;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Benefits slider styles moved to BenefitsSlider.css for better organization */
+
+/* Enhanced Section Headers - Clean and Professional */
+.section-header-animated {
+  position: relative;
+}
+
+.section-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border: 2px solid #dee2e6;
+  border-radius: 50%;
+  margin: 0 auto;
+  position: relative;
+}
+
+.section-main-icon {
+  font-size: 2rem !important;
+  color: #0d6efd;
+  z-index: 2;
+  position: relative;
+}
+
+/* Subtle hover effects only */
+.section-icon-wrapper:hover {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-color: #2196f3;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+.section-icon-wrapper:hover .section-main-icon {
+  color: #1976d2;
+}
+
+/* Clean Title Styling */
+.statistics-title-enhanced,
+.benefits-title-enhanced,
+.blood-type-title-enhanced,
+.standards-title-enhanced {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.title-main {
+  color: #2c3e50;
+  position: relative;
+}
+
+.title-highlight {
+  font-size: 1.2rem;
+  /* Giữ màu mặc định cho emoji */
+  color: inherit !important;
+  filter: none !important;
+}
+
+/* Simple Underlines */
+.title-underline {
+  width: 80px;
+  height: 3px;
+  background: #0d6efd;
+  margin: 1rem auto 2rem;
+  border-radius: 2px;
+}
+
+.benefits-underline {
+  background: #198754;
+}
+
+.blood-type-underline {
+  background: #dc3545;
+}
+
+.standards-underline {
+  background: #fd7e14;
+}
+
+/* Enhanced Subtitles */
+.statistics-subtitle-enhanced,
+.benefits-subtitle-enhanced,
+.blood-type-subtitle-enhanced,
+.standards-subtitle-enhanced {
+  color: #6c757d;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.subtitle-icon {
+  /* Giữ màu mặc định cho emoji */
+  margin: 0 0.3rem;
+  font-size: 1rem;
+  color: inherit !important;
+  filter: none !important;
+}
+
+/* Responsive Design for Enhanced Headers */
+@media (max-width: 768px) {
+  .statistics-title-enhanced,
+  .benefits-title-enhanced,
+  .blood-type-title-enhanced,
+  .standards-title-enhanced {
+    font-size: 2rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .title-highlight {
+    font-size: 1.2rem;
+  }
+  
+  .section-icon-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .section-main-icon {
+    font-size: 2rem !important;
+  }
+  
+  .statistics-subtitle-enhanced,
+  .benefits-subtitle-enhanced,
+  .blood-type-subtitle-enhanced,
+  .standards-subtitle-enhanced {
+    font-size: 1rem;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .statistics-title-enhanced,
+  .benefits-title-enhanced,
+  .blood-type-title-enhanced,
+  .standards-title-enhanced {
+    font-size: 1.75rem;
+  }
+  
+  .section-icon-wrapper {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .section-main-icon {
+    font-size: 1.5rem !important;
   }
 }
