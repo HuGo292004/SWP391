@@ -39,9 +39,7 @@ const LoginPage = () => {
         localStorage.setItem('username', account.username);
         
         // Trigger storage event to update header
-        window.dispatchEvent(new Event('storage'));
-        
-        // Show success message
+        window.dispatchEvent(new Event('storage'));        // Show success message
         message.success({
           content: `Chào mừng ${account.username} đã quay trở lại!`,
           duration: 3,
@@ -50,8 +48,16 @@ const LoginPage = () => {
           },
         });
 
-        // Navigate to home after login
-        navigate('/');
+        // Navigate based on role
+        if (account.role === 'Admin') {
+          navigate('/admin');
+        } else if (account.role === 'Staff') {
+          navigate('/staff');
+        } else if (account.role === 'Member') {
+          navigate('/member');
+        } else {
+          navigate('/');
+        }
       } else {
         setError('Tên đăng nhập hoặc mật khẩu không đúng!');
       }

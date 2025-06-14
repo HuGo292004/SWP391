@@ -221,24 +221,37 @@ import {
         case "info":
           return "#1890FF";
         case "reminder":
-          return "#FA8C16";
-        default:
+          return "#FA8C16";        default:
           return "#1890FF";
       }
+    };    // Helper function to check if navigation item is active
+    const isNavItemActive = (item) => {
+      return location.pathname === item.path;
     };
-  
+
     // Navigation items cho thanh màu xanh đậm - hiển thị dựa vào vai trò
+    const getNavPath = (path) => {
+      // Thêm prefix dựa vào role của user
+      if (user?.role === 'Admin') {
+        return `/admin${path}`;
+      } else if (user?.role === 'Staff') {
+        return `/staff${path}`;
+      } else if (user?.role === 'Member') {
+        return `/member${path}`;
+      }
+      return path;
+    };
+
     const navItems = [
-      { key: "/", label: "TRANG CHỦ", path: "/" },
-      { key: "/faq", label: "HỎI - ĐÁP", path: "/faq" },
-      { key: "/news", label: "TIN TỨC", path: "/news" },
-      { key: "/support", label: "LIÊN HỆ", path: "/support" },
+      { key: getNavPath("/"), label: "TRANG CHỦ", path: getNavPath("/") },
+      { key: getNavPath("/faq"), label: "HỎI - ĐÁP", path: getNavPath("/faq") },
+      { key: getNavPath("/news"), label: "TIN TỨC", path: getNavPath("/news") },
+      { key: getNavPath("/support"), label: "LIÊN HỆ", path: getNavPath("/support") },
     ];
   
     // Thêm submenu cho các chức năng - hiển thị tất cả chức năng cho cả guest
-    const menuItems = [
-      // Ẩn "Hiến máu" cho role staff và admin
-      ...(user?.role !== "staff" && user?.role !== "admin"
+    const menuItems = [      // Ẩn "Hiến máu" cho role staff và admin
+      ...(user?.role !== "Staff" && user?.role !== "Admin"
         ? [
             {
               key: "donation",
@@ -262,9 +275,8 @@ import {
               ],
             },
           ]
-        : []),
-      // Ẩn "Nhận máu" cho role staff và admin
-      ...(user?.role !== "staff" && user?.role !== "admin"
+        : []),      // Ẩn "Nhận máu" cho role staff và admin
+      ...(user?.role !== "Staff" && user?.role !== "Admin"
         ? [
             {
               key: "recipient",
@@ -282,9 +294,8 @@ import {
               ],
             },
           ]
-        : []),
-      // Ẩn "Tìm kiếm" cho role member và admin
-      ...(user?.role !== "member" && user?.role !== "admin"
+        : []),      // Ẩn "Tìm kiếm" cho role member và admin
+      ...(user?.role !== "Member" && user?.role !== "Admin"
         ? [
             {
               key: "search",
@@ -302,9 +313,8 @@ import {
               ],
             },
           ]
-        : []),
-      // Ẩn "Yêu cầu khẩn cấp" cho role member và admin
-      ...(user?.role !== "member" && user?.role !== "admin"
+        : []),      // Ẩn "Yêu cầu khẩn cấp" cho role member và admin
+      ...(user?.role !== "Member" && user?.role !== "Admin"
         ? [
             {
               key: "/emergency-request",
@@ -318,9 +328,8 @@ import {
         ? [
             {
               key: "/dashboard",
-              icon: <DashboardOutlined />,
-              label: (
-                <Link to={user?.role ? `/${user.role}/dashboard` : "/dashboard"}>
+              icon: <DashboardOutlined />,              label: (
+                <Link to={user?.role ? `/${user.role.toLowerCase()}/dashboard` : "/dashboard"}>
                   Dashboard
                 </Link>
               ),
@@ -861,9 +870,8 @@ import {
                     height: "100%",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor:
-                      location.pathname === item.path
+                    justifyContent: "center",                    backgroundColor:
+                      isNavItemActive(item)
                         ? healthThemeColors.navLightBlue
                         : "transparent",
                     borderRight:
