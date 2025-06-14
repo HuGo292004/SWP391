@@ -1,0 +1,412 @@
+/* BenefitsSlider CSS - Wide Layout (98% screen width) */
+
+/* Main Wrapper */
+.benefits-slider-wrapper {
+  position: relative;
+  width: 98vw;
+  max-width: 98vw;
+  margin: 2rem auto;
+  margin-left: calc(-49vw + 50%);
+  margin-right: calc(-49vw + 50%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  background: #fff;
+}
+
+/* Carousel Structure */
+.benefits-slider-wrapper .carousel {
+  border-radius: 20px;
+  overflow: hidden;
+  width: 100%;
+  height: 70vh;
+  min-height: 500px;
+  max-height: 800px;
+}
+
+.benefits-slider-wrapper .carousel-inner {
+  border-radius: 20px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.benefits-slider-wrapper .carousel-item {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Background Overlay */
+.benefits-slider-wrapper .carousel-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.4) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.gradient-overlay {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.6) 100%) !important;
+}
+
+/* Slide Types */
+.intro-slide,
+.content-slide {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  overflow: hidden;
+}
+
+/* Container Layout */
+.benefits-slider-wrapper .container-fluid {
+  padding: 3rem 2.5rem;
+  height: 100%;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.benefits-slider-wrapper .row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2.5rem;
+  margin: 0;
+  width: 100%;
+  max-width: 1500px;
+  height: auto;
+  min-height: 400px;
+}
+
+.benefits-slider-wrapper .col-lg-6,
+.benefits-slider-wrapper .col-xl-5 {
+  flex: 0 0 calc(50% - 1.25rem);
+  max-width: calc(50% - 1.25rem);
+  min-width: calc(50% - 1.25rem);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Intro Slide Specific */
+.intro-slide .container-fluid {
+  padding: 2rem 4rem;
+  text-align: center;
+}
+
+.intro-slide .row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+.intro-slide .col-lg-6,
+.intro-slide .col-xl-5 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Heart Image Components */
+.heart-image-container {
+  position: relative;
+  display: inline-block;
+}
+
+.heart-image {
+  transition: transform 0.3s ease;
+  border: 3px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.heart-image:hover {
+  transform: scale(1.05);
+}
+
+/* Content Layout */
+.benefit-content-item {
+  padding: 1.5rem 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.benefit-content-item:hover {
+  transform: translateY(-5px);
+}
+
+.benefit-number {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  margin-right: 1.5rem;
+  flex-shrink: 0;
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.benefit-text {
+  flex: 1;
+}
+
+.benefit-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.benefit-detail {
+  font-size: 1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.benefit-subitems {
+  margin-top: 0.8rem;
+}
+
+.benefit-subitem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  padding: 0.4rem 0;
+}
+
+.benefit-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.benefit-arrow i {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.benefit-subtext {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #28a745;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Text Effects */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.text-shadow-light {
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6), 0px 0px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Carousel Controls */
+.benefits-carousel .carousel-control-prev,
+.benefits-carousel .carousel-control-next {
+  width: 62px;
+  height: 62px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.benefits-carousel .carousel-control-prev:hover,
+.benefits-carousel .carousel-control-next:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.benefits-carousel .carousel-control-prev {
+  left: 25px;
+}
+
+.benefits-carousel .carousel-control-next {
+  right: 25px;
+}
+
+/* Carousel Indicators */
+.benefits-carousel .carousel-indicators {
+  bottom: 22px;
+  margin-bottom: 0;
+}
+
+.benefits-carousel .carousel-indicators button {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  margin: 0 7px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+
+.benefits-carousel .carousel-indicators button.active {
+  background-color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.2);
+}
+
+/* Animations */
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .benefits-slider-wrapper {
+    width: 96vw;
+    max-width: 96vw;
+    margin-left: calc(-48vw + 50%);
+    margin-right: calc(-48vw + 50%);
+    margin: 1rem auto;
+  }
+  
+  .benefits-slider-wrapper .carousel {
+    height: 75vh;
+    min-height: 550px;
+    max-height: 750px;
+  }
+
+  .benefits-slider-wrapper .container-fluid,
+  .intro-slide .container-fluid {
+    padding: 2rem 1.5rem;
+  }
+  
+  .benefits-slider-wrapper .row {
+    gap: 2rem;
+    flex-direction: column;
+    max-width: 100%;
+    justify-content: center;
+    min-height: 500px;
+  }
+
+  .benefits-slider-wrapper .col-lg-6,
+  .benefits-slider-wrapper .col-xl-5 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    min-width: 100%;
+  }
+
+  .benefit-content-item {
+    padding: 1.2rem 0;
+  }
+
+  .benefit-number {
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+    margin-right: 1.2rem;
+  }
+
+  .benefit-title {
+    font-size: 1.25rem;
+  }
+
+  .benefit-detail {
+    font-size: 0.95rem;
+  }
+
+  .benefit-subtext {
+    font-size: 1rem;
+  }
+
+  .benefit-arrow {
+    width: 28px;
+    height: 28px;
+    margin-right: 0.8rem;
+  }
+
+  .benefits-carousel .carousel-control-prev,
+  .benefits-carousel .carousel-control-next {
+    width: 48px;
+    height: 48px;
+  }
+  .benefits-carousel .carousel-control-prev { left: 15px; }
+  .benefits-carousel .carousel-control-next { right: 15px; }
+}
+
+/* Tablet Responsive */
+@media (min-width: 769px) and (max-width: 991px) {
+  .benefits-slider-wrapper .carousel {
+    height: 72vh;
+    min-height: 520px;
+    max-height: 750px;
+  }
+
+  .benefits-slider-wrapper .container-fluid {
+    padding: 2.5rem 2rem;
+  }
+
+  .intro-slide .container-fluid {
+    padding: 2rem 2.5rem;
+  }
+  
+  .benefits-slider-wrapper .row {
+    gap: 2rem;
+    min-height: 460px;
+  }
+  
+  .benefit-content-item {
+    padding: 1.3rem 0;
+  }
+  
+  .benefit-number {
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+  }
+  
+  .benefit-title {
+    font-size: 1.3rem;
+  }
+}

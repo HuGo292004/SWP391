@@ -4,15 +4,13 @@ import {
   HeartOutlined, 
   CalendarOutlined, 
   SearchOutlined, 
-  AlertOutlined, 
-  BarChartOutlined, 
-  TeamOutlined,
-  MedicineBoxOutlined
-} from '@ant-design/icons';
+  AlertOutlined,   BarChartOutlined, 
+  TeamOutlined,  MedicineBoxOutlined 
+}from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 import { BenefitsSlider } from '../../components/ui';
-import { 
-  Container, 
+import {
+  Container,
   Row, 
   Col, 
   Card, 
@@ -98,10 +96,9 @@ const HomePage = () => {
   
   // Function to render CTA section based on user role
   const renderCTASection = () => {
-    switch(userRole) {
-      case 'staff':
+    switch(userRole) {      case 'staff':
         return (
-          <section className="cta-section bg-light">
+          <section className="cta-section bg-white">
             <Container>
               <Row className="justify-content-center text-center">
                 <Col lg={8}>
@@ -126,10 +123,9 @@ const HomePage = () => {
             </Container>
           </section>
         );
-      
-      case 'admin':
+        case 'admin':
         return (
-          <section className="cta-section bg-light">
+          <section className="cta-section bg-white">
             <Container>
               <Row className="justify-content-center text-center">
                 <Col lg={8}>
@@ -154,10 +150,9 @@ const HomePage = () => {
             </Container>
           </section>
         );
-      
-      default: // guest hoặc member
+        default: // guest hoặc member
         return (
-          <section className="cta-section bg-light">
+          <section className="cta-section bg-white">
             <Container>
               <Row className="justify-content-center text-center">
                 <Col lg={8}>
@@ -184,9 +179,8 @@ const HomePage = () => {
         );
     }
   };
-
   return (
-    <div className="homepage">
+    <div className="homepage bg-white">
       {/* Hero Banner Section */}
       <section className="hero-banner-new">
         <div className="banner-image-container">
@@ -244,201 +238,269 @@ const HomePage = () => {
             </Col>
           </Row>
         </Container>
-      </section>
-
-      {/* Statistics Section */}
-      <section className="statistics-section py-5 bg-light">
+      </section>      {/* Statistics Section */}      <section className="statistics-section py-2 bg-white">
         <Container>
-          <Row className="text-center mb-5">
-            <Col>
-              <h2 className="section-title mb-4">Thống kê hệ thống</h2>
-              <p className="section-subtitle">
-                Những con số ấn tượng về hoạt động hiến máu
-              </p>
+          <Row className="text-center mb-2">
+            <Col lg={8} className="mx-auto">
+              <div className="section-header-animated">
+                <div className="section-icon-wrapper mb-1">
+                  <BarChartOutlined className="section-main-icon" style={{ fontSize: '24px' }} />
+                </div>                <h2 className="statistics-title-enhanced mb-1">
+
+                  <span className="title-main">Thống Kê Hệ Thống</span>
+                  <span className="title-highlight">�</span>
+                </h2>
+                <div className="title-underline"></div>                <p className="statistics-subtitle-enhanced small">
+                  Những con số ấn tượng về hoạt động hiến máu nhân đạo
+                </p>
+              </div>
             </Col>
           </Row>
           
-          <Row className="justify-content-center">
-            <Col md={3} sm={6} className="mb-4">
-              <Card className="stat-card text-center h-100 border-0 shadow-sm">
-                <Card.Body>
-                  <div className="stat-icon text-danger mb-3">
-                    <HeartOutlined style={{ fontSize: '48px' }} />
+          <Row className="g-2 justify-content-center">            <Col lg={3} md={6} sm={6}>
+              <Card className="statistics-card border-0 shadow h-100">
+                <Card.Body className="text-center p-2">
+                  <div className="statistics-icon-wrapper mb-1">
+                    <div className="statistics-icon bg-danger">
+                      <HeartOutlined style={{ fontSize: '18px' }} />
+                    </div>
                   </div>
-                  <Statistic
-                    title={<span className="stat-title">Người hiến máu</span>}
-                    value={15420}
-                    valueStyle={{ color: '#dc3545', fontSize: '2.5rem', fontWeight: 'bold' }}
-                  />
+                  <h4 className="statistics-number text-danger mb-1">15,420</h4>
+                  <h6 className="statistics-label text-muted mb-0 small">Người hiến máu</h6>
+                  <div className="statistics-decoration"></div>
+                </Card.Body>
+              </Card>
+            </Col>            <Col lg={3} md={6} sm={6}>
+              <Card className="statistics-card border-0 shadow h-100">
+                <Card.Body className="text-center p-2">
+                  <div className="statistics-icon-wrapper mb-1">
+                    <div className="statistics-icon bg-primary">
+                      <MedicineBoxOutlined style={{ fontSize: '18px' }} />
+                    </div>
+                  </div>
+                  <h4 className="statistics-number text-primary mb-1">28,750</h4>
+                  <h6 className="statistics-label text-muted mb-0 small">Đơn vị máu</h6>
+                  <div className="statistics-decoration"></div>
+                </Card.Body>
+              </Card>
+            </Col>            <Col lg={3} md={6} sm={6}>
+              <Card className="statistics-card border-0 shadow h-100">
+                <Card.Body className="text-center p-2">
+                  <div className="statistics-icon-wrapper mb-1">
+                    <div className="statistics-icon bg-success">
+                      <TeamOutlined style={{ fontSize: '18px' }} />
+                    </div>
+                  </div>
+                  <h4 className="statistics-number text-success mb-1">8,960</h4>
+                  <h6 className="statistics-label text-muted mb-0 small">Người thụ hưởng</h6>
+                  <div className="statistics-decoration"></div>
+                </Card.Body>
+              </Card>
+            </Col>            <Col lg={3} md={6} sm={6}>
+              <Card className="statistics-card border-0 shadow h-100">
+                <Card.Body className="text-center p-2">
+                  <div className="statistics-icon-wrapper mb-1">
+                    <div className="statistics-icon bg-warning">
+                      <BarChartOutlined style={{ fontSize: '18px' }} />
+                    </div>
+                  </div>
+                  <h4 className="statistics-number text-warning mb-1">97.2%</h4>
+                  <h6 className="statistics-label text-muted mb-0 small">Tỷ lệ thành công</h6>
+                  <div className="statistics-decoration"></div>
                 </Card.Body>
               </Card>
             </Col>
-            
-            <Col md={3} sm={6} className="mb-4">
-              <Card className="stat-card text-center h-100 border-0 shadow-sm">
-                <Card.Body>
-                  <div className="stat-icon text-primary mb-3">
-                    <MedicineBoxOutlined style={{ fontSize: '48px' }} />
-                  </div>
-                  <Statistic
-                    title={<span className="stat-title">Đơn vị máu</span>}
-                    value={28750}
-                    valueStyle={{ color: '#0d6efd', fontSize: '2.5rem', fontWeight: 'bold' }}
-                  />
-                </Card.Body>
-              </Card>
-            </Col>
-            
-            <Col md={3} sm={6} className="mb-4">
-              <Card className="stat-card text-center h-100 border-0 shadow-sm">
-                <Card.Body>
-                  <div className="stat-icon text-success mb-3">
-                    <TeamOutlined style={{ fontSize: '48px' }} />
-                  </div>
-                  <Statistic
-                    title={<span className="stat-title">Người thụ hưởng</span>}
-                    value={8960}
-                    valueStyle={{ color: '#198754', fontSize: '2.5rem', fontWeight: 'bold' }}
-                  />
-                </Card.Body>
-              </Card>
-            </Col>
-            
-            <Col md={3} sm={6} className="mb-4">
-              <Card className="stat-card text-center h-100 border-0 shadow-sm">
-                <Card.Body>
-                  <div className="stat-icon text-warning mb-3">
-                    <BarChartOutlined style={{ fontSize: '48px' }} />
-                  </div>
-                  <Statistic
-                    title={<span className="stat-title">Tỷ lệ thành công</span>}
-                    value={97.2}
-                    suffix="%"
-                    valueStyle={{ color: '#fd7e14', fontSize: '2.5rem', fontWeight: 'bold' }}
-                  />
-                </Card.Body>
-              </Card>
+          </Row>        </Container>
+      </section>      {/* Benefits Slider Section */}      <section className="benefits-section-enhanced py-5 bg-white">
+        <Container>
+          <Row>
+            <Col>
+              <div className="benefits-slider-wrapper">
+                <BenefitsSlider />
+              </div>
             </Col>
           </Row>
         </Container>
-      </section>
-
-      {/* Blood Type Information Section */}
-      <section className="blood-type-section py-5">
-        <Container>
-          <Row className="mb-5">
-            <Col lg={8} className="mx-auto text-center">
-              <h2 className="section-title mb-4">Thông tin nhóm máu</h2>
-              <p className="section-subtitle">
-                Hiểu rõ về các nhóm máu và khả năng tương thích trong việc hiến và nhận máu
-              </p>
+      </section>      {/* Blood Type Information Section */}
+      <section className="blood-type-information-section py-3 bg-white">        <Container>
+          <Row className="text-center mb-3">
+            <Col lg={8} className="mx-auto">
+              <div className="section-header-animated">
+                <div className="section-icon-wrapper mb-2">
+                  <MedicineBoxOutlined className="section-main-icon pulse-icon" />
+                </div>
+                <h2 className="blood-type-title-enhanced mb-2">
+                  <span className="title-main">Thông Tin Nhóm Máu</span>
+                </h2>
+                <div className="title-underline blood-type-underline"></div>
+                <p className="blood-type-subtitle-enhanced lead">
+                  Hiểu rõ về các nhóm máu và khả năng tương thích trong việc hiến và nhận máu
+                  <span className="subtitle-icon">�</span>
+                </p>
+              </div>
             </Col>
           </Row>
-          
-          <Row>
+            <Row className="g-3">
             {bloodTypeCards.map((card, index) => (
-              <Col lg={3} md={6} className="mb-4" key={index}>
-                <Card className="blood-type-card h-100 border-0 shadow-sm">
-                  <Card.Body className="text-center">
-                    <div className="mb-3">
-                      {card.icon}
+              <Col lg={3} md={6} key={index}>
+                <Card className="blood-type-card-modern h-100 border-0 shadow">
+                  <Card.Body className="text-center p-3">
+                    <div className="blood-type-icon-wrapper mb-3">
+                      <div className="blood-type-icon">
+                        {card.icon}
+                      </div>
                     </div>
-                    <Card.Title className="mb-3">{card.title}</Card.Title>
-                    <Card.Text className="text-muted">
+                    <Card.Title className="blood-type-name h6 mb-2 fw-bold">
+                      {card.title}
+                    </Card.Title>
+                    <Card.Text className="blood-type-description text-muted small">
                       {card.description}
                     </Card.Text>
+                    <div className="blood-type-compatibility mt-2">
+                      <Badge bg="primary" className="compatibility-badge">
+                        Tương thích cao
+                      </Badge>
+                    </div>
                   </Card.Body>
                 </Card>
               </Col>
             ))}
           </Row>
         </Container>
-      </section>
-
-      {/* Benefits Slider Section */}
-      <section className="benefits-section py-5 bg-light">
+      </section>      {/* Donation Standards Section */}
+      <section className="donation-standards-section py-5 bg-white">
         <Container>
-          <Row className="mb-5">
-            <Col lg={8} className="mx-auto text-center">
-              <h2 className="section-title mb-4">Lợi ích của việc hiến máu</h2>
-              <p className="section-subtitle">
-                Hiến máu không chỉ cứu sống người khác mà còn mang lại nhiều lợi ích cho bản thân bạn
-              </p>
-            </Col>
-          </Row>
-          
-          <Row>
-            <Col>
-              <BenefitsSlider />
-            </Col>
-          </Row>
-        </Container>
-      </section>
+          <Row className="text-center mb-5">
+            <Col lg={10} className="mx-auto">
+              <div className="section-header-animated">
+                <div className="section-icon-wrapper mb-3">
+                  <i className="bi bi-shield-check section-main-icon shield-icon"></i>
+                </div>                <h2 className="standards-title-enhanced display-4 fw-bold mb-4">
+                  <span className="title-highlight">�</span>
+                  <span className="title-main text-gradient">Tiêu Chuẩn Hiến Máu</span>
 
-      {/* Donation Criteria Section */}
-      <section className="criteria-section py-5">
-        <Container>
-          <Row>
-            <Col lg={6} className="mb-4">
-              <h2 className="section-title mb-4">Tiêu chí hiến máu</h2>
-              <div className="criteria-list">
-                <div className="criteria-item">
-                  <Badge bg="success" className="criteria-badge">✓</Badge>
-                  <span>Tuổi từ 18-60 (lần đầu hiến máu tối đa 55 tuổi)</span>
-                </div>
-                <div className="criteria-item">
-                  <Badge bg="success" className="criteria-badge">✓</Badge>
-                  <span>Cân nặng tối thiểu 45kg đối với nam, 42kg đối với nữ</span>
-                </div>
-                <div className="criteria-item">
-                  <Badge bg="success" className="criteria-badge">✓</Badge>
-                  <span>Huyết áp trong khoảng 90-160 mmHg (tâm thu)</span>
-                </div>
-                <div className="criteria-item">
-                  <Badge bg="success" className="criteria-badge">✓</Badge>
-                  <span>Không mắc các bệnh truyền nhiễm qua đường máu</span>
-                </div>
-                <div className="criteria-item">
-                  <Badge bg="success" className="criteria-badge">✓</Badge>
-                  <span>Khoảng cách giữa 2 lần hiến máu tối thiểu 12 tuần</span>
-                </div>
-                <div className="criteria-item">
-                  <Badge bg="success" className="criteria-badge">✓</Badge>
-                  <span>Sức khỏe tốt, không trong thời kỳ mang thai hoặc cho con bú</span>
-                </div>
-              </div>
-            </Col>
-            
-            <Col lg={6}>
-              <h2 className="section-title mb-4">Yếu tố Rh</h2>
-              <p className="mb-4">
-                Yếu tố Rh là một protein có thể có hoặc không có trên bề mặt tế bào hồng cầu. 
-                Điều này quyết định nhóm máu của bạn là Rh dương tính (+) hay Rh âm tính (-).
-              </p>
-              
-              <div className="rh-info">
-                <div className="rh-legend">
-                  <div className="legend-item">
-                    <Badge bg="success" className="legend-badge">Rh+</Badge>
-                    <span>Có protein Rh trên bề mặt hồng cầu</span>
-                  </div>
-                  <div className="legend-item">
-                    <Badge bg="warning" className="legend-badge">Rh-</Badge>
-                    <span>Không có protein Rh trên bề mặt hồng cầu</span>
-                  </div>
-                  <div className="legend-item">
-                    <Badge bg="info" className="legend-badge">Lưu ý</Badge>
-                    <span>Yếu tố Rh quyết định khả năng tương thích khi truyền máu</span>
-                  </div>
-                </div>
+                </h2>
+                <div className="title-underline standards-underline"></div>
+                <p className="standards-subtitle-enhanced lead fs-4 mb-5">
+
+                  Đáp ứng các tiêu chuẩn dưới đây để trở thành người hùng cứu người
+
+                </p>
               </div>
             </Col>
           </Row>
-        </Container>
-      </section>
 
-      {/* CTA Section */}
-      {renderCTASection()}
+          <Row className="g-4 mb-5">
+            {/* Age Requirement */}
+            <Col lg={3} md={6}>
+              <Card className="standard-card h-100 border-0">
+                <Card.Body className="text-center p-4">                  <div className="standard-icon mb-4">
+                    <div className="icon-wrapper age-icon">
+                      <i className="bi bi-calendar-check fs-1"></i>
+                    </div>
+                  </div>
+                  <h4 className="standard-title mb-3">Độ tuổi</h4>
+                  <div className="standard-range mb-3">
+                    <span className="range-number">18-60</span>
+                    <span className="range-unit">tuổi</span>
+                  </div>
+                  <p className="standard-note">
+                    Lần đầu hiến máu: tối đa 55 tuổi
+                  </p>
+                </Card.Body>
+              </Card>
+            </Col>
+
+            {/* Weight Requirement */}
+            <Col lg={3} md={6}>
+              <Card className="standard-card h-100 border-0">
+                <Card.Body className="text-center p-4">                  <div className="standard-icon mb-4">
+                    <div className="icon-wrapper weight-icon">
+                      <i className="bi bi-person-standing fs-1"></i>
+                    </div>
+                  </div>
+                  <h4 className="standard-title mb-3">Cân nặng</h4>                  <div className="standard-details">
+                    <div className="weight-item mb-2">
+                      <i className="bi bi-person-arms-up text-primary me-2"></i>
+                      <Badge bg="primary" className="me-2">Nam</Badge>
+                      <span className="weight-value">≥ 45kg</span>
+                    </div>
+                    <div className="weight-item">
+                      <i className="bi bi-person-dress text-danger me-2"></i>
+                      <Badge bg="danger" className="me-2">Nữ</Badge>
+                      <span className="weight-value">≥ 42kg</span>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+
+            {/* Health Requirement */}
+            <Col lg={3} md={6}>
+              <Card className="standard-card h-100 border-0">
+                <Card.Body className="text-center p-4">                  <div className="standard-icon mb-4">
+                    <div className="icon-wrapper health-icon">
+                      <i className="bi bi-shield-check fs-1"></i>
+                    </div>
+                  </div>
+                  <h4 className="standard-title mb-3">Sức khỏe</h4>
+                  <div className="health-indicators">
+                    <div className="health-item mb-2">
+                      <i className="bi bi-check-circle text-success me-2"></i>
+                      <span>Không mắc bệnh truyền nhiễm</span>
+                    </div>
+                    <div className="health-item">
+                      <i className="bi bi-check-circle text-success me-2"></i>
+                      <span>Sức khỏe tốt</span>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+
+            {/* Frequency Requirement */}
+            <Col lg={3} md={6}>
+              <Card className="standard-card h-100 border-0">
+                <Card.Body className="text-center p-4">                  <div className="standard-icon mb-4">
+                    <div className="icon-wrapper frequency-icon">
+                      <i className="bi bi-arrow-repeat fs-1"></i>
+                    </div>
+                  </div>
+                  <h4 className="standard-title mb-3">Tần suất</h4>
+                  <div className="frequency-info">
+                    <div className="frequency-number mb-2">
+                      <span className="number">12</span>
+                      <span className="unit">tuần</span>
+                    </div>
+                    <p className="frequency-note">
+                      Khoảng cách tối thiểu giữa 2 lần hiến máu
+                    </p>
+                  </div>
+                </Card.Body>
+              </Card>            </Col>
+          </Row>
+
+          {/* Call to Action */}
+          <Row className="justify-content-center">
+            <Col lg={8} className="text-center">
+              <div className="cta-wrapper">
+                <h3 className="cta-title mb-4">Bạn đã sẵn sàng trở thành người hùng?</h3>
+                <p className="cta-description mb-4">
+                  Mỗi lần hiến máu của bạn có thể cứu sống tới 3 người. Hãy kiểm tra xem bạn có đủ điều kiện không!
+                </p>                <div className="cta-buttons">
+                  <Button variant="danger" size="lg" className="me-3 cta-primary-btn">
+                    <i className="bi bi-heart-fill me-2"></i>
+                    Đăng ký hiến máu ngay
+                  </Button>
+                  <Button variant="outline-primary" size="lg" className="cta-secondary-btn">
+                    <i className="bi bi-info-circle me-2"></i>
+                    Tìm hiểu thêm
+                  </Button>
+                </div>
+              </div>
+            </Col>
+          </Row>        </Container>
+      </section>
     </div>
   );
 };
