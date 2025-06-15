@@ -1,16 +1,18 @@
 /* ========================================
-   BANNER STYLES - UNIFIED
+   MODERN HERO BANNER - REDESIGNED
    ======================================== */
 
 /* Base Banner Styles */
 .hero-banner-new {
   position: relative;
-  min-height: 75vh;
+  min-height: 80vh;
   display: flex;
   align-items: center;
   overflow: hidden;
-  box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .banner-image-container {
@@ -20,6 +22,7 @@
   right: 0;
   bottom: 0;
   z-index: 1;
+  overflow: hidden;
 }
 
 .banner-image {
@@ -27,214 +30,328 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: brightness(0.8) contrast(1.1);
-  transition: filter 0.3s ease;
+  filter: brightness(0.7) contrast(1.2) saturate(1.1);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1.05);
 }
 
 .banner-image:hover {
-  filter: brightness(0.85) contrast(1.15);
+  filter: brightness(0.75) contrast(1.3) saturate(1.2);
+  transform: scale(1.08);
 }
 
 .hero-banner-new::before {
   content: '';
-  position: absolute;  top: 0;
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: transparent;
+  background: linear-gradient(
+    135deg,
+    rgba(220, 53, 69, 0.8) 0%,
+    rgba(220, 53, 69, 0.6) 30%,
+    rgba(0, 0, 0, 0.4) 70%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
   z-index: 2;
-  transition: opacity 0.3s ease;
+  opacity: 0.9;
+}
+
+.hero-banner-new::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(220, 53, 69, 0.2) 0%, transparent 50%);
+  z-index: 2;
+  pointer-events: none;
 }
 
 .hero-banner-content {
   position: relative;
-  z-index: 3;
+  z-index: 10;
   text-align: center;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(15px);
-  border-radius: 20px;
-  padding: 2.5rem;
-  margin: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border-radius: 30px;
+  padding: 4rem 3rem;
+  margin: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: slideInUp 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ========================================
-   RED THEME BANNER
+   ENHANCED TYPOGRAPHY
+   ======================================== */
+
+.hero-banner-title-red,
+.hero-banner-title-golden {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+  animation: fadeInUp 1s ease-out 0.3s both;
+  letter-spacing: -0.02em;
+  text-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.hero-banner-title-red::after,
+.hero-banner-title-golden::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #FFFFFF, rgba(255, 255, 255, 0.8));
+  border-radius: 2px;
+  animation: expandLine 1s ease-out 0.8s both;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-banner-subtitle-red,
+.hero-banner-subtitle-golden {
+  font-size: 1.3rem;
+  line-height: 1.8;
+  max-width: 950px;
+  margin: 0 auto 3.5rem;
+  font-weight: 400;
+  animation: fadeInUp 1s ease-out 0.5s both;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  opacity: 0.95;
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.hero-banner-subtitle-red .subtitle-line,
+.hero-banner-subtitle-golden .subtitle-line {
+  display: block;
+  color: #FFFFFF;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* ========================================
+   RED THEME ENHANCED
    ======================================== */
 
 .hero-banner-title-red {
-  font-size: 3.5rem;
-  font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
   color: #FFFFFF;
-  animation: fadeInUp 1s ease-out 0.2s both;
+  text-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .title-highlight-red {
-  display: block;
-  color: #FFFFFF;
-  font-weight: 700;
-  font-size: 0.8em;
-  opacity: 0.9;
+  display: none;
 }
 
 .hero-banner-subtitle-red {
-  font-size: 1.3rem;
-  line-height: 1.6;
-  color: #FFD700;
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  font-weight: 500;
-  animation: fadeInUp 1s ease-out 0.4s both;
-}
-
-.hero-banner-subtitle-red:hover {
-  text-shadow: 
-    1px 1px 4px rgba(0, 0, 0, 0.7),
-    0 0 8px rgba(244, 208, 63, 0.5);
-  transform: translateY(-1px);
-  transition: all 0.3s ease;
-}
-
-.hero-banner-buttons-new {
-  margin-bottom: 3rem;
-  animation: fadeInUp 1s ease-out 0.6s both;
-}
-
-.hero-cta-btn-new {
-  min-width: 220px;
-  padding: 15px 30px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 50px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  border: none;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-}
-
-.hero-cta-btn-new.btn-danger {
-  background: linear-gradient(135deg, #dc3545, #c82333);
-  color: #ffffff;
-  border: 2px solid transparent;
-}
-
-.hero-cta-btn-new.btn-danger:hover {
-  background: linear-gradient(135deg, #c82333, #a71e2a);
-  color: #ffffff;
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(220, 53, 69, 0.4);
-}
-
-.hero-cta-btn-new.btn-outline-danger {
-  background: rgba(0, 0, 0, 0.2);
-  color: #f0f0f0;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-}
-
-.hero-cta-btn-new.btn-outline-danger:hover {
-  background: rgba(255, 255, 255, 0.9);
-  color: #dc3545;
-  border-color: rgba(255, 255, 255, 0.9);
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  color: #FFFFFF !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  background-clip: unset !important;
 }
 
 /* ========================================
-   GOLDEN THEME BANNER
+   GOLDEN THEME ENHANCED  
    ======================================== */
 
 .hero-banner-title-golden {
-  font-size: 3.5rem;
-  font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
-  color: #b8860b;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
-  animation: fadeInUp 1s ease-out 0.2s both;
+  color: #FFFFFF;
+  text-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .title-highlight-golden {
-  display: block;
-  background: linear-gradient(45deg, #daa520, #ffd700);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 700;
-  font-size: 0.8em;
+  display: none;
 }
 
 .hero-banner-subtitle-golden {
-  font-size: 1.3rem;
-  line-height: 1.6;
-  color: #b8860b;
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  font-weight: 500;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
-  animation: fadeInUp 1s ease-out 0.4s both;
+  color: #FFFFFF !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  background-clip: unset !important;
 }
 
+/* ========================================
+   MODERN BUTTON CONTAINERS
+   ======================================== */
+
+.hero-banner-buttons-new,
 .hero-banner-buttons-golden {
-  margin-bottom: 3rem;
-  animation: fadeInUp 1s ease-out 0.6s both;
+  margin-bottom: 2rem;
+  animation: fadeInUp 1s ease-out 0.7s both;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
-.hero-cta-btn-golden {
-  min-width: 220px;
-  padding: 15px 30px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 50px;
+/* ========================================
+   MODERN RED THEME BUTTONS
+   ======================================== */
+
+.hero-cta-btn-new {
+  min-width: 240px;
+  padding: 18px 36px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 60px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  border: 2px solid #daa520;
+  letter-spacing: 1px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-  color: #b8860b !important;
+  box-shadow: 
+    0 8px 32px rgba(220, 53, 69, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(0);
+}
+
+.hero-cta-btn-new::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+  z-index: 1;
+}
+
+.hero-cta-btn-new:hover::before {
+  left: 100%;
+}
+
+.hero-cta-btn-new.btn-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 50%, #b21e2f 100%);
+  color: #ffffff;
+  box-shadow: 
+    0 12px 40px rgba(220, 53, 69, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.hero-cta-btn-new.btn-danger:hover {
+  background: linear-gradient(135deg, #b21e2f 0%, #dc3545 50%, #ff1e35 100%);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 
+    0 20px 50px rgba(220, 53, 69, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.hero-cta-btn-new.btn-outline-danger {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 2px solid rgba(220, 53, 69, 0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 8px 32px rgba(220, 53, 69, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.hero-cta-btn-new.btn-outline-danger:hover {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-color: #dc3545;
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 
+    0 20px 50px rgba(220, 53, 69, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* ========================================
+   MODERN GOLDEN THEME BUTTONS
+   ======================================== */
+
+.hero-cta-btn-golden {
+  min-width: 240px;
+  padding: 18px 36px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 60px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid rgba(255, 215, 0, 0.8);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 8px 32px rgba(255, 215, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.hero-cta-btn-golden::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s ease;
+  z-index: 1;
+}
+
+.hero-cta-btn-golden:hover::before {
+  left: 100%;
 }
 
 .hero-cta-btn-golden.btn-warning {
-  background: linear-gradient(135deg, #ffd700, #daa520);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
   color: #8b4513 !important;
+  font-weight: 800;
 }
 
 .hero-cta-btn-golden.btn-outline-warning {
   background: rgba(255, 215, 0, 0.1);
   backdrop-filter: blur(10px);
-  color: #b8860b !important;
+  color: #FFD700 !important;
+  font-weight: 700;
 }
 
 .hero-cta-btn-golden:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-  color: #8b4513 !important;
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 
+    0 20px 50px rgba(255, 215, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .hero-cta-btn-golden.btn-warning:hover {
-  background: linear-gradient(135deg, #daa520, #ffd700);
+  background: linear-gradient(135deg, #FF8C00 0%, #FFD700 50%, #FFFF00 100%);
+  color: #654321 !important;
 }
 
 .hero-cta-btn-golden.btn-outline-warning:hover {
-  background: linear-gradient(135deg, #ffd700, #daa520);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
   color: #8b4513 !important;
 }
 
 /* ========================================
-   ANIMATIONS
+   MODERN ANIMATIONS
    ======================================== */
 
 @keyframes fadeInUp {
   0% {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(40px);
   }
   100% {
     opacity: 1;
@@ -242,50 +359,256 @@
   }
 }
 
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(60px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes expandLine {
+  0% {
+    width: 0;
+    opacity: 0;
+  }
+  100% {
+    width: 80px;
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0% {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+  100% {
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.4);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 /* ========================================
-   RESPONSIVE DESIGN
+   ENHANCED RESPONSIVE DESIGN
    ======================================== */
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
+  .hero-banner-content {
+    padding: 3rem 2.5rem;
+    margin: 1.5rem;
+  }
+  
   .hero-banner-title-red,
   .hero-banner-title-golden {
-    font-size: 2.5rem;
+    font-size: 3.2rem;
   }
   
   .hero-banner-subtitle-red,
   .hero-banner-subtitle-golden {
+    font-size: 1.2rem;
+    max-width: 850px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-banner-new {
+    min-height: 75vh;
+  }
+
+  .hero-banner-content {
+    padding: 2.5rem 2rem;
+    margin: 1rem;
+    border-radius: 25px;
+  }
+
+  .hero-banner-title-red,
+  .hero-banner-title-golden {
+    font-size: 2.8rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+  }
+  .hero-banner-subtitle-red,
+  .hero-banner-subtitle-golden {
     font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+    gap: 0.6rem;
+    color: #FFFFFF !important;
+    max-width: 700px;
+  }
+  
+  .hero-banner-subtitle-red .subtitle-line,
+  .hero-banner-subtitle-golden .subtitle-line {
+    color: #FFFFFF !important;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  }
+  
+  .hero-banner-buttons-new,
+  .hero-banner-buttons-golden {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
   }
   
   .hero-cta-btn-new,
   .hero-cta-btn-golden {
-    min-width: 180px;
-    font-size: 1rem;
-    padding: 12px 24px;
+    min-width: 280px;
+    width: 100%;
+    max-width: 320px;
+    font-size: 1.1rem;
+    padding: 16px 32px;
+  }
+
+  .hero-cta-btn-new:hover,
+  .hero-cta-btn-golden:hover {
+    transform: translateY(-2px) scale(1.02);
   }
 }
 
 @media (max-width: 576px) {
+  .hero-banner-new {
+    min-height: 70vh;
+  }
+
+  .hero-banner-content {
+    padding: 2rem 1.5rem;
+    margin: 0.8rem;
+    border-radius: 20px;
+  }
+
   .hero-banner-title-red,
   .hero-banner-title-golden {
-    font-size: 2rem;
+    font-size: 2.2rem;
+    margin-bottom: 1.2rem;
   }
-  
   .hero-banner-subtitle-red,
   .hero-banner-subtitle-golden {
     font-size: 1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+    gap: 0.5rem;
+    color: #FFFFFF !important;
+    max-width: 600px;
+  }
+  
+  .hero-banner-subtitle-red .subtitle-line,
+  .hero-banner-subtitle-golden .subtitle-line {
+    color: #FFFFFF !important;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
   }
   
   .hero-cta-btn-new,
   .hero-cta-btn-golden {
-    min-width: 160px;
-    font-size: 0.9rem;
-    padding: 10px 20px;
+    min-width: 260px;
+    font-size: 1rem;
+    padding: 14px 28px;
+    border-radius: 50px;
+  }
+
+  .hero-banner-buttons-new,
+  .hero-banner-buttons-golden {
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-banner-content {
+    padding: 1.8rem 1.2rem;
+    margin: 0.5rem;
+  }
+
+  .hero-banner-title-red,
+  .hero-banner-title-golden {
+    font-size: 2rem;
+  }
+  .hero-banner-subtitle-red,
+  .hero-banner-subtitle-golden {
+    font-size: 0.95rem;
+    gap: 0.4rem;
+    color: #FFFFFF !important;
+    max-width: 500px;
   }
   
-  .hero-banner-buttons-new .hero-cta-btn-new,
-  .hero-banner-buttons-golden .hero-cta-btn-golden {
-    width: 100%;
-    margin: 0 0 1rem 0 !important;
+  .hero-banner-subtitle-red .subtitle-line,
+  .hero-banner-subtitle-golden .subtitle-line {
+    color: #FFFFFF !important;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  }
+  
+  .hero-cta-btn-new,
+  .hero-cta-btn-golden {
+    min-width: 240px;
+    font-size: 0.95rem;
+    padding: 12px 24px;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY & PERFORMANCE
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-banner-content,
+  .hero-banner-title-red,
+  .hero-banner-title-golden,
+  .hero-banner-subtitle-red,
+  .hero-banner-subtitle-golden,
+  .hero-banner-buttons-new,
+  .hero-banner-buttons-golden,
+  .hero-cta-btn-new,
+  .hero-cta-btn-golden,
+  .banner-image {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .hero-banner-content {
+    background: rgba(0, 0, 0, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .hero-banner-content {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #ffffff;
+  }
+  
+  .hero-banner-title-red,
+  .hero-banner-title-golden,
+  .hero-banner-subtitle-red,
+  .hero-banner-subtitle-golden {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 1) !important;
+  }
+  
+  .hero-banner-subtitle-red .subtitle-line,
+  .hero-banner-subtitle-golden .subtitle-line {
+    color: #ffffff !important;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 1) !important;
   }
 }
