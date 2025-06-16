@@ -15,7 +15,7 @@ import { MainLayout } from "./components/layout";
 import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage, Profile } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
-import { StaffDashboard } from "./pages/staff";
+import { UserManagement } from "./pages/staff";
 import { MemberDashboard, BloodDonationRegistration } from "./pages/member";
 
 // Y tế theme colors
@@ -87,23 +87,20 @@ function App() {
                 <Route path="/register" element={<RegisterPage />} />
                 
                 {/* Blood donation registration route - Public access */}
-                <Route path="/blood-donation-register" element={<BloodDonationRegistration />} />
-
-                {/* Admin routes */}
+                <Route path="/blood-donation-register" element={<BloodDonationRegistration />} />                {/* Admin routes */}
                 <Route path="/admin" element={<HomePage />} />
                 <Route path="/admin/faq" element={<FAQPage />} />
                 <Route path="/admin/news" element={<NewsPage />} />
                 <Route path="/admin/support" element={<SupportPage />} />
                 <Route path="/admin/profile" element={<Profile />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
-
-                {/* Staff routes */}
+                <Route path="/admin/user-management" element={<UserManagement />} />{/* Staff routes */}
                 <Route path="/staff" element={<HomePage />} />
                 <Route path="/staff/faq" element={<FAQPage />} />
                 <Route path="/staff/news" element={<NewsPage />} />
                 <Route path="/staff/support" element={<SupportPage />} />
                 <Route path="/staff/profile" element={<Profile />} />
-                <Route path="/staff/dashboard" element={<StaffDashboard />} />
+                <Route path="/staff/user-management" element={<UserManagement />} />
 
                 {/* Member routes */}
                 <Route path="/member" element={<HomePage />} />

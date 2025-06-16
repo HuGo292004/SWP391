@@ -1,1 +1,1 @@
-export { default as StaffDashboard } from './StaffDashboard'; 
+export { default as UserManagement } from './UserManagement';
