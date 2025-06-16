@@ -9,6 +9,7 @@ import {
     MedicineBoxOutlined,
     MenuOutlined,
     SearchOutlined,
+    TeamOutlined,
     UserOutlined,
     CloseOutlined,
   } from "@ant-design/icons";
@@ -328,9 +329,8 @@ import {
               label: <Link to={createRoleBasedPath("/emergency-request", currentRole)}>Yêu cầu khẩn cấp</Link>,
             },
           ]
-        : []),
-      // Chỉ hiển thị dashboard cho người đã đăng nhập
-      ...(isAuthenticated
+        : []),      // Chỉ hiển thị dashboard cho Admin và Member (không hiển thị cho Staff)
+      ...(isAuthenticated && currentRole !== 'staff'
         ? [
             {
               key: createRoleBasedPath("/dashboard", currentRole),
@@ -676,54 +676,49 @@ import {
   
                   {/* Notification Dropdown */}
                   {notificationVisible && <NotificationDropdown />}
-                </div>
-  
-                {/* User Info Display - Desktop - With Dropdown */}
+                </div>                {/* User Info Display - Desktop - With Dropdown */}
                 <Dropdown
-                  overlay={
-                    <Menu
-                      items={[
-                        {
-                          key: 'profile',
-                          icon: <UserOutlined />,
-                          label: 'Hồ sơ cá nhân',
-                          onClick: () => navigate(createRoleBasedPath('/profile', currentRole))
-                        },
-                        ...(user?.role === 'Admin' ? [{
-                          key: 'admin-dashboard',
-                          icon: <DashboardOutlined />,
-                          label: 'Admin Dashboard',
-                          onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
-                        }] : []),
-                        ...(user?.role === 'Staff' ? [{
-                          key: 'staff-dashboard',
-                          icon: <DashboardOutlined />,
-                          label: 'Staff Dashboard',
-                          onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
-                        }] : []),
-                        ...(user?.role === 'Member' ? [{
-                          key: 'member-dashboard',
-                          icon: <DashboardOutlined />,
-                          label: 'Member Dashboard',
-                          onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
-                        }] : []),
-                        { type: 'divider' },
-                        {
-                          key: 'logout',
-                          icon: <LogoutOutlined />,
-                          label: 'Đăng xuất',
-                          onClick: logout
-                        }
-                      ]}
-                      style={{
+                  menu={{
+                    items: [
+                      {
+                        key: 'profile',
+                        icon: <UserOutlined />,
+                        label: 'Hồ sơ cá nhân',
+                        onClick: () => navigate(createRoleBasedPath('/profile', currentRole))
+                      },
+                      ...(user?.role === 'Admin' ? [{
+                        key: 'admin-dashboard',
+                        icon: <DashboardOutlined />,
+                        label: 'Admin Dashboard',
+                        onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
+                      }] : []),
+                      ...(user?.role === 'Member' ? [{
+                        key: 'member-dashboard',
+                        icon: <DashboardOutlined />,
+                        label: 'Member Dashboard',
+                        onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
+                      }] : []),
+                      // Chỉ hiển thị "Quản lý người dùng" cho Admin và Staff
+                      ...(user?.role === 'Admin' || user?.role === 'Staff' ? [{
+                        key: 'user-management',
+                        icon: <TeamOutlined />,
+                        label: 'Quản lý người dùng',
+                        onClick: () => navigate(createRoleBasedPath('/user-management', currentRole))
+                      }] : []),
+                      { type: 'divider' },
+                      {
+                        key: 'logout',
+                        icon: <LogoutOutlined />,
+                        label: 'Đăng xuất',
+                        onClick: logout
+                      }
+                    ],                      style: {
                         backgroundColor: 'white',
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        minWidth: '160px',
-                        padding: '4px 0'
-                      }}
-                    />
-                  }
+                        minWidth: '160px',                        padding: '4px 0'
+                      }
+                  }}
                   trigger={['click']}
                   placement="bottomRight"
                 >
