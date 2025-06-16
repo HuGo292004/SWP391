@@ -1,0 +1,528 @@
+/* ========================================
+   PROFILE PAGE STYLES
+   ======================================== */
+
+.profile-container {
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.profile-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   PROFILE HEADER SECTION
+   ======================================== */
+
+.profile-header-card {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.12);
+  border: none;
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+.profile-header-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1976D2 0%, #42A5F5 50%, #E91E63 100%);
+}
+
+.profile-avatar {
+  border: 4px solid #1976D2;
+  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.3);
+  transition: all 0.3s ease;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(25, 118, 210, 0.4);
+}
+
+.profile-header-title {
+  margin: 0;
+  color: #1976D2;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(25, 118, 210, 0.1);
+}
+
+.profile-username {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.profile-role-tag {
+  font-size: 14px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-last-active {
+  margin-top: 12px;
+  margin-bottom: 0;
+  color: #888;
+  font-style: italic;
+}
+
+/* ========================================
+   PROFILE CARDS
+   ======================================== */
+
+.profile-card {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  background: #ffffff;
+}
+
+.profile-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.profile-card .ant-card-head {
+  border-bottom: 2px solid #f0f2f5;
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.profile-card .ant-card-head-title {
+  font-weight: 600;
+  color: #1976D2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-edit-btn {
+  border-radius: 8px;
+  font-weight: 600;
+  height: 40px;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.profile-edit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+}
+
+/* ========================================
+   DESCRIPTIONS STYLING
+   ======================================== */
+
+.profile-descriptions .ant-descriptions-item-label {
+  font-weight: 700;
+  color: #37474F;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  border-left: 3px solid #1976D2;
+}
+
+.profile-descriptions .ant-descriptions-item-content {
+  padding: 8px 12px;
+  background: #fafbfc;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ========================================
+   MEMBER SPECIFIC STYLES
+   ======================================== */
+
+.blood-info-cards .ant-col {
+  margin-bottom: 16px;
+}
+
+.blood-info-card {
+  text-align: center;
+  border-radius: 12px;
+  border: 2px solid;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.blood-info-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.blood-info-card:hover::before {
+  left: 100%;
+}
+
+.blood-info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.blood-type-card {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+  border-color: #ffccc7;
+}
+
+.donation-count-card {
+  background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+  border-color: #b7eb8f;
+}
+
+.total-volume-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e1f5fe 100%);
+  border-color: #91d5ff;
+}
+
+.next-eligible-card {
+  background: linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%);
+  border-color: #ffd591;
+}
+
+.blood-info-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.blood-info-value {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.blood-info-label {
+  color: #666;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   ACHIEVEMENTS SECTION
+   ======================================== */
+
+.achievement-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.achievement-item {
+  padding: 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.achievement-item:hover {
+  background: linear-gradient(135deg, #fafbfc 0%, #f0f2f5 100%);
+  border-left-color: #1976D2;
+  transform: translateX(4px);
+}
+
+.achievement-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+  margin-right: 12px;
+}
+
+.achievement-icon.bronze {
+  background: linear-gradient(135deg, #cd7f32 0%, #b8860b 100%);
+}
+
+.achievement-icon.silver {
+  background: linear-gradient(135deg, #c0c0c0 0%, #a8a8a8 100%);
+}
+
+.achievement-icon.gold {
+  background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+}
+
+/* ========================================
+   DONATION HISTORY
+   ======================================== */
+
+.donation-history-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.donation-timeline .ant-timeline-item-content {
+  padding: 16px;
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+  border-radius: 8px;
+  margin-left: 16px;
+  border: 1px solid #f0f2f5;
+  transition: all 0.3s ease;
+}
+
+.donation-timeline .ant-timeline-item-content:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #1976D2;
+}
+
+.donation-date {
+  font-weight: 700;
+  color: #1976D2;
+  font-size: 16px;
+}
+
+.donation-details {
+  color: #666;
+  margin: 4px 0;
+}
+
+.donation-status-tag {
+  margin-top: 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* ========================================
+   MODAL STYLES
+   ======================================== */
+
+.profile-edit-modal .ant-modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.profile-edit-modal .ant-modal-header {
+  background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
+  border-bottom: none;
+  padding: 24px;
+}
+
+.profile-edit-modal .ant-modal-title {
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.profile-edit-modal .ant-modal-body {
+  padding: 32px 24px;
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+}
+
+.profile-form .ant-form-item-label > label {
+  font-weight: 600;
+  color: #37474F;
+}
+
+.profile-form .ant-input,
+.profile-form .ant-select-selector,
+.profile-form .ant-picker {
+  border-radius: 8px;
+  border: 2px solid #e1e5e9;
+  transition: all 0.3s ease;
+}
+
+.profile-form .ant-input:focus,
+.profile-form .ant-select-focused .ant-select-selector,
+.profile-form .ant-picker-focused {
+  border-color: #1976D2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.profile-form-actions {
+  text-align: right;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #f0f2f5;
+}
+
+.profile-cancel-btn {
+  margin-right: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  height: 40px;
+  padding: 0 20px;
+}
+
+.profile-save-btn {
+  border-radius: 8px;
+  font-weight: 600;
+  height: 40px;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+
+.profile-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.profile-error {
+  text-align: center;
+  padding: 60px 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 16px;
+  }
+  
+  .profile-header-card .ant-card-body {
+    padding: 20px;
+  }
+  
+  .profile-avatar {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  .profile-header-title {
+    font-size: 20px;
+  }
+  
+  .blood-info-cards .ant-col {
+    margin-bottom: 12px;
+  }
+  
+  .blood-info-value {
+    font-size: 20px;
+  }
+  
+  .profile-edit-modal .ant-modal-body {
+    padding: 24px 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .profile-descriptions .ant-descriptions {
+    column-count: 1;
+  }
+  
+  .profile-form-actions {
+    text-align: center;
+  }
+  
+  .profile-cancel-btn,
+  .profile-save-btn {
+    width: 100%;
+    margin: 8px 0;
+  }
+}
+
+/* ========================================
+   ANIMATION KEYFRAMES
+   ======================================== */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.profile-card {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.profile-header-card {
+  animation: fadeIn 0.8s ease-out;
+}
+
+/* ========================================
+   STAFF/ADMIN SPECIFIC STYLES
+   ======================================== */
+
+.work-info-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+  border-left: 4px solid #1976D2;
+}
+
+.work-info-card .ant-descriptions-item-label {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left-color: #1976D2;
+}
+
+.staff-status-tag {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 4px 12px;
+}
+
+.admin-access-tag {
+  background: linear-gradient(135deg, #F44336 0%, #EF5350 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 4px 12px;
+}
+
+.system-management-tag {
+  background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 4px 8px;
+  margin: 2px;
+}
