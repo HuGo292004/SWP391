@@ -64,13 +64,12 @@ const Profile = () => {
       avatar: null,
       joinDate: '2023-01-15',
       lastActive: dayjs().format('YYYY-MM-DD HH:mm:ss')
-    };
-
-    if (role === 'Member') {
+    };    if (role === 'Member') {
       return {
         ...baseInfo,
+        userID: 'MB001', // Mã người dùng cho Member
         fullName: 'Nguyễn Văn An',
-        email: 'nguyenvanan@email.com',        phone: '0912345678',
+        email: 'nguyenvanan@email.com',phone: '0912345678',
         citizenId: '079090001234',
         address: '123 Đường ABC, Quận 1, TP.HCM',
         birthDate: '1990-05-15',
@@ -207,8 +206,15 @@ const Profile = () => {
           Chỉnh sửa
         </Button>
       }
-    >
-      <Descriptions column={2} className="profile-descriptions">
+    >      <Descriptions column={2} className="profile-descriptions">
+        <Descriptions.Item label="Mã người dùng">
+          <Space>
+            <SafetyCertificateOutlined style={{ color: '#1976D2' }} />
+            {userInfo.role === 'Member' ? (userInfo.userID || 'MB001') : 
+             userInfo.role === 'Staff' ? (userInfo.staffID || 'ST001') :
+             (userInfo.staffID || 'AD001')}
+          </Space>
+        </Descriptions.Item>
         <Descriptions.Item label="Họ và tên">{userInfo.fullName}</Descriptions.Item>
         <Descriptions.Item label="Tên đăng nhập">{userInfo.username}</Descriptions.Item>
         <Descriptions.Item label="Email">
@@ -221,34 +227,36 @@ const Profile = () => {
             <PhoneOutlined style={{ color: '#1976D2' }} />
             {userInfo.phone}
           </Space>
-        </Descriptions.Item>
-        <Descriptions.Item label="Căn cước công dân">
+        </Descriptions.Item>        <Descriptions.Item label="Căn cước công dân">
           <Space>
             <SafetyCertificateOutlined style={{ color: '#1976D2' }} />
             {userInfo.citizenId}
           </Space>
-        </Descriptions.Item>
-        <Descriptions.Item label="Địa chỉ" span={2}>
-          <Space>
-            <EnvironmentOutlined style={{ color: '#1976D2' }} />
-            {userInfo.address}
-          </Space>
-        </Descriptions.Item>
-        <Descriptions.Item label="Ngày sinh">
+        </Descriptions.Item>        <Descriptions.Item label="Ngày sinh">
           <Space>
             <CalendarOutlined style={{ color: '#1976D2' }} />
             {dayjs(userInfo.birthDate).format('DD/MM/YYYY')}
           </Space>
         </Descriptions.Item>
         <Descriptions.Item label="Giới tính">{userInfo.gender}</Descriptions.Item>
-        <Descriptions.Item label="Vai trò">
-          <Tag color={userInfo.role === 'Admin' ? 'red' : userInfo.role === 'Staff' ? 'blue' : 'green'}>
-            {userInfo.role}
-          </Tag>
+        
+        {/* Hiển thị địa chỉ cho tất cả role */}
+        <Descriptions.Item label="Địa chỉ" span={2}>
+          <Space>
+            <EnvironmentOutlined style={{ color: '#1976D2' }} />
+            {userInfo.address}
+          </Space>
         </Descriptions.Item>
-        <Descriptions.Item label="Ngày tham gia">
-          {dayjs(userInfo.joinDate).format('DD/MM/YYYY')}
-        </Descriptions.Item>
+        
+        {/* Hiển thị liên hệ khẩn cấp chỉ cho Member */}
+        {userInfo.role === 'Member' && (
+          <Descriptions.Item label="Liên hệ khẩn cấp" span={2}>
+            <Space>
+              <PhoneOutlined style={{ color: '#1976D2' }} />
+              {userInfo.emergencyContact}
+            </Space>
+          </Descriptions.Item>
+        )}
       </Descriptions>
     </Card>
   );
@@ -410,12 +418,8 @@ const Profile = () => {
       >        <Descriptions column={2} className="profile-descriptions">
           <Descriptions.Item label="Mã nhân viên">{userInfo.staffID}</Descriptions.Item>
           <Descriptions.Item label="Chức vụ">{userInfo.position}</Descriptions.Item>
-          <Descriptions.Item label="Giờ làm việc">{userInfo.workingHours}</Descriptions.Item>
           <Descriptions.Item label="Trạng thái">
             <Tag color="green">{userInfo.status}</Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="Ngày vào làm">
-            {dayjs(userInfo.hireDate).format('DD/MM/YYYY')}
           </Descriptions.Item>
             {userInfo.role === 'Staff' && (
             <>
@@ -424,13 +428,9 @@ const Profile = () => {
               <Descriptions.Item label="Chứng chỉ" span={2}>{userInfo.certification}</Descriptions.Item>
               <Descriptions.Item label="Nơi làm việc" span={2}>{userInfo.workLocation}</Descriptions.Item>
             </>
-          )}
-            {userInfo.role === 'Admin' && (
+          )}            {userInfo.role === 'Admin' && (
             <>
               <Descriptions.Item label="Cấp độ truy cập">{userInfo.accessLevel}</Descriptions.Item>
-              <Descriptions.Item label="Ngày vào làm">
-                {dayjs(userInfo.hireDate).format('DD/MM/YYYY')}
-              </Descriptions.Item>
               <Descriptions.Item label="Hệ thống quản lý" span={2}>
                 <Space wrap>
                   {userInfo.managedSystems.map(system => (
@@ -490,11 +490,6 @@ const Profile = () => {
                   {userInfo.role}
                 </Tag>
               </div>
-              <Paragraph className="profile-last-active">
-                <Text type="secondary">
-                  Hoạt động lần cuối: {dayjs(userInfo.lastActive).format('DD/MM/YYYY HH:mm')}
-                </Text>
-              </Paragraph>
             </Col>
           </Row>
         </Card>
@@ -583,8 +578,7 @@ const Profile = () => {
                     placeholder="Chọn ngày sinh"
                   />
                 </Form.Item>
-              </Col>
-              <Col xs={24}>
+              </Col>              <Col xs={24}>
                 <Form.Item 
                   label="Địa chỉ" 
                   name="address"
@@ -593,6 +587,19 @@ const Profile = () => {
                   <Input.TextArea rows={3} />
                 </Form.Item>
               </Col>
+
+              {/* Hiển thị trường liên hệ khẩn cấp chỉ cho Member */}
+              {userInfo.role === 'Member' && (
+                <Col xs={24}>
+                  <Form.Item 
+                    label="Liên hệ khẩn cấp" 
+                    name="emergencyContact"
+                    rules={[{ required: true, message: 'Vui lòng nhập thông tin liên hệ khẩn cấp!' }]}
+                  >
+                    <Input placeholder="Ví dụ: Nguyễn Văn A - 0987654321" />
+                  </Form.Item>
+                </Col>
+              )}
             </Row>            
             <div className="profile-form-actions">
               <Space>                <Button 

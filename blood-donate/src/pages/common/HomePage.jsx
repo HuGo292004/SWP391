@@ -542,8 +542,7 @@ const HomePage = () => {
                 </p>
               </div>
             </Col>
-          </Row>
-          
+          </Row>          
           <Row className="g-2 justify-content-center">
             {/* Statistics cards for general users */}
             {userRole !== 'staff' && userRole !== 'admin' && (
@@ -753,8 +752,7 @@ const HomePage = () => {
                 <h2 className="section-title-modern mb-2">
                   Thông Tin Nhóm Máu
                 </h2>
-                <div className="title-underline-modern"></div>
-                <p className="section-subtitle-modern mb-3">
+                <div className="title-underline-modern"></div>                <p className="section-subtitle-modern mb-3" style={{whiteSpace: 'nowrap'}}>
                   Hiểu rõ về các nhóm máu ABO và khả năng tương thích để hiến máu hiệu quả
                 </p>
               </div>
@@ -1120,7 +1118,7 @@ const HomePage = () => {
               </div>
             )}
           </Modal>      {/* Donation Standards Section */}
-      <section className="donation-standards-section bg-gradient-light">
+      <section className="donation-standards-section bg-gradient-light mt-5">
         <Container>
           <Row className="text-center mb-3">
             <Col lg={10} className="mx-auto">
@@ -1131,8 +1129,7 @@ const HomePage = () => {
                 <h2 className="section-title-modern mb-2">
                   Tiêu Chuẩn Hiến Máu
                 </h2>
-                <div className="title-underline-modern"></div>
-                <p className="section-subtitle-modern mb-3">
+                <div className="title-underline-modern"></div>                <p className="section-subtitle-modern mb-3" style={{whiteSpace: 'nowrap'}}>
                   Đáp ứng các tiêu chuẩn dưới đây để trở thành người hùng cứu người
                 </p>
               </div>
@@ -1262,7 +1259,7 @@ const HomePage = () => {
               </Card>
             </Col>
           </Row>          {/* Enhanced Call to Action */}
-          <Row className="justify-content-center">
+          <Row className="justify-content-center mt-5 mb-5">
             <Col lg={10} className="text-center">
               <div className="cta-modern-wrapper">
                 <div className="cta-background">
