@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, Alert, Spin, Space, Row, Col, message } from 'antd';
 import { UserOutlined, LockOutlined, HeartFilled, SafetyCertificateOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+import { authAPI } from '../../services/authApi';
 import '../../styles/LoginPage.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -12,11 +13,11 @@ const LoginPage = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  // Demo accounts
+  // Demo accounts (fallback khi API không available)
   const demoAccounts = {
-    member: { username: 'member123', password: 'member123', role: 'Member' },
-    staff: { username: 'staff123', password: 'staff123', role: 'Staff' },
-    admin: { username: 'admin123', password: 'admin123', role: 'Admin' }
+    member: { email: 'member@example.com', password: 'member123', role: 'Member' },
+    staff: { email: 'staff@gmail.com', password: 'staff123', role: 'Staff' }, // Real API credentials
+    admin: { email: 'admin@example.com', password: 'admin123', role: 'Admin' }
   };
 
   const onFinish = async (values) => {
@@ -24,39 +25,100 @@ const LoginPage = () => {
     setError('');
     
     try {
-      // Check demo accounts
-      const account = Object.values(demoAccounts).find(
-        acc => acc.username === values.username && acc.password === values.password
-      );
+      // Gọi API đăng nhập trước
+      console.log('LoginPage - Calling API with values:', values);
+      const result = await authAPI.login({
+        email: values.email,
+        password: values.password
+      });
 
-      if (account) {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+      if (result.success) {
+        // API thành công
+        const data = result.data;
+        console.log('API Response data:', data);
+        console.log('User email:', values.email);
         
-        // Store user info
-        localStorage.setItem('userToken', 'demo-token');
-        localStorage.setItem('userRole', account.role);
-        localStorage.setItem('username', account.username);
+        // Store user info từ API response
+        localStorage.setItem('userToken', data.token || data.accessToken || 'authenticated');
         
-        // Trigger storage event to update header
+        // Determine role từ API response hoặc email pattern
+        let userRole = data.role || data.userRole;
+        if (!userRole) {
+          // Fallback: determine role từ email nếu API không trả về role
+          if (values.email.includes('staff@')) {
+            userRole = 'Staff';
+          } else if (values.email.includes('admin@')) {
+            userRole = 'Admin';
+          } else {
+            userRole = 'Member';
+          }
+        }
+        
+        localStorage.setItem('userRole', userRole);
+        localStorage.setItem('username', data.username || data.email || values.email);
+        localStorage.setItem('userId', data.userId || data.id || '');
+        
+        // Store thêm thông tin nếu có
+        if (data.email) localStorage.setItem('userEmail', data.email);
+        if (data.fullName) localStorage.setItem('userFullName', data.fullName);
+        
+        // Trigger storage event để update header
         window.dispatchEvent(new Event('storage'));
         
         // Show success message
         message.success({
-          content: `Chào mừng ${account.username} đã quay trở lại!`,
+          content: `Chào mừng ${data.username || data.email || values.email} đã quay trở lại!`,
           duration: 3,
           style: {
             marginTop: '2vh',
           },
-        });        // Navigate to role-based home after login
-        const role = account.role.toLowerCase();
+        });
+        
+        // Navigate đến trang tương ứng với role
+        const role = userRole.toLowerCase();
+        console.log('Navigating to role:', role);
         navigate(`/${role}`);
+        
       } else {
-        setError('Tên đăng nhập hoặc mật khẩu không đúng!');
+        // API trả về lỗi, thử fallback demo accounts
+        throw new Error(result.error || 'API login failed');
       }
       
     } catch (err) {
-      setError('Đăng nhập thất bại. Vui lòng thử lại.');
+      console.error('Login error:', err);
+      
+      // Fallback: Thử demo accounts nếu API không available
+      console.log('API không available, thử demo accounts...');
+      
+      const account = Object.values(demoAccounts).find(
+        acc => acc.email === values.email && acc.password === values.password
+      );
+
+      if (account) {
+        // Demo mode thành công
+        localStorage.setItem('userToken', 'demo-token');
+        localStorage.setItem('userRole', account.role);
+        localStorage.setItem('username', account.email);
+        localStorage.setItem('userId', 'demo-user-id');
+        
+        // Trigger storage event
+        window.dispatchEvent(new Event('storage'));
+        
+        // Show success message với Demo Mode
+        message.success({
+          content: `Chào mừng ${account.email} đã quay trở lại! (Demo Mode)`,
+          duration: 3,
+          style: {
+            marginTop: '2vh',
+          },
+        });
+        
+        // Navigate
+        const role = account.role.toLowerCase();
+        navigate(`/${role}`);
+      } else {
+        setError('Email hoặc mật khẩu không đúng!');
+      }
     } finally {
       setLoading(false);
     }
@@ -64,13 +126,13 @@ const LoginPage = () => {
 
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
-    setError('Vui lòng kiểm tra lại thông tin đăng nhập.');
+    setError('Vui lòng kiểm tra lại email và mật khẩu.');
   };
 
   const fillDemoAccount = (accountType) => {
     const account = demoAccounts[accountType];
     form.setFieldsValue({
-      username: account.username,
+      email: account.email,
       password: account.password
     });
   };
@@ -124,16 +186,16 @@ const LoginPage = () => {
             autoComplete="off"
           >
             <Form.Item
-              label="Tên đăng nhập"
-              name="username"
+              label="Email"
+              name="email"
               rules={[
-                { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
-                { min: 3, message: 'Tên đăng nhập phải có ít nhất 3 ký tự!' },
+                { required: true, message: 'Vui lòng nhập email!' },
+                { type: 'email', message: 'Email không hợp lệ!' },
               ]}
             >
               <Input
                 prefix={<UserOutlined />}
-                placeholder="Nhập tên đăng nhập"
+                placeholder="Nhập địa chỉ email"
                 className="modern-input"
               />
             </Form.Item>
