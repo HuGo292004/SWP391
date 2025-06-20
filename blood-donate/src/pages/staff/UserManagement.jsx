@@ -65,10 +65,10 @@ const UserManagement = () => {
   };
 
   // Mock data - chỉ hiển thị Staff và Member (không hiển thị Admin)
-  const mockUsers = [
-    {
+  const mockUsers = [    {
       id: 2,
       username: 'staff01',
+      staffID: 'ST001', // Mã nhân viên
       email: 'staff01@blooddonate.com',
       fullName: 'Trần Thị Staff',
       role: 'Staff',
@@ -92,10 +92,10 @@ const UserManagement = () => {
       donationCount: 2,
       lastDonationDate: '2024-09-15',
       nextEligibleDate: '2024-12-15'
-    },
-    {
+    },    {
       id: 3,
       username: 'member01',
+      userID: 'MB001', // Mã người dùng cho Member
       email: 'member01@gmail.com',
       fullName: 'Lê Văn Member',
       role: 'Member',
@@ -116,10 +116,10 @@ const UserManagement = () => {
       donationCount: 5,
       lastDonationDate: '2024-10-15',
       nextEligibleDate: '2025-01-15'
-    },
-    {
+    },    {
       id: 4,
       username: 'member02',
+      userID: 'MB002', // Mã người dùng cho Member
       email: 'member02@gmail.com',
       fullName: 'Phạm Thị Hoa',
       role: 'Member',
@@ -141,10 +141,10 @@ const UserManagement = () => {
       lastDonationDate: '2024-08-10',
       nextEligibleDate: '2024-11-10',
       reasonInactive: 'Tạm ngưng theo yêu cầu cá nhân'
-    },
-    {
+    },    {
       id: 5,
       username: 'staff02',
+      staffID: 'ST002', // Mã nhân viên
       email: 'staff02@blooddonate.com',
       fullName: 'Hoàng Văn Staff',
       role: 'Staff',
@@ -698,15 +698,26 @@ const UserManagement = () => {
             <Tabs defaultActiveKey="personal" id="user-detail-tabs">
               <Tab eventKey="personal" title={
                 <span><FaUser className="me-2" />Thông tin cá nhân</span>
-              }>
-                <div className="mt-3">
+              }>                <div className="mt-3">
                   <Row>
+                    <Col md={6}>                      <div className="info-item">
+                        <strong>Mã người dùng:</strong>
+                        <span>
+                          {viewingUser.role === 'Member' ? (viewingUser.userID || 'MB001') : 
+                           viewingUser.role === 'Staff' ? (viewingUser.staffID || 'ST001') :
+                           (viewingUser.staffID || 'AD001')}
+                        </span>
+                      </div>
+                    </Col>
                     <Col md={6}>
                       <div className="info-item">
                         <strong>Họ và tên:</strong>
                         <span>{viewingUser.fullName}</span>
                       </div>
                     </Col>
+                  </Row>
+                  
+                  <Row>
                     <Col md={6}>
                       <div className="info-item">
                         <strong>Username:</strong>
@@ -730,28 +741,9 @@ const UserManagement = () => {
                         </strong>
                         <span>{viewingUser.phone || 'Chưa cập nhật'}</span>
                       </div>
-                    </Col>
-                  </Row>
+                    </Col>                  </Row>
                   
                   <Row>
-                    <Col md={12}>
-                      <div className="info-item">
-                        <strong>
-                          <FaHome className="me-2" />
-                          Địa chỉ:
-                        </strong>
-                        <span>{viewingUser.address || 'Chưa cập nhật'}</span>
-                      </div>
-                    </Col>
-                  </Row>
-                  
-                  <Row>
-                    <Col md={4}>
-                      <div className="info-item">
-                        <strong>Ngày sinh:</strong>
-                        <span>{viewingUser.dateOfBirth || 'Chưa cập nhật'}</span>
-                      </div>
-                    </Col>
                     <Col md={4}>
                       <div className="info-item">
                         <strong>Giới tính:</strong>
@@ -765,20 +757,45 @@ const UserManagement = () => {
                           CMND/CCCD:
                         </strong>
                         <span>{viewingUser.idCard || 'Chưa cập nhật'}</span>
-                      </div>
-                    </Col>
+                      </div>                    </Col>
                   </Row>
                   
+                  {/* Chỉ hiển thị cho Member */}
+                  {viewingUser.role === 'Member' && (
+                    <>
+                      <Row>
+                        <Col md={12}>
+                          <div className="info-item">
+                            <strong>
+                              <FaHome className="me-2" />
+                              Địa chỉ:
+                            </strong>
+                            <span>{viewingUser.address || 'Chưa cập nhật'}</span>
+                          </div>
+                        </Col>
+                      </Row>
+                      
+                      <Row>
+                        <Col md={4}>
+                          <div className="info-item">
+                            <strong>Ngày sinh:</strong>
+                            <span>{viewingUser.dateOfBirth || 'Chưa cập nhật'}</span>
+                          </div>
+                        </Col>
+                        <Col md={8}>
+                          <div className="info-item">
+                            <strong>
+                              <FaPhone className="me-2 text-danger" />
+                              Liên hệ khẩn cấp:
+                            </strong>
+                            <span>{viewingUser.emergencyContact || 'Chưa cập nhật'}</span>
+                          </div>
+                        </Col>
+                      </Row>
+                    </>
+                  )}
+                  
                   <Row>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>
-                          <FaPhone className="me-2 text-danger" />
-                          Liên hệ khẩn cấp:
-                        </strong>
-                        <span>{viewingUser.emergencyContact || 'Chưa cập nhật'}</span>
-                      </div>
-                    </Col>
                     <Col md={6}>
                       <div className="info-item">
                         <strong>Vai trò:</strong>
@@ -787,9 +804,6 @@ const UserManagement = () => {
                         </Badge>
                       </div>
                     </Col>
-                  </Row>
-                  
-                  <Row>
                     <Col md={6}>
                       <div className="info-item">
                         <strong>Trạng thái:</strong>
@@ -798,91 +812,7 @@ const UserManagement = () => {
                         </Badge>
                       </div>
                     </Col>
-                  </Row>
-                </div>
-              </Tab>
-              
-              <Tab eventKey="system" title={
-                <span><FaCog className="me-2" />Thông tin hệ thống</span>
-              }>
-                <div className="mt-3">
-                  <Row>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Ngày tạo tài khoản:</strong>
-                        <span>{viewingUser.createdAt}</span>
-                      </div>
-                    </Col>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Lần đăng nhập cuối:</strong>
-                        <span>{viewingUser.lastLogin}</span>
-                      </div>
-                    </Col>
-                  </Row>
-                  
-                  {viewingUser.role === 'Staff' && (
-                    <>
-                      <Row>
-                        <Col md={6}>
-                          <div className="info-item">
-                            <strong>Phòng ban:</strong>
-                            <span>{viewingUser.department || 'Chưa phân công'}</span>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="info-item">
-                            <strong>Chức vụ:</strong>
-                            <span>{viewingUser.position || 'Chưa xác định'}</span>
-                          </div>
-                        </Col>
-                      </Row>
-                      
-                      <Row>
-                        <Col md={6}>
-                          <div className="info-item">
-                            <strong>Ngày bắt đầu làm việc:</strong>
-                            <span>{viewingUser.startDate || 'Chưa cập nhật'}</span>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="info-item">
-                            <strong>Mức lương:</strong>
-                            <span>{viewingUser.salary || 'Bảo mật'}</span>
-                          </div>
-                        </Col>
-                      </Row>
-                      
-                      <Row>
-                        <Col md={12}>
-                          <div className="info-item">
-                            <strong>Quyền hạn:</strong>
-                            <div className="mt-2">
-                              {viewingUser.permissions?.map((permission, index) => (
-                                <Badge key={index} bg="info" className="me-2 mb-1">
-                                  {permission}
-                                </Badge>
-                              )) || 'Chưa phân quyền'}
-                            </div>
-                          </div>
-                        </Col>
-                      </Row>
-                    </>
-                  )}
-                  
-                  {viewingUser.status === 'inactive' && viewingUser.reasonInactive && (
-                    <Row>
-                      <Col md={12}>
-                        <div className="info-item">
-                          <strong>Lý do vô hiệu hóa:</strong>
-                          <Badge bg="warning" className="ms-2">
-                            {viewingUser.reasonInactive}
-                          </Badge>
-                        </div>
-                      </Col>
-                    </Row>
-                  )}
-                </div>
+                  </Row></div>
               </Tab>
               
               {viewingUser.role === 'Member' && (
@@ -1022,9 +952,19 @@ const UserManagement = () => {
               <Tabs defaultActiveKey="basic" id="edit-user-tabs">
                 <Tab eventKey="basic" title={
                   <span><FaUser className="me-2" />Thông tin cơ bản</span>
-                }>
-                  <div className="mt-3">
+                }>                  <div className="mt-3">
                     <Row>
+                      <Col md={6}>                        <Form.Group className="mb-3">
+                          <Form.Label>Mã người dùng</Form.Label>
+                          <Form.Control
+                            type="text"
+                            value={editingUser.role === 'Member' ? (editingUser.userID || 'MB001') : 
+                                   editingUser.role === 'Staff' ? (editingUser.staffID || 'ST001') :
+                                   (editingUser.staffID || 'AD001')}
+                            disabled
+                          />
+                        </Form.Group>
+                      </Col>
                       <Col md={6}>
                         <Form.Group className="mb-3">
                           <Form.Label>Tên đăng nhập</Form.Label>
@@ -1036,6 +976,9 @@ const UserManagement = () => {
                           />
                         </Form.Group>
                       </Col>
+                    </Row>
+                    
+                    <Row>
                       <Col md={6}>
                         <Form.Group className="mb-3">
                           <Form.Label>Họ và tên *</Form.Label>
@@ -1069,42 +1012,52 @@ const UserManagement = () => {
                             defaultValue={editingUser.phone || ''}
                             pattern="[0-9]{10,11}"
                           />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Liên hệ khẩn cấp</Form.Label>
-                          <Form.Control
-                            type="tel"
-                            name="emergencyContact"
-                            defaultValue={editingUser.emergencyContact || ''}
-                            pattern="[0-9]{10,11}"
-                          />
-                        </Form.Group>
-                      </Col>
+                        </Form.Group>                      </Col>
                     </Row>
                     
-                    <Form.Group className="mb-3">
-                      <Form.Label>Địa chỉ</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={2}
-                        name="address"
-                        defaultValue={editingUser.address || ''}
-                      />
-                    </Form.Group>
-                    
-                    <Row>
-                      <Col md={4}>
+                    {/* Chỉ hiển thị cho Member */}
+                    {editingUser?.role === 'Member' && (
+                      <>
+                        <Row>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Liên hệ khẩn cấp</Form.Label>
+                              <Form.Control
+                                type="tel"
+                                name="emergencyContact"
+                                defaultValue={editingUser.emergencyContact || ''}
+                                pattern="[0-9]{10,11}"
+                              />
+                            </Form.Group>
+                          </Col>
+                        </Row>
+                        
                         <Form.Group className="mb-3">
-                          <Form.Label>Ngày sinh</Form.Label>
+                          <Form.Label>Địa chỉ</Form.Label>
                           <Form.Control
-                            type="date"
-                            name="dateOfBirth"
-                            defaultValue={editingUser.dateOfBirth || ''}
+                            as="textarea"
+                            rows={2}
+                            name="address"
+                            defaultValue={editingUser.address || ''}
                           />
                         </Form.Group>
-                      </Col>
+                        
+                        <Row>
+                          <Col md={4}>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Ngày sinh</Form.Label>
+                              <Form.Control
+                                type="date"
+                                name="dateOfBirth"
+                                defaultValue={editingUser.dateOfBirth || ''}
+                              />
+                            </Form.Group>
+                          </Col>
+                        </Row>
+                      </>
+                    )}
+                    
+                    <Row>
                       <Col md={4}>
                         <Form.Group className="mb-3">
                           <Form.Label>Giới tính</Form.Label>

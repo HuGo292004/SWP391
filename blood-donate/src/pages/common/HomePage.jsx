@@ -542,55 +542,7 @@ const HomePage = () => {
                 </p>
               </div>
             </Col>
-          </Row>
-          
-<<<<<<< HEAD
-          <Row className="g-2 justify-content-center">            <Col lg={3} md={6} sm={6}>
-              <Card className="statistics-card border-0 shadow h-100">
-                <Card.Body className="text-center p-2">
-                  <div className="statistics-icon-wrapper mb-1">
-                    <div className="statistics-icon bg-danger">
-                      <HeartOutlined style={{ fontSize: '18px' }} />
-                    </div>
-                  </div>                  <h4 className="statistics-number text-danger mb-1">15,420</h4>
-                  <h6 className="statistics-label text-muted mb-0 small">Người hiến máu</h6>
-                </Card.Body>
-              </Card>
-            </Col>            <Col lg={3} md={6} sm={6}>
-              <Card className="statistics-card border-0 shadow h-100">
-                <Card.Body className="text-center p-2">
-                  <div className="statistics-icon-wrapper mb-1">
-                    <div className="statistics-icon bg-primary">
-                      <MedicineBoxOutlined style={{ fontSize: '18px' }} />
-                    </div>
-                  </div>                  <h4 className="statistics-number text-primary mb-1">28,750</h4>
-                  <h6 className="statistics-label text-muted mb-0 small">Đơn vị máu</h6>
-                </Card.Body>
-              </Card>
-            </Col>            <Col lg={3} md={6} sm={6}>
-              <Card className="statistics-card border-0 shadow h-100">
-                <Card.Body className="text-center p-2">
-                  <div className="statistics-icon-wrapper mb-1">
-                    <div className="statistics-icon bg-success">
-                      <TeamOutlined style={{ fontSize: '18px' }} />
-                    </div>
-                  </div>                  <h4 className="statistics-number text-success mb-1">8,960</h4>
-                  <h6 className="statistics-label text-muted mb-0 small">Người thụ hưởng</h6>
-                </Card.Body>
-              </Card>
-            </Col>            <Col lg={3} md={6} sm={6}>
-              <Card className="statistics-card border-0 shadow h-100">
-                <Card.Body className="text-center p-2">
-                  <div className="statistics-icon-wrapper mb-1">
-                    <div className="statistics-icon bg-warning">
-                      <BarChartOutlined style={{ fontSize: '18px' }} />
-                    </div>
-                  </div>                  <h4 className="statistics-number text-warning mb-1">97.2%</h4>
-                  <h6 className="statistics-label text-muted mb-0 small">Tỷ lệ thành công</h6>
-                </Card.Body>
-              </Card>
-            </Col>
-=======
+          </Row>          
           <Row className="g-2 justify-content-center">
             {/* Statistics cards for general users */}
             {userRole !== 'staff' && userRole !== 'admin' && (
@@ -777,7 +729,6 @@ const HomePage = () => {
                 </Col>
               </>
             )}
->>>>>>> develop
           </Row>        </Container>
       </section>      {/* Benefits Slider Section */}      <section className="benefits-section-enhanced py-5 bg-white">
         <Container>
