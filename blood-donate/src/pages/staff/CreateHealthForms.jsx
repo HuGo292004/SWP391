@@ -11,7 +11,6 @@ import {
   Space,
   DatePicker,
   InputNumber,
-  Checkbox,
   message,
   Divider,
   List,
@@ -129,14 +128,22 @@ const CreateHealthForms = () => {
               layout="vertical"
               onFinish={handleSubmit}
               requiredMark={false}
-            >
-              {/* Thông tin cá nhân */}
+            >              {/* Thông tin cá nhân */}
               <Title level={4}>
                 <UserOutlined style={{ marginRight: '8px' }} />
                 Thông tin cá nhân
               </Title>
               
               <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="userId"
+                    label="ID người dùng"
+                    rules={[{ required: true, message: 'Vui lòng nhập ID người dùng' }]}
+                  >
+                    <Input placeholder="Nhập ID người dùng" />
+                  </Form.Item>
+                </Col>
                 <Col span={12}>
                   <Form.Item
                     name="fullName"
@@ -146,6 +153,9 @@ const CreateHealthForms = () => {
                     <Input placeholder="Nhập họ và tên" />
                   </Form.Item>
                 </Col>
+              </Row>
+
+              <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
                     name="idCard"
@@ -337,29 +347,13 @@ const CreateHealthForms = () => {
                     />
                   </Form.Item>
                 </Col>
-              </Row>
-
-              <Form.Item
+              </Row>              <Form.Item
                 name="medicalHistory"
                 label="Tiền sử bệnh lý"
               >
-                <Checkbox.Group>
-                  <Row>
-                    <Col span={8}><Checkbox value="diabetes">Tiểu đường</Checkbox></Col>
-                    <Col span={8}><Checkbox value="hypertension">Cao huyết áp</Checkbox></Col>
-                    <Col span={8}><Checkbox value="heart_disease">Tim mạch</Checkbox></Col>
-                    <Col span={8}><Checkbox value="liver_disease">Gan</Checkbox></Col>
-                    <Col span={8}><Checkbox value="kidney_disease">Thận</Checkbox></Col>
-                    <Col span={8}><Checkbox value="blood_disease">Máu</Checkbox></Col>
-                  </Row>
-                </Checkbox.Group>
-              </Form.Item>
-
-              <Form.Item
-                name="otherMedicalHistory"
-                label="Tiền sử bệnh khác (nếu có)"
-              >
-                <TextArea rows={3} placeholder="Mô tả chi tiết các bệnh lý khác..." />
+                <TextArea 
+                  rows={4}                  placeholder="Nhập tiền sử bệnh lý của bệnh nhân (VD: Tiểu đường, cao huyết áp, bệnh tim mạch, bệnh gan, bệnh thận, rối loạn máu...)" 
+                />
               </Form.Item>
 
               <Form.Item
@@ -451,21 +445,23 @@ const CreateHealthForms = () => {
             Xác nhận tạo phiếu
           </Button>
         ]}
-      >
-        {previewData && (
+      >        {previewData && (
           <div>
             <Title level={4}>Thông tin cá nhân</Title>
             <Row gutter={16}>
+              <Col span={12}><Text strong>ID người dùng:</Text> {previewData.userId}</Col>
               <Col span={12}><Text strong>Họ và tên:</Text> {previewData.fullName}</Col>
-              <Col span={12}><Text strong>CCCD/CMND:</Text> {previewData.idCard}</Col>
             </Row>
             <Row gutter={16} style={{ marginTop: '8px' }}>
-              <Col span={8}><Text strong>Ngày sinh:</Text> {previewData.birthDate?.format('DD/MM/YYYY')}</Col>
+              <Col span={12}><Text strong>CCCD/CMND:</Text> {previewData.idCard}</Col>
+              <Col span={12}><Text strong>Ngày sinh:</Text> {previewData.birthDate?.format('DD/MM/YYYY')}</Col>
+            </Row>
+            <Row gutter={16} style={{ marginTop: '8px' }}>
               <Col span={8}><Text strong>Giới tính:</Text> {previewData.gender === 'male' ? 'Nam' : 'Nữ'}</Col>
               <Col span={8}><Text strong>Nhóm máu:</Text> {previewData.bloodType}</Col>
+              <Col span={8}><Text strong>Điện thoại:</Text> {previewData.phone}</Col>
             </Row>
             <Row gutter={16} style={{ marginTop: '8px' }}>
-              <Col span={12}><Text strong>Điện thoại:</Text> {previewData.phone}</Col>
               <Col span={12}><Text strong>Email:</Text> {previewData.email}</Col>
             </Row>
             <div style={{ marginTop: '8px' }}>
@@ -484,21 +480,11 @@ const CreateHealthForms = () => {
               <Col span={8}><Text strong>Nhịp tim:</Text> {previewData.heartRate} lần/phút</Col>
               <Col span={8}><Text strong>Nhiệt độ:</Text> {previewData.temperature}°C</Col>
               <Col span={8}><Text strong>Hemoglobin:</Text> {previewData.hemoglobin} g/dL</Col>
-            </Row>
-
-            {previewData.medicalHistory && previewData.medicalHistory.length > 0 && (
+            </Row>            {previewData.medicalHistory && (
               <div style={{ marginTop: '8px' }}>
-                <Text strong>Tiền sử bệnh:</Text> {previewData.medicalHistory.join(', ')}
+                <Text strong>Tiền sử bệnh lý:</Text> {previewData.medicalHistory}
               </div>
-            )}
-
-            {previewData.otherMedicalHistory && (
-              <div style={{ marginTop: '8px' }}>
-                <Text strong>Tiền sử bệnh khác:</Text> {previewData.otherMedicalHistory}
-              </div>
-            )}
-
-            {previewData.lastDonation && (
+            )}            {previewData.lastDonation && (
               <div style={{ marginTop: '8px' }}>
                 <Text strong>Lần hiến máu gần nhất:</Text> {previewData.lastDonation.format('DD/MM/YYYY')}
               </div>

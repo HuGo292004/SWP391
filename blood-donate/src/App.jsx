@@ -75,7 +75,9 @@ function App() {
       <Router>
         {/* <AuthProvider> - TODO: Import and setup authentication provider */}
           <AntdApp>
-            <MainLayout>              <Routes>                {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
+            <MainLayout>
+              <Routes>
+                {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/news" element={<NewsPage />} />
@@ -93,7 +95,8 @@ function App() {
                 <Route path="/admin/news" element={<NewsPage />} />
                 <Route path="/admin/support" element={<SupportPage />} />
                 <Route path="/admin/profile" element={<Profile />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />                <Route path="/admin/user-management" element={<UserManagement />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/user-management" element={<UserManagement />} />
                 <Route path="/admin/approve-donation-requests" element={<ApproveDonationRequests />} />
                 <Route path="/admin/create-emergency-request" element={<CreateEmergencyRequest />} />
                 <Route path="/admin/approve-health-forms" element={<ApproveHealthForms />} />
@@ -105,7 +108,8 @@ function App() {
                 <Route path="/staff/faq" element={<FAQPage />} />
                 <Route path="/staff/news" element={<NewsPage />} />
                 <Route path="/staff/support" element={<SupportPage />} />
-                <Route path="/staff/profile" element={<Profile />} />                <Route path="/staff/user-management" element={<UserManagement />} />
+                <Route path="/staff/profile" element={<Profile />} />
+                <Route path="/staff/user-management" element={<UserManagement />} />
                 <Route path="/staff/approve-donation-requests" element={<ApproveDonationRequests />} />
                 <Route path="/staff/create-emergency-request" element={<CreateEmergencyRequest />} />
                 <Route path="/staff/approve-health-forms" element={<ApproveHealthForms />} />

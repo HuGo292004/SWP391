@@ -4,6 +4,7 @@ import {
     CheckCircleFilled,
     ClockCircleFilled,
     DashboardOutlined,
+    FileTextOutlined,
     HeartOutlined,
     LogoutOutlined,
     MedicineBoxOutlined,
@@ -751,9 +752,7 @@ import {
                               }
                             ]
                           }
-                        ]
-                      }, {
-                        key: 'blood-inventory',
+                        ]                      }, {                        key: 'blood-inventory',
                         icon: <MedicineBoxOutlined style={{ color: healthThemeColors.success }} />,
                         label: 'Quản lý kho máu',
                         onClick: () => {

@@ -48,10 +48,11 @@ const ApproveHealthForms = () => {
       status: 'approved'
     }
   ]);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAlert, setShowAlert] = useState({ show: false, type: '', message: '' });
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedForm, setSelectedForm] = useState(null);
 
   const filteredForms = healthForms.filter(form => {
     const matchesSearch = form.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,7 +60,6 @@ const ApproveHealthForms = () => {
     const matchesStatus = statusFilter === 'all' || form.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
   const handleApprove = (formId) => {
     setHealthForms(prev => 
       prev.map(form => 
@@ -72,6 +72,11 @@ const ApproveHealthForms = () => {
       message: 'Phiếu sức khỏe đã được duyệt!'
     });
     setTimeout(() => setShowAlert({ show: false, type: '', message: '' }), 3000);
+  };
+
+  const handleViewDetails = (form) => {
+    setSelectedForm(form);
+    setShowDetailModal(true);
   };
 
   const handleReject = (formId) => {
@@ -205,10 +210,10 @@ const ApproveHealthForms = () => {
                     <td>{form.submittedDate}</td>
                     <td>{getStatusBadge(form.status)}</td>
                     <td>
-                      <div className="d-flex gap-2">
-                        <Button 
+                      <div className="d-flex gap-2">                        <Button 
                           variant="outline-info" 
                           size="sm"
+                          onClick={() => handleViewDetails(form)}
                         >
                           <FaEye />
                         </Button>
@@ -236,9 +241,106 @@ const ApproveHealthForms = () => {
                 ))
               )}
             </tbody>
-          </Table>
-        </Card.Body>
+          </Table>        </Card.Body>
       </Card>
+
+      {/* Modal Chi tiết Phiếu Sức khỏe */}
+      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FaClipboardList className="me-2" />
+            Chi tiết Phiếu Sức khỏe - {selectedForm?.fullName}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedForm && (
+            <Row>
+              <Col md={6}>
+                <Card className="mb-3">
+                  <Card.Header>
+                    <FaUserMd className="me-2" />
+                    Thông tin cá nhân
+                  </Card.Header>
+                  <Card.Body>
+                    <p><strong>Họ và tên:</strong> {selectedForm.fullName}</p>
+                    <p><strong>CCCD/CMND:</strong> {selectedForm.idCard}</p>
+                    <p><strong>Tuổi:</strong> {selectedForm.age}</p>
+                    <p><strong>Giới tính:</strong> {selectedForm.gender}</p>
+                    <p><strong>Số điện thoại:</strong> {selectedForm.phone}</p>
+                    <p><strong>Nhóm máu:</strong> <Badge bg="danger">{selectedForm.bloodType}</Badge></p>
+                    <p><strong>Ngày nộp:</strong> {selectedForm.submittedDate}</p>
+                    <p><strong>Trạng thái:</strong> {getStatusBadge(selectedForm.status)}</p>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={6}>
+                <Card className="mb-3">
+                  <Card.Header>
+                    <FaHeartbeat className="me-2" />
+                    Chỉ số sinh hiệu
+                  </Card.Header>
+                  <Card.Body>
+                    <p><strong>Cân nặng:</strong> {selectedForm.weight || '65'} kg</p>
+                    <p><strong>Chiều cao:</strong> {selectedForm.height || '170'} cm</p>
+                    <p><strong>Huyết áp:</strong> {selectedForm.bloodPressure || '120/80'} mmHg</p>
+                    <p><strong>Nhịp tim:</strong> {selectedForm.heartRate || '72'} lần/phút</p>
+                    <p><strong>Nhiệt độ:</strong> {selectedForm.temperature || '36.5'}°C</p>
+                    <p><strong>Hemoglobin:</strong> {selectedForm.hemoglobin || '14.5'} g/dL</p>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={12}>
+                <Card>
+                  <Card.Header>
+                    <FaClipboardList className="me-2" />
+                    Tiền sử bệnh lý và ghi chú
+                  </Card.Header>
+                  <Card.Body>
+                    <p><strong>Tiền sử bệnh lý:</strong></p>
+                    <p className="text-muted">
+                      {selectedForm.medicalHistory || 'Không có tiền sử bệnh lý đặc biệt'}
+                    </p>
+                    <p><strong>Lần hiến máu gần nhất:</strong> {selectedForm.lastDonation || 'Chưa từng hiến máu'}</p>
+                    <p><strong>Ghi chú thêm:</strong></p>
+                    <p className="text-muted">
+                      {selectedForm.notes || 'Không có ghi chú thêm'}
+                    </p>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          {selectedForm?.status === 'pending' && (
+            <>
+              <Button 
+                variant="success" 
+                onClick={() => {
+                  handleApprove(selectedForm.id);
+                  setShowDetailModal(false);
+                }}
+              >
+                <FaCheck className="me-2" />
+                Duyệt
+              </Button>
+              <Button 
+                variant="danger" 
+                onClick={() => {
+                  handleReject(selectedForm.id);
+                  setShowDetailModal(false);
+                }}
+              >
+                <FaTimes className="me-2" />
+                Từ chối
+              </Button>
+            </>
+          )}
+          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
