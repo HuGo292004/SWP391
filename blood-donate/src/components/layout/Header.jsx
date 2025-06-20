@@ -50,11 +50,9 @@ import {
     shadow: "rgba(25, 118, 210, 0.15)", // Shadow với màu xanh
     gradient: "linear-gradient(135deg, #1976D2 0%, #1976D2 50%, #42A5F5 100%)",
   };
-  
-  const AppHeader = () => {
+    const AppHeader = () => {
     const location = useLocation();
-    const navigate = useNavigate();
-    const [visible, setVisible] = useState(false);
+    const navigate = useNavigate();    const [visible, setVisible] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [notificationVisible, setNotificationVisible] = useState(false);
     
@@ -637,9 +635,7 @@ import {
                   letterSpacing: '0.3px'
                 }}
               />
-            </div> */}
-  
-            {isAuthenticated ? (
+            </div> */}            {isAuthenticated ? (
               <>
                 {/* Modern Notification Bell */}
                 <div style={{ position: "relative" }}>
@@ -676,51 +672,115 @@ import {
   
                   {/* Notification Dropdown */}
                   {notificationVisible && <NotificationDropdown />}
-                </div>                {/* User Info Display - Desktop - With Dropdown */}
-                <Dropdown
+                </div>                {/* User Info Display - Desktop - With Drawer */}                <Dropdown
                   menu={{
                     items: [
                       {
                         key: 'profile',
-                        icon: <UserOutlined />,
+                        icon: <UserOutlined style={{ color: healthThemeColors.primary }} />,
                         label: 'Hồ sơ cá nhân',
-                        onClick: () => navigate(createRoleBasedPath('/profile', currentRole))
+                        onClick: () => {
+                          navigate(createRoleBasedPath('/profile', currentRole));
+                        }
                       },
                       ...(user?.role === 'Admin' ? [{
                         key: 'admin-dashboard',
-                        icon: <DashboardOutlined />,
+                        icon: <DashboardOutlined style={{ color: healthThemeColors.primary }} />,
                         label: 'Admin Dashboard',
-                        onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
+                        onClick: () => {
+                          navigate(createRoleBasedPath('/dashboard', currentRole));
+                        }
                       }] : []),
                       ...(user?.role === 'Member' ? [{
                         key: 'member-dashboard',
-                        icon: <DashboardOutlined />,
+                        icon: <DashboardOutlined style={{ color: healthThemeColors.primary }} />,
                         label: 'Member Dashboard',
-                        onClick: () => navigate(createRoleBasedPath('/dashboard', currentRole))
-                      }] : []),
-                      // Chỉ hiển thị "Quản lý người dùng" cho Admin và Staff
-                      ...(user?.role === 'Admin' || user?.role === 'Staff' ? [{
+                        onClick: () => {
+                          navigate(createRoleBasedPath('/dashboard', currentRole));
+                        }
+                      }] : []),                      ...(user?.role === 'Admin' || user?.role === 'Staff' ? [{
                         key: 'user-management',
-                        icon: <TeamOutlined />,
+                        icon: <TeamOutlined style={{ color: healthThemeColors.primary }} />,
                         label: 'Quản lý người dùng',
-                        onClick: () => navigate(createRoleBasedPath('/user-management', currentRole))
+                        onClick: () => {
+                          navigate(createRoleBasedPath('/user-management', currentRole));
+                        }
+                      }, {
+                        type: 'submenu',
+                        key: 'blood-donation-management',
+                        icon: <MedicineBoxOutlined style={{ color: healthThemeColors.primary }} />,
+                        label: 'Quản lý hiến máu',
+                        children: [
+                          {
+                            key: 'approve-donation-requests',
+                            icon: <CheckCircleFilled style={{ color: healthThemeColors.success }} />,
+                            label: 'Duyệt đơn hiến máu',
+                            onClick: () => {
+                              navigate(createRoleBasedPath('/approve-donation-requests', currentRole));
+                            }
+                          },
+                          {
+                            key: 'create-emergency-request',
+                            icon: <AlertOutlined style={{ color: healthThemeColors.warning }} />,
+                            label: 'Tạo yêu cầu khẩn cấp',
+                            onClick: () => {
+                              navigate(createRoleBasedPath('/create-emergency-request', currentRole));
+                            }
+                          },
+                          {
+                            type: 'submenu',
+                            key: 'health-forms',
+                            icon: <HeartOutlined style={{ color: healthThemeColors.accent }} />,
+                            label: 'Phiếu sức khỏe',
+                            children: [
+                              {
+                                key: 'approve-health-forms',
+                                icon: <CheckCircleFilled style={{ color: healthThemeColors.success }} />,
+                                label: 'Duyệt phiếu',
+                                onClick: () => {
+                                  navigate(createRoleBasedPath('/approve-health-forms', currentRole));
+                                }
+                              },
+                              {
+                                key: 'create-health-forms',
+                                icon: <MedicineBoxOutlined style={{ color: healthThemeColors.primary }} />,
+                                label: 'Tạo phiếu',
+                                onClick: () => {
+                                  navigate(createRoleBasedPath('/create-health-forms', currentRole));
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }, {
+                        key: 'blood-inventory',
+                        icon: <MedicineBoxOutlined style={{ color: healthThemeColors.success }} />,
+                        label: 'Quản lý kho máu',
+                        onClick: () => {
+                          navigate(createRoleBasedPath('/blood-inventory', currentRole));
+                        }
                       }] : []),
-                      { type: 'divider' },
+                      { 
+                        type: 'divider'
+                      },
                       {
                         key: 'logout',
-                        icon: <LogoutOutlined />,
-                        label: 'Đăng xuất',
-                        onClick: logout
+                        icon: <LogoutOutlined style={{ color: healthThemeColors.error }} />,
+                        label: <span style={{ color: healthThemeColors.error }}>Đăng xuất</span>,
+                        onClick: () => {
+                          logout();
+                        }
                       }
-                    ],                      style: {
-                        backgroundColor: 'white',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        minWidth: '160px',                        padding: '4px 0'
-                      }
+                    ]
                   }}
                   trigger={['click']}
                   placement="bottomRight"
+                  overlayStyle={{
+                    minWidth: '280px',
+                    maxHeight: '400px',
+                    overflowY: 'auto'
+                  }}
+                  overlayClassName="user-dropdown-menu"
                 >
                   <div
                     className="user-info-desktop"
@@ -761,37 +821,35 @@ import {
                         lineHeight: "1.2",
                       }}
                     >
-                      <Text
-                        strong
-                        style={{
-                          color: "white",
-                          fontSize: "14px",
-                          marginBottom: "2px",
-                          display: "block",
-                        }}
-                      >
-                        {user?.username || "Người dùng"}
-                      </Text>
-                      <Text
-                        style={{
-                          color: "rgba(255, 255, 255, 0.8)",
-                          fontSize: "12px",
-                          display: "block",
-                        }}
-                      >
-                        {user?.role === 'Admin' ? 'Quản trị viên' : 
-                         user?.role === 'Staff' ? 'Nhân viên' : 
-                         user?.role === 'Member' ? 'Thành viên' : 'Người dùng'}
-                      </Text>
-                    </div>
-                    <MenuOutlined style={{ 
-                      fontSize: '16px', 
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      marginLeft: '8px'
-                    }} />
+                      <Text                      strong
+                      style={{
+                        color: "white",
+                        fontSize: "14px",
+                        marginBottom: "2px",
+                        display: "block",
+                      }}
+                    >
+                      {user?.username || "Người dùng"}
+                    </Text>
+                    <Text
+                      style={{
+                        color: "rgba(255, 255, 255, 0.8)",
+                        fontSize: "12px",
+                        display: "block",
+                      }}
+                    >
+                      {user?.role === 'Admin' ? 'Quản trị viên' : 
+                       user?.role === 'Staff' ? 'Nhân viên' : 
+                       user?.role === 'Member' ? 'Thành viên' : 'Người dùng'}
+                    </Text>
                   </div>
-                </Dropdown>
-              </>
+                  <MenuOutlined style={{ 
+                    fontSize: '16px', 
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    marginLeft: '8px'
+                  }} />
+                  </div>
+                </Dropdown>              </>
             ) : (
               <Space size="middle">
                 <Link to="/login">

@@ -609,19 +609,26 @@ const UserManagement = () => {
                         <Badge bg={getStatusBadgeVariant(user.status)}>
                           {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
                         </Badge>
+                      </td>                      <td>
+                        {user.role === 'Staff' ? (
+                          <Badge bg="secondary">N/A</Badge>
+                        ) : (
+                          <Badge bg="danger" className="blood-type-badge">
+                            {user.bloodType || 'Chưa xác định'}
+                          </Badge>
+                        )}
                       </td>
                       <td>
-                        <Badge bg="danger" className="blood-type-badge">
-                          {user.bloodType || 'Chưa xác định'}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Badge bg={
-                          user.nextEligibleDate && new Date(user.nextEligibleDate) <= new Date() 
-                            ? 'success' : 'warning'
-                        }>
-                          {user.nextEligibleDate || 'Chưa xác định'}
-                        </Badge>
+                        {user.role === 'Staff' ? (
+                          <Badge bg="secondary">N/A</Badge>
+                        ) : (
+                          <Badge bg={
+                            user.nextEligibleDate && new Date(user.nextEligibleDate) <= new Date() 
+                              ? 'success' : 'warning'
+                          }>
+                            {user.nextEligibleDate || 'Chưa xác định'}
+                          </Badge>
+                        )}
                       </td>
                       <td>
                         <div className="d-flex gap-2">

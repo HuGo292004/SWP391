@@ -35,10 +35,9 @@ const BenefitsSlider = () => {
       textColor: "#ffffff",
       type: "content",
       icon: <GiftOutlined style={{ fontSize: '3rem', color: '#FFD54F' }} />,
-      content: [
-        {
+      content: [        {
           text: "Ăn nhẹ, nước uống tại chỗ: tương đương 30.000 đồng",
-          detail: "(1 chai trà xanh không độ, 01 hộp chocopie 66gram, 01 hộp bánh Goute 35,5gram)"
+          detail: ""
         },
         {
           text: "Hỗ trợ chi phí đi lại (bằng tiền mặt): 50.000 đồng",

@@ -15,7 +15,7 @@ import { MainLayout } from "./components/layout";
 import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage, Profile } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
-import { UserManagement } from "./pages/staff";
+import { UserManagement, ApproveDonationRequests, CreateEmergencyRequest, ApproveHealthForms, CreateHealthForms, BloodInventory } from "./pages/staff";
 import { MemberDashboard, BloodDonationRegistration } from "./pages/member";
 
 // Y tế theme colors
@@ -93,14 +93,24 @@ function App() {
                 <Route path="/admin/news" element={<NewsPage />} />
                 <Route path="/admin/support" element={<SupportPage />} />
                 <Route path="/admin/profile" element={<Profile />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/user-management" element={<UserManagement />} />{/* Staff routes */}
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />                <Route path="/admin/user-management" element={<UserManagement />} />
+                <Route path="/admin/approve-donation-requests" element={<ApproveDonationRequests />} />
+                <Route path="/admin/create-emergency-request" element={<CreateEmergencyRequest />} />
+                <Route path="/admin/approve-health-forms" element={<ApproveHealthForms />} />
+                <Route path="/admin/create-health-forms" element={<CreateHealthForms />} />
+                <Route path="/admin/blood-inventory" element={<BloodInventory />} />
+
+                {/* Staff routes */}
                 <Route path="/staff" element={<HomePage />} />
                 <Route path="/staff/faq" element={<FAQPage />} />
                 <Route path="/staff/news" element={<NewsPage />} />
                 <Route path="/staff/support" element={<SupportPage />} />
-                <Route path="/staff/profile" element={<Profile />} />
-                <Route path="/staff/user-management" element={<UserManagement />} />
+                <Route path="/staff/profile" element={<Profile />} />                <Route path="/staff/user-management" element={<UserManagement />} />
+                <Route path="/staff/approve-donation-requests" element={<ApproveDonationRequests />} />
+                <Route path="/staff/create-emergency-request" element={<CreateEmergencyRequest />} />
+                <Route path="/staff/approve-health-forms" element={<ApproveHealthForms />} />
+                <Route path="/staff/create-health-forms" element={<CreateHealthForms />} />
+                <Route path="/staff/blood-inventory" element={<BloodInventory />} />
 
                 {/* Member routes */}
                 <Route path="/member" element={<HomePage />} />
