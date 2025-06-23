@@ -4,3 +4,4 @@ export { default as CreateEmergencyRequest } from './CreateEmergencyRequest';
 export { default as ApproveHealthForms } from './ApproveHealthForms';
 export { default as CreateHealthForms } from './CreateHealthForms';
 export { default as BloodInventory } from './BloodInventory';
+export { default as BloodDonorManagement } from './BloodDonorManagement';

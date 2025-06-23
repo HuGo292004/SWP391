@@ -1040,3 +1040,453 @@
 .eligibility-section .row > .col-lg-6 {
   display: flex;
 }
+
+.eligibility-section .row > .col-lg-6 {
+  margin-bottom: 2rem;
+}
+
+/* ========================================
+   APPOINTMENT PAGE
+   ======================================== */
+
+.appointment-page {
+  width: 100%;
+  padding: 24px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding: 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  color: #111827 !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  margin: 0 0 8px 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  color: #1976d2;
+  font-size: 32px;
+}
+
+.page-description {
+  color: #6b7280;
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.book-appointment-btn {
+  height: 44px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+  border: none !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.book-appointment-btn:hover {
+  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%) !important;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Calendar Card */
+.calendar-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(229, 231, 235, 0.5) !important;
+  overflow: hidden;
+}
+
+.calendar-card .ant-card-head {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  border-bottom: none;
+}
+
+.calendar-card .ant-card-head .ant-card-head-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.calendar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Calendar Styles */
+.ant-picker-calendar .ant-picker-panel {
+  border: none;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date:hover {
+  background: rgba(25, 118, 210, 0.1);
+}
+
+.appointment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.appointment-list li {
+  margin-bottom: 4px;
+}
+
+.appointment-badge-text {
+  font-size: 11px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+  display: inline-block;
+}
+
+/* Upcoming Appointments Card */
+.upcoming-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(229, 231, 235, 0.5) !important;
+}
+
+.upcoming-card .ant-card-head {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border-bottom: none;
+}
+
+.upcoming-card .ant-card-head .ant-card-head-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.upcoming-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upcoming-item:hover {
+  background: #f8fafc;
+  border-color: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.upcoming-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  border-radius: 10px;
+  padding: 8px;
+  color: white;
+}
+
+.date-day {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: white !important;
+}
+
+.date-month {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.upcoming-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upcoming-type {
+  color: #111827 !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+}
+
+.upcoming-time {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.upcoming-location {
+  color: #9ca3af !important;
+  font-size: 13px !important;
+}
+
+/* Stats Card */
+.stats-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(229, 231, 235, 0.5) !important;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(229, 231, 235, 0.3);
+}
+
+.stat-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.stat-icon.completed {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.stat-icon.confirmed {
+  background: rgba(25, 118, 210, 0.1);
+  color: #1976d2;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  line-height: 1 !important;
+}
+
+.stat-label {
+  font-size: 12px !important;
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .page-header {
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+  }
+  
+  .book-appointment-btn {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .appointment-page {
+    padding: 16px;
+  }
+  
+  .page-header {
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .page-title {
+    font-size: 24px !important;
+  }
+  
+  .title-icon {
+    font-size: 28px;
+  }
+  
+  .upcoming-item {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .upcoming-date {
+    min-width: 50px;
+    padding: 6px;
+  }
+  
+  .date-day {
+    font-size: 16px !important;
+  }
+  
+  .upcoming-type {
+    font-size: 14px !important;
+  }
+  
+  .stat-item {
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .stat-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+  
+  .stat-number {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .calendar-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .upcoming-date {
+    min-width: 45px;
+  }
+  
+  .date-day {
+    font-size: 14px !important;
+  }
+  
+  .appointment-badge-text {
+    max-width: 80px;
+    font-size: 10px;
+  }
+}
+
+.upcoming-member {
+  color: #1976d2 !important;
+  font-size: 13px !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500 !important;
+}
+
+.upcoming-time {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ========================================
+   DONOR MANAGEMENT PAGE
+   ======================================== */
+
+.donor-management-page {
+  width: 100%;
+  padding: 24px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.donor-management-page .stat-card {
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(229, 231, 235, 0.5) !important;
+  transition: all 0.2s ease;
+}
+
+.donor-management-page .stat-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+.donor-management-page .ant-table-thead > tr > th {
+  background: #f8fafc !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  border-bottom: 2px solid #e5e7eb !important;
+}
+
+.donor-management-page .ant-table-tbody > tr:hover > td {
+  background: #f8fafc !important;
+}
+
+.donor-management-page .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f3f4f6 !important;
+  padding: 16px 12px !important;
+}
+
+.donor-management-page .ant-btn-text {
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.donor-management-page .ant-btn-text:hover {
+  background: rgba(25, 118, 210, 0.1) !important;
+  color: #1976d2 !important;
+}
+
+/* ========================================
+   RESPONSIVE STYLES
+   ======================================== */
+
+@media (max-width: 768px) {
+  .donor-management-page {
+    padding: 16px;
+  }
+  
+  .donor-management-page .ant-table-tbody > tr > td {
+    padding: 12px 8px !important;
+  }
+  
+  .donor-management-page .stat-card {
+    margin-bottom: 12px;
+  }
+}

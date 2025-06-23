@@ -4,3 +4,4 @@ export { default as FAQPage } from './FAQPage';
 export { default as NewsPage } from './NewsPage';
 export { default as SupportPage } from './SupportPage';
 export { default as Profile } from './Profile';
+export { default as AppointmentPage } from './AppointmentPage';

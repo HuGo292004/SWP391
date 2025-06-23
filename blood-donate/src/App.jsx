@@ -12,10 +12,10 @@ import { MainLayout } from "./components/layout";
 
 // Context
 
-import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage, Profile } from "./pages/common";
+import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage, Profile, AppointmentPage } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
-import { UserManagement, ApproveDonationRequests, CreateEmergencyRequest, ApproveHealthForms, CreateHealthForms, BloodInventory } from "./pages/staff";
+import { UserManagement, ApproveDonationRequests, CreateEmergencyRequest, ApproveHealthForms, CreateHealthForms, BloodInventory, BloodDonorManagement } from "./pages/staff";
 import { MemberDashboard, BloodDonationRegistration } from "./pages/member";
 
 // Y tế theme colors
@@ -79,6 +79,7 @@ function App() {
               <Routes>
                 {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
                 <Route path="/" element={<HomePage />} />
+                <Route path="/appointments" element={<AppointmentPage />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/news" element={<NewsPage />} />
                 <Route path="/support" element={<SupportPage />} />
@@ -91,6 +92,7 @@ function App() {
                 {/* Blood donation registration route - Public access */}
                 <Route path="/blood-donation-register" element={<BloodDonationRegistration />} />                {/* Admin routes */}
                 <Route path="/admin" element={<HomePage />} />
+                <Route path="/admin/appointments" element={<AppointmentPage />} />
                 <Route path="/admin/faq" element={<FAQPage />} />
                 <Route path="/admin/news" element={<NewsPage />} />
                 <Route path="/admin/support" element={<SupportPage />} />
@@ -105,11 +107,13 @@ function App() {
 
                 {/* Staff routes */}
                 <Route path="/staff" element={<HomePage />} />
+                <Route path="/staff/appointments" element={<AppointmentPage />} />
                 <Route path="/staff/faq" element={<FAQPage />} />
                 <Route path="/staff/news" element={<NewsPage />} />
                 <Route path="/staff/support" element={<SupportPage />} />
                 <Route path="/staff/profile" element={<Profile />} />
                 <Route path="/staff/user-management" element={<UserManagement />} />
+                <Route path="/staff/donor-management" element={<BloodDonorManagement />} />
                 <Route path="/staff/approve-donation-requests" element={<ApproveDonationRequests />} />
                 <Route path="/staff/create-emergency-request" element={<CreateEmergencyRequest />} />
                 <Route path="/staff/approve-health-forms" element={<ApproveHealthForms />} />
@@ -118,6 +122,7 @@ function App() {
 
                 {/* Member routes */}
                 <Route path="/member" element={<HomePage />} />
+                <Route path="/member/appointments" element={<AppointmentPage />} />
                 <Route path="/member/faq" element={<FAQPage />} />
                 <Route path="/member/news" element={<NewsPage />} />
                 <Route path="/member/support" element={<SupportPage />} />

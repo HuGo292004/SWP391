@@ -1,22 +1,18 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Typography, Alert, Space, Row, Col, Select, DatePicker, Radio, Checkbox, Card, Steps } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, HeartFilled, SafetyCertificateOutlined, ThunderboltOutlined, MedicineBoxOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Typography, Alert, Row, Col, DatePicker } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, HeartFilled } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+import { authAPI } from '../../services/authApi';
 import '../../styles/RegisterPage.css';
 
 const { Title, Text, Paragraph } = Typography;
-const { Option } = Select;
-const { Step } = Steps;
 
 const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const navigate = useNavigate();
-
-  const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -24,19 +20,40 @@ const RegisterPage = () => {
     setSuccess('');
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Form values:', values);
       
-      console.log('Registration data:', values);
+      // Chuẩn bị dữ liệu theo format API
+      const userData = {
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+        username: values.username.trim(),
+        fullName: values.fullName.trim(),
+        phone: values.phone.trim(),
+        userIdCard: values.userIdCard.trim(),
+        dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : null
+      };
       
-      setSuccess('Đăng ký tài khoản thành công! Chào mừng bạn đến với cộng đồng hiến máu.');
+      console.log('API request data:', userData);
       
-      // Redirect to login after success
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      // Gọi API đăng ký
+      const result = await authAPI.register(userData);
+      
+      if (result.success) {
+        console.log('Registration successful:', result.data);
+        setSuccess('Đăng ký tài khoản thành công! Chào mừng bạn đến với cộng đồng hiến máu.');
+        
+        // Redirect to login after success
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        console.error('Registration failed:', result.error);
+        setError(result.error || 'Đăng ký tài khoản thất bại. Vui lòng thử lại.');
+      }
       
     } catch (err) {
+      console.error('Registration error:', err);
       setError('Đăng ký tài khoản thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
@@ -48,39 +65,27 @@ const RegisterPage = () => {
     setError('Vui lòng kiểm tra lại thông tin đăng ký tài khoản.');
   };
 
-  const steps = [
-    {
-      title: 'Thông tin cơ bản',
-      description: 'Tài khoản & liên hệ'
-    },
-    {
-      title: 'Thông tin cá nhân',
-      description: 'Chi tiết cá nhân'
-    },
-    {
-      title: 'Thông tin y tế',
-      description: 'Lịch sử sức khỏe'
-    }
-  ];
+  return (
+    <div className="modern-register-container">
+      {/* Left Side - Registration Form */}
+      <div className="register-left-panel">
+        <div className="register-form-container">
+          <div className="form-header">
+            <Title level={2} className="form-title">Đăng ký tài khoản</Title>
+            <Text className="form-subtitle">Tạo tài khoản để tham gia cộng đồng hiến máu</Text>
+          </div>
 
-  const nextStep = () => {
-    form.validateFields().then(() => {
-      setCurrentStep(currentStep + 1);
-    }).catch(() => {
-      setError('Vui lòng điền đầy đủ thông tin bắt buộc.');
-    });
-  };
-
-  const prevStep = () => {
-    setCurrentStep(currentStep - 1);
-    setError('');
-  };
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <>
+          <Form
+            form={form}
+            name="register"
+            className="modern-register-form"
+            layout="vertical"
+            size="large"
+            onFinish={onFinish}
+            onFinishFailed={onFinishFailed}
+            autoComplete="off"
+          >
+            {/* Thông tin tài khoản */}
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
@@ -105,7 +110,11 @@ const RegisterPage = () => {
                   name="email"
                   rules={[
                     { required: true, message: 'Vui lòng nhập email!' },
-                    { type: 'email', message: 'Email không hợp lệ!' }
+                    { type: 'email', message: 'Email không hợp lệ!' },
+                    { 
+                      pattern: /^[a-zA-Z0-9._%+-]+@gmail\.com$/, 
+                      message: 'Email phải có đuôi @gmail.com!' 
+                    }
                   ]}
                 >
                   <Input
@@ -161,26 +170,7 @@ const RegisterPage = () => {
               </Col>
             </Row>
 
-            <Form.Item
-              label="Số điện thoại"
-              name="phone"
-              rules={[
-                { required: true, message: 'Vui lòng nhập số điện thoại!' },
-                { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại không hợp lệ!' }
-              ]}
-            >
-              <Input
-                prefix={<PhoneOutlined />}
-                placeholder="Nhập số điện thoại"
-                className="modern-input"
-              />
-            </Form.Item>
-          </>
-        );
-
-      case 1:
-        return (
-          <>
+            {/* Thông tin cá nhân */}
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
@@ -200,19 +190,39 @@ const RegisterPage = () => {
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label="Giới tính"
-                  name="gender"
-                  rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
+                  label="Số điện thoại"
+                  name="phone"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                    { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại không hợp lệ!' }
+                  ]}
                 >
-                  <Radio.Group className="modern-radio-group">
-                    <Radio value="male">Nam</Radio>
-                    <Radio value="female">Nữ</Radio>
-                  </Radio.Group>
+                  <Input
+                    prefix={<PhoneOutlined />}
+                    placeholder="Nhập số điện thoại"
+                    className="modern-input"
+                  />
                 </Form.Item>
               </Col>
             </Row>
 
             <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="CMND/CCCD"
+                  name="userIdCard"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập số CMND/CCCD!' },
+                    { pattern: /^[0-9]{9,12}$/, message: 'Số CMND/CCCD không hợp lệ!' }
+                  ]}
+                >
+                  <Input
+                    prefix={<IdcardOutlined />}
+                    placeholder="Nhập số CMND/CCCD"
+                    className="modern-input"
+                  />
+                </Form.Item>
+              </Col>
               <Col span={12}>
                 <Form.Item
                   label="Ngày sinh"
@@ -227,196 +237,7 @@ const RegisterPage = () => {
                   />
                 </Form.Item>
               </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="CMND/CCCD"
-                  name="idNumber"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập số CMND/CCCD!' },
-                    { pattern: /^[0-9]{9,12}$/, message: 'Số CMND/CCCD không hợp lệ!' }
-                  ]}
-                >
-                  <Input
-                    prefix={<IdcardOutlined />}
-                    placeholder="Nhập số CMND/CCCD"
-                    className="modern-input"
-                  />
-                </Form.Item>
-              </Col>
             </Row>
-
-            <Form.Item
-              label="Địa chỉ"
-              name="address"
-              rules={[
-                { required: true, message: 'Vui lòng nhập địa chỉ!' },
-                { min: 10, message: 'Địa chỉ phải có ít nhất 10 ký tự!' }
-              ]}
-            >
-              <Input.TextArea
-                placeholder="Nhập địa chỉ chi tiết"
-                rows={3}
-                className="modern-input"
-              />
-            </Form.Item>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Tỉnh/Thành phố"
-                  name="city"
-                  rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành phố!' }]}
-                >
-                  <Select placeholder="Chọn tỉnh/thành phố" className="modern-input">
-                    <Option value="hanoi">Hà Nội</Option>
-                    <Option value="hcm">TP. Hồ Chí Minh</Option>
-                    <Option value="danang">Đà Nẵng</Option>
-                    <Option value="haiphong">Hải Phòng</Option>
-                    <Option value="cantho">Cần Thơ</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Nghề nghiệp"
-                  name="occupation"
-                  rules={[{ required: true, message: 'Vui lòng nhập nghề nghiệp!' }]}
-                >
-                  <Input
-                    placeholder="Nhập nghề nghiệp"
-                    className="modern-input"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          </>
-        );
-
-      case 2:
-        return (
-          <>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Nhóm máu"
-                  name="bloodType"
-                  rules={[{ required: true, message: 'Vui lòng chọn nhóm máu!' }]}
-                >
-                  <Select placeholder="Chọn nhóm máu" className="modern-input">
-                    {bloodTypes.map(type => (
-                      <Option key={type} value={type}>{type}</Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Cân nặng (kg)"
-                  name="weight"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập cân nặng!' },
-                    { pattern: /^[0-9]{2,3}$/, message: 'Cân nặng phải từ 10-999kg!' }
-                  ]}
-                >
-                  <Input
-                    placeholder="Nhập cân nặng"
-                    className="modern-input"
-                    suffix="kg"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item
-              label="Tiền sử bệnh án"
-              name="medicalHistory"
-            >
-              <Input.TextArea
-                placeholder="Mô tả tiền sử bệnh án (nếu có)"
-                rows={3}
-                className="modern-input"
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Thuốc đang sử dụng"
-              name="currentMedications"
-            >
-              <Input.TextArea
-                placeholder="Danh sách thuốc đang sử dụng (nếu có)"
-                rows={2}
-                className="modern-input"
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="conditions"
-              valuePropName="checked"
-            >
-              <Checkbox.Group>
-                <Space direction="vertical">
-                  <Checkbox value="noHeartDisease">Tôi không mắc bệnh tim mạch</Checkbox>
-                  <Checkbox value="noInfectiousDisease">Tôi không mắc bệnh truyền nhiễm</Checkbox>
-                  <Checkbox value="noBloodDisorder">Tôi không mắc rối loạn máu</Checkbox>
-                  <Checkbox value="notPregnant">Tôi không trong thời kỳ mang thai (đối với nữ)</Checkbox>
-                </Space>
-              </Checkbox.Group>
-            </Form.Item>
-
-            <Form.Item
-              name="agreement"
-              valuePropName="checked"
-              rules={[
-                { 
-                  validator: (_, value) =>
-                    value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản!'))
-                }
-              ]}
-            >
-              <Checkbox>
-                Tôi đồng ý với{' '}
-                <a href="#terms" target="_blank">Điều khoản sử dụng</a> và{' '}
-                <a href="#privacy" target="_blank">Chính sách bảo mật</a>
-              </Checkbox>
-            </Form.Item>
-          </>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="modern-register-container">
-      {/* Left Side - Registration Form */}
-      <div className="register-left-panel">
-        <div className="register-form-container">
-          <div className="form-header">
-            <Title level={2} className="form-title">Đăng ký tài khoản</Title>
-            <Text className="form-subtitle">Tạo tài khoản để tham gia cộng đồng hiến máu</Text>
-          </div>
-
-          {/* Steps */}
-          <div className="steps-container">
-            <Steps current={currentStep} size="small">
-              {steps.map((step, index) => (
-                <Step key={index} title={step.title} description={step.description} />
-              ))}
-            </Steps>
-          </div>
-
-          <Form
-            form={form}
-            name="register"
-            className="modern-register-form"
-            layout="vertical"
-            size="large"
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
-            autoComplete="off"
-          >
-            {renderStepContent()}
 
             {(error || success) && (
               <Alert
@@ -424,31 +245,21 @@ const RegisterPage = () => {
                 type={error ? "error" : "success"}
                 showIcon
                 className="alert-message"
+                style={{ marginBottom: 24 }}
               />
             )}
 
-            <div className="form-actions">
-              {currentStep > 0 && (
-                <Button onClick={prevStep} className="prev-btn">
-                  Quay lại
-                </Button>
-              )}
-              
-              {currentStep < steps.length - 1 ? (
-                <Button type="primary" onClick={nextStep} className="next-btn">
-                  Tiếp theo
-                </Button>
-              ) : (
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={loading}
-                  className="submit-btn"
-                >
-                  {loading ? 'Đang xử lý...' : 'Tạo tài khoản'}
-                </Button>
-              )}
-            </div>
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                className="submit-btn"
+                style={{ width: '100%', height: 50 }}
+              >
+                {loading ? 'Đang xử lý...' : 'Tạo tài khoản'}
+              </Button>
+            </Form.Item>
           </Form>
 
           <div className="form-footer">
@@ -472,20 +283,6 @@ const RegisterPage = () => {
           </Paragraph>
           
           <div className="features-list">
-            <div className="feature-item">
-              <SafetyCertificateOutlined className="feature-icon" />
-              <div className="feature-content">
-                <div className="feature-title">An toàn tuyệt đối</div>
-                <div className="feature-description">Quy trình hiến máu đạt chuẩn quốc tế</div>
-              </div>
-            </div>
-            <div className="feature-item">
-              <MedicineBoxOutlined className="feature-icon" />
-              <div className="feature-content">
-                <div className="feature-title">Chăm sóc sức khỏe</div>
-                <div className="feature-description">Khám sức khỏe miễn phí trước khi hiến</div>
-              </div>
-            </div>
             <div className="feature-item">
               <HeartFilled className="feature-icon" />
               <div className="feature-content">
