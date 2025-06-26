@@ -1,0 +1,450 @@
+/* ========================================
+   BLOOD DONATION EXCELLENCE SECTION STYLES
+   Blue & White Theme - Consolidated & Optimized
+   Updated: Force blue colors for titles
+   ======================================== */
+
+/* 1. MAIN SECTION CONTAINER */
+.system-excellence-section {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.system-excellence-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* 2. SECTION HEADER */
+.section-header-excellence {
+  position: relative;
+  z-index: 2;
+}
+
+.excellence-icon-main {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 50%;
+  margin: 0 auto;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+  animation: heartBeat 2s ease-in-out infinite alternate;
+}
+
+.excellence-icon-main .main-icon {
+  color: white !important;
+  font-size: 48px !important;
+}
+
+.excellence-icon-main .anticon {
+  color: white !important;
+}
+
+.excellence-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+/* Title classes removed - using inline styles only in JSX */
+
+.excellence-subtitle {
+  font-size: 1.1rem;
+  color: #475569;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 3. EXCELLENCE CARDS - High Specificity to Override Other CSS */
+.system-excellence-section .excellence-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.system-excellence-section .excellence-card .card-body {
+  background: transparent !important;
+}
+
+.system-excellence-section .excellence-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8, #0ea5e9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.system-excellence-section .excellence-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.15);
+}
+
+.system-excellence-section .excellence-card:hover::before {
+  opacity: 1;
+}
+
+/* 4. FEATURE ELEMENTS WITH HIGH SPECIFICITY */
+.system-excellence-section .feature-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.system-excellence-section .feature-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.system-excellence-section .feature-icon .anticon {
+  color: white !important;
+  font-size: 24px !important;
+}
+
+.system-excellence-section .bg-gradient-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.system-excellence-section .bg-gradient-success {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+}
+
+.system-excellence-section .bg-gradient-danger {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+}
+
+/* 5. TEXT STYLING WITH MAXIMUM SPECIFICITY */
+.system-excellence-section .excellence-card .feature-title,
+.system-excellence-section .excellence-card h4,
+.system-excellence-section .excellence-card .card-body h4,
+.system-excellence-section .excellence-card .card-body .feature-title {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  font-size: 1.3rem !important;
+}
+
+.system-excellence-section .excellence-card .feature-description,
+.system-excellence-section .excellence-card p,
+.system-excellence-section .excellence-card .card-body p,
+.system-excellence-section .excellence-card .card-body .feature-description {
+  color: #475569 !important;
+  line-height: 1.6 !important;
+  font-size: 0.95rem !important;
+}
+
+.system-excellence-section .excellence-card .feature-badges .badge,
+.system-excellence-section .excellence-card .badge {
+  font-size: 0.75rem !important;
+  padding: 0.4em 0.8em !important;
+  font-weight: 500 !important;
+  color: white !important;
+}
+
+/* 6. TECH STACK SECTION */
+.system-excellence-section .tech-stack-section {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2rem;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+}
+
+.system-excellence-section .tech-title,
+.system-excellence-section .tech-stack-section h3 {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  font-size: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.system-excellence-section .tech-subtitle,
+.system-excellence-section .tech-stack-section p {
+  color: #475569 !important;
+  font-size: 0.95rem !important;
+  margin-bottom: 0 !important;
+}
+
+.system-excellence-section .tech-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(147, 197, 253, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.system-excellence-section .tech-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.system-excellence-section .tech-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1d4ed8 !important;
+  font-size: 18px !important;
+  flex-shrink: 0;
+}
+
+.system-excellence-section .tech-icon .anticon {
+  color: #1d4ed8 !important;
+  font-size: 18px !important;
+}
+
+.system-excellence-section .tech-info h5 {
+  margin: 0;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+}
+
+.system-excellence-section .tech-info span {
+  font-size: 0.85rem !important;
+  color: #475569 !important;
+}
+
+/* 7. ACHIEVEMENT SECTION */
+.system-excellence-section .achievement-section {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #3b82f6 100%);
+  padding: 2.5rem;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+}
+
+.system-excellence-section .achievement-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  animation: rotate 20s linear infinite;
+}
+
+.system-excellence-section .achievement-header {
+  position: relative;
+  z-index: 2;
+}
+
+.system-excellence-section .achievement-title,
+.system-excellence-section .achievement-section h3 {
+  color: #1e3a8a !important;
+  font-weight: 700 !important;
+  font-size: 1.8rem !important;
+  margin-bottom: 0 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.system-excellence-section .achievement-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 1.5rem;
+  border-radius: 16px;
+  text-align: center;
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  animation: fadeInUp 1s ease-out;
+}
+
+.system-excellence-section .achievement-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(59, 130, 246, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.system-excellence-section .achievement-number,
+.system-excellence-section .achievement-card h4 {
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  color: #1e293b !important;
+  margin-bottom: 0.5rem !important;
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.system-excellence-section .achievement-label,
+.system-excellence-section .achievement-card p {
+  color: #475569 !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1rem !important;
+}
+
+.system-excellence-section .achievement-icon {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white !important;
+  font-size: 14px !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.system-excellence-section .achievement-icon .anticon {
+  color: white !important;
+  font-size: 14px !important;
+}
+
+/* 8. ANIMATIONS */
+@keyframes heartBeat {
+  0% {
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.5);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 9. RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .system-excellence-section .excellence-title {
+    font-size: 2rem;
+  }
+  
+  .system-excellence-section .title-highlight {
+    font-size: 2.2rem;
+    color: #1e40af !important;
+  }
+  
+  .system-excellence-section .tech-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .system-excellence-section .achievement-number,
+  .system-excellence-section .achievement-card h4 {
+    font-size: 1.5rem !important;
+  }
+  
+  .system-excellence-section .achievement-section {
+    padding: 1.5rem;
+  }
+}
+
+/* 10. GLOBAL OVERRIDES - Highest Specificity */
+.system-excellence-section * {
+  box-sizing: border-box;
+}
+
+.system-excellence-section .card,
+.system-excellence-section .card-body {
+  color: inherit !important;
+}
+
+.system-excellence-section h1,
+.system-excellence-section h2,
+.system-excellence-section h3,
+.system-excellence-section h4,
+.system-excellence-section h5,
+.system-excellence-section h6 {
+  color: inherit !important;
+}
+
+.system-excellence-section p {
+  color: inherit !important;
+}
+
+/* 11. ICON FIXES - Ensure all Ant Design icons display correctly */
+.system-excellence-section .anticon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.system-excellence-section .bg-gradient-primary .anticon,
+.system-excellence-section .bg-gradient-success .anticon,
+.system-excellence-section .bg-gradient-danger .anticon {
+  color: white !important;
+}
+
+.system-excellence-section .text-primary {
+  color: white !important;
+}
+
+/* Fix for any potential icon color issues */
+.excellence-icon-main svg,
+.feature-icon svg,
+.achievement-icon svg {
+  fill: currentColor;
+  color: inherit;
+}
+
+.tech-icon svg {
+  fill: currentColor;
+  color: #1d4ed8 !important;
+}
+
+/* 12. TITLE COLOR OVERRIDES REMOVED - Using inline styles only */
+
+/* 13. EMERGENCY OVERRIDES REMOVED - Using inline styles only */
