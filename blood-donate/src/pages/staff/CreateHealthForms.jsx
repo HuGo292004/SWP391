@@ -37,32 +37,35 @@ const CreateHealthForms = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewData, setPreviewData] = useState(null);
 
+  // Thông tin nhân viên hiện tại (lấy từ hệ thống)
+  const currentStaff = {
+    staffID: 'STAFF001',
+    staffName: 'BS. Trần Văn Nam',
+    department: 'Khoa Huyết học',
+    position: 'Bác sĩ'
+  };
+
   // Mock data - các phiếu sức khỏe đã tạo gần đây
   const recentForms = [
     {
-      id: 'HF001',
-      patientName: 'Nguyễn Văn An',
-      createdAt: '2024-01-15',
-      status: 'approved',
-      bloodType: 'A+',
+      id: 'HC001',
+      donorName: 'Nguyễn Văn An',
+      donorID: 'DN001',
+      createdAt: '2024-01-15'
     },
     {
-      id: 'HF002',
-      patientName: 'Trần Thị Bình',
-      createdAt: '2024-01-14',
-      status: 'pending',
-      bloodType: 'O+',
+      id: 'HC002',
+      donorName: 'Trần Thị Bình',
+      donorID: 'DN002', 
+      createdAt: '2024-01-14'
     },
     {
-      id: 'HF003',
-      patientName: 'Lê Văn Cường',
-      createdAt: '2024-01-13',
-      status: 'rejected',
-      bloodType: 'B+',
+      id: 'HC003',
+      donorName: 'Lê Văn Cường',
+      donorID: 'DN003',
+      createdAt: '2024-01-13'
     },
   ];
-
-  const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   const handlePreview = () => {
     form.validateFields()
@@ -79,45 +82,68 @@ const CreateHealthForms = () => {
     try {
       setLoading(true);
       
+      // Thêm thông tin nhân viên tạo phiếu vào dữ liệu
+      const formDataWithStaff = {
+        ...values,
+        createdBy: {
+          staffID: currentStaff.staffID,
+          staffName: currentStaff.staffName,
+          department: currentStaff.department,
+          position: currentStaff.position
+        },
+        createdAt: new Date().toISOString()
+      };
+      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      message.success('Tạo phiếu sức khỏe thành công!');
+      console.log('Dữ liệu phiếu sức khỏe:', formDataWithStaff);
+      
+      message.success('Tạo phiếu kiểm tra sức khỏe thành công!');
       form.resetFields();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tạo phiếu sức khỏe');
+      message.error('Có lỗi xảy ra khi tạo phiếu kiểm tra sức khỏe');
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved': return 'green';
-      case 'pending': return 'orange';
-      case 'rejected': return 'red';
-      default: return 'default';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'approved': return 'Đã duyệt';
-      case 'pending': return 'Chờ duyệt';
-      case 'rejected': return 'Từ chối';
-      default: return status;
-    }
-  };
-
   return (
-    <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <Title level={2}>
-          <MedicineBoxOutlined style={{ marginRight: '12px', color: '#1976D2' }} />
-          Tạo Phiếu Sức Khỏe
-        </Title>
-        <Text type="secondary">Tạo phiếu sức khỏe mới cho người hiến máu</Text>
-      </div>
+    <div style={{ 
+      padding: '24px', 
+      backgroundColor: '#f5f5f5', 
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }}>
+      <div style={{ width: '100%', maxWidth: '1400px' }}>
+        <div style={{ marginBottom: '24px', textAlign: 'center' }}>
+          <Title level={2}>
+            <MedicineBoxOutlined style={{ marginRight: '12px', color: '#1976D2' }} />
+            Tạo Phiếu Sức Khỏe
+          </Title>
+          <Text type="secondary">Tạo phiếu sức khỏe mới cho người hiến máu</Text>
+        </div>
+
+        {/* Thông tin nhân viên tạo phiếu */}
+        <Card style={{ marginBottom: '24px', backgroundColor: '#f8f9fa', border: '1px solid #e9ecef' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <Title level={5} style={{ margin: 0, color: '#1976D2' }}>
+                <UserOutlined style={{ marginRight: '8px' }} />
+                Thông tin nhân viên tạo phiếu
+              </Title>
+              <div style={{ marginTop: '8px' }}>
+                <Text><strong>ID nhân viên:</strong> {currentStaff.staffID}</Text>
+                <span style={{ margin: '0 16px', color: '#d9d9d9' }}>|</span>
+                <Text><strong>Họ tên:</strong> {currentStaff.staffName}</Text>
+                <span style={{ margin: '0 16px', color: '#d9d9d9' }}>|</span>
+                <Text><strong>Chức vụ:</strong> {currentStaff.position}</Text>
+              </div>
+            </div>
+          </div>
+        </Card>
 
       <Row gutter={[24, 24]}>
         {/* Form chính */}
@@ -128,126 +154,39 @@ const CreateHealthForms = () => {
               layout="vertical"
               onFinish={handleSubmit}
               requiredMark={false}
-            >              {/* Thông tin cá nhân */}
+            >              {/* Thông tin người hiến máu */}
               <Title level={4}>
                 <UserOutlined style={{ marginRight: '8px' }} />
-                Thông tin cá nhân
+                Thông tin người hiến máu
               </Title>
               
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
-                    name="userId"
-                    label="ID người dùng"
-                    rules={[{ required: true, message: 'Vui lòng nhập ID người dùng' }]}
+                    name="donorID"
+                    label="ID người hiến máu"
+                    rules={[{ required: true, message: 'Vui lòng nhập ID người hiến máu' }]}
                   >
-                    <Input placeholder="Nhập ID người dùng" />
+                    <Input placeholder="Nhập ID người hiến máu" />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item
-                    name="fullName"
-                    label="Họ và tên"
-                    rules={[{ required: true, message: 'Vui lòng nhập họ và tên' }]}
+                    name="HealthCheck_Date"
+                    label="Ngày kiểm tra sức khỏe"
+                    rules={[{ required: true, message: 'Vui lòng chọn ngày kiểm tra' }]}
                   >
-                    <Input placeholder="Nhập họ và tên" />
+                    <DatePicker style={{ width: '100%' }} placeholder="Chọn ngày kiểm tra" />
                   </Form.Item>
                 </Col>
               </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="idCard"
-                    label="CCCD/CMND"
-                    rules={[
-                      { required: true, message: 'Vui lòng nhập CCCD/CMND' },
-                      { pattern: /^\d{9,12}$/, message: 'CCCD/CMND không hợp lệ' }
-                    ]}
-                  >
-                    <Input placeholder="Nhập CCCD/CMND" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={8}>
-                  <Form.Item
-                    name="birthDate"
-                    label="Ngày sinh"
-                    rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} placeholder="Chọn ngày sinh" />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    name="gender"
-                    label="Giới tính"
-                    rules={[{ required: true, message: 'Vui lòng chọn giới tính' }]}
-                  >
-                    <Select placeholder="Chọn giới tính">
-                      <Option value="male">Nam</Option>
-                      <Option value="female">Nữ</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    name="bloodType"
-                    label="Nhóm máu"
-                    rules={[{ required: true, message: 'Vui lòng chọn nhóm máu' }]}
-                  >
-                    <Select placeholder="Chọn nhóm máu">
-                      {bloodTypes.map(type => (
-                        <Option key={type} value={type}>{type}</Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="phone"
-                    label="Số điện thoại"
-                    rules={[
-                      { required: true, message: 'Vui lòng nhập số điện thoại' },
-                      { pattern: /^0\d{9}$/, message: 'Số điện thoại không hợp lệ' }
-                    ]}
-                  >
-                    <Input placeholder="Nhập số điện thoại" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                      { required: true, message: 'Vui lòng nhập email' },
-                      { type: 'email', message: 'Email không hợp lệ' }
-                    ]}
-                  >
-                    <Input placeholder="Nhập email" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Form.Item
-                name="address"
-                label="Địa chỉ"
-                rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
-              >
-                <TextArea rows={2} placeholder="Nhập địa chỉ đầy đủ" />
-              </Form.Item>
 
               <Divider />
 
-              {/* Chỉ số sinh hiệu và tiền sử bệnh */}
+              {/* Chỉ số sinh hiệu */}
               <Title level={4}>
                 <HeartOutlined style={{ marginRight: '8px' }} />
-                Chỉ số sinh hiệu và tiền sử bệnh
+                Chỉ số sinh hiệu
               </Title>
 
               <Row gutter={16}>
@@ -287,7 +226,7 @@ const CreateHealthForms = () => {
                 </Col>
                 <Col span={8}>
                   <Form.Item
-                    name="bloodPressure"
+                    name="blood_pressure"
                     label="Huyết áp (mmHg)"
                     rules={[{ required: true, message: 'Vui lòng nhập huyết áp' }]}
                   >
@@ -297,7 +236,7 @@ const CreateHealthForms = () => {
               </Row>
 
               <Row gutter={16}>
-                <Col span={8}>
+                <Col span={12}>
                   <Form.Item
                     name="heartRate"
                     label="Nhịp tim (lần/phút)"
@@ -314,7 +253,7 @@ const CreateHealthForms = () => {
                     />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
+                <Col span={12}>
                   <Form.Item
                     name="temperature"
                     label="Nhiệt độ (°C)"
@@ -332,42 +271,22 @@ const CreateHealthForms = () => {
                     />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
-                  <Form.Item
-                    name="hemoglobin"
-                    label="Hemoglobin (g/dL)"
-                    rules={[{ required: true, message: 'Vui lòng nhập Hemoglobin' }]}
-                  >
-                    <InputNumber
-                      style={{ width: '100%' }}
-                      placeholder="Nhập Hemoglobin"
-                      min={8}
-                      max={20}
-                      step={0.1}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>              <Form.Item
+              </Row>
+
+              <Divider />
+
+              {/* Thông tin y tế */}
+              <Title level={4}>
+                <MedicineBoxOutlined style={{ marginRight: '8px' }} />
+                Thông tin y tế
+              </Title>              <Form.Item
                 name="medicalHistory"
                 label="Tiền sử bệnh lý"
               >
                 <TextArea 
-                  rows={4}                  placeholder="Nhập tiền sử bệnh lý của bệnh nhân (VD: Tiểu đường, cao huyết áp, bệnh tim mạch, bệnh gan, bệnh thận, rối loạn máu...)" 
+                  rows={4}
+                  placeholder="Nhập tiền sử bệnh lý của người hiến máu (VD: Tiểu đường, cao huyết áp, bệnh tim mạch, bệnh gan, bệnh thận, rối loạn máu...)" 
                 />
-              </Form.Item>
-
-              <Form.Item
-                name="lastDonation"
-                label="Lần hiến máu gần nhất"
-              >
-                <DatePicker style={{ width: '100%' }} placeholder="Chọn ngày hiến máu gần nhất" />
-              </Form.Item>
-
-              <Form.Item
-                name="notes"
-                label="Ghi chú thêm"
-              >
-                <TextArea rows={3} placeholder="Ghi chú thêm về tình trạng sức khỏe..." />
               </Form.Item>
 
               <Form.Item>
@@ -402,18 +321,15 @@ const CreateHealthForms = () => {
                   <div style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                       <Text strong>{item.id}</Text>
-                      <Tag color={getStatusColor(item.status)}>
-                        {getStatusText(item.status)}
-                      </Tag>
                     </div>
                     <div style={{ marginBottom: '4px' }}>
-                      <Text>{item.patientName}</Text>
+                      <Text>{item.donorName}</Text>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Text type="secondary" style={{ fontSize: '12px' }}>
                         {item.createdAt}
                       </Text>
-                      <Tag color="blue">{item.bloodType}</Tag>
+                      <Tag color="blue">{item.donorID}</Tag>
                     </div>
                   </div>
                 </List.Item>
@@ -447,26 +363,11 @@ const CreateHealthForms = () => {
         ]}
       >        {previewData && (
           <div>
-            <Title level={4}>Thông tin cá nhân</Title>
+            <Title level={4}>Thông tin người hiến máu</Title>
             <Row gutter={16}>
-              <Col span={12}><Text strong>ID người dùng:</Text> {previewData.userId}</Col>
-              <Col span={12}><Text strong>Họ và tên:</Text> {previewData.fullName}</Col>
+              <Col span={12}><Text strong>ID người hiến máu:</Text> {previewData.donorID}</Col>
+              <Col span={12}><Text strong>Ngày kiểm tra:</Text> {previewData.HealthCheck_Date?.format('DD/MM/YYYY')}</Col>
             </Row>
-            <Row gutter={16} style={{ marginTop: '8px' }}>
-              <Col span={12}><Text strong>CCCD/CMND:</Text> {previewData.idCard}</Col>
-              <Col span={12}><Text strong>Ngày sinh:</Text> {previewData.birthDate?.format('DD/MM/YYYY')}</Col>
-            </Row>
-            <Row gutter={16} style={{ marginTop: '8px' }}>
-              <Col span={8}><Text strong>Giới tính:</Text> {previewData.gender === 'male' ? 'Nam' : 'Nữ'}</Col>
-              <Col span={8}><Text strong>Nhóm máu:</Text> {previewData.bloodType}</Col>
-              <Col span={8}><Text strong>Điện thoại:</Text> {previewData.phone}</Col>
-            </Row>
-            <Row gutter={16} style={{ marginTop: '8px' }}>
-              <Col span={12}><Text strong>Email:</Text> {previewData.email}</Col>
-            </Row>
-            <div style={{ marginTop: '8px' }}>
-              <Text strong>Địa chỉ:</Text> {previewData.address}
-            </div>
 
             <Divider />
 
@@ -474,30 +375,36 @@ const CreateHealthForms = () => {
             <Row gutter={16}>
               <Col span={8}><Text strong>Cân nặng:</Text> {previewData.weight} kg</Col>
               <Col span={8}><Text strong>Chiều cao:</Text> {previewData.height} cm</Col>
-              <Col span={8}><Text strong>Huyết áp:</Text> {previewData.bloodPressure}</Col>
+              <Col span={8}><Text strong>Huyết áp:</Text> {previewData.blood_pressure}</Col>
             </Row>
             <Row gutter={16} style={{ marginTop: '8px' }}>
-              <Col span={8}><Text strong>Nhịp tim:</Text> {previewData.heartRate} lần/phút</Col>
-              <Col span={8}><Text strong>Nhiệt độ:</Text> {previewData.temperature}°C</Col>
-              <Col span={8}><Text strong>Hemoglobin:</Text> {previewData.hemoglobin} g/dL</Col>
-            </Row>            {previewData.medicalHistory && (
+              <Col span={12}><Text strong>Nhịp tim:</Text> {previewData.heartRate} lần/phút</Col>
+              <Col span={12}><Text strong>Nhiệt độ:</Text> {previewData.temperature}°C</Col>
+            </Row>
+
+            <Divider />
+
+            <Title level={4}>Thông tin y tế</Title>
+            {previewData.medicalHistory && (
               <div style={{ marginTop: '8px' }}>
                 <Text strong>Tiền sử bệnh lý:</Text> {previewData.medicalHistory}
               </div>
-            )}            {previewData.lastDonation && (
-              <div style={{ marginTop: '8px' }}>
-                <Text strong>Lần hiến máu gần nhất:</Text> {previewData.lastDonation.format('DD/MM/YYYY')}
-              </div>
             )}
 
-            {previewData.notes && (
-              <div style={{ marginTop: '8px' }}>
-                <Text strong>Ghi chú:</Text> {previewData.notes}
-              </div>
-            )}
+            <Divider />
+
+            <Title level={4}>Thông tin nhân viên tạo phiếu</Title>
+            <Row gutter={16}>
+              <Col span={12}><Text strong>ID nhân viên:</Text> {currentStaff.staffID}</Col>
+              <Col span={12}><Text strong>Họ tên:</Text> {currentStaff.staffName}</Col>
+            </Row>
+            <Row gutter={16} style={{ marginTop: '8px' }}>
+              <Col span={12}><Text strong>Chức vụ:</Text> {currentStaff.position}</Col>
+            </Row>
           </div>
         )}
       </Modal>
+      </div>
     </div>
   );
 };

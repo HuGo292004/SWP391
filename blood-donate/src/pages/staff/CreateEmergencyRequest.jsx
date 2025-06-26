@@ -26,43 +26,68 @@ import {
   FaTrash
 } from 'react-icons/fa';
 
-const CreateEmergencyRequest = () => {  const [formData, setFormData] = useState({
-    patientName: '',
-    patientAge: '',
-    patientGender: '',
-    bloodType: '',
-    unitsNeeded: '',
-    doctorName: '',
-    contactPhone: '',
-    medicalCondition: '',
-    deadline: '',
-    additionalNotes: ''
+const CreateEmergencyRequest = () => {
+  // Mock thông tin nhân viên hiện tại - trong thực tế sẽ lấy từ context hoặc API
+  const currentStaff = {
+    staffID: 'STF001',
+    fullName: 'Nguyễn Văn Nam',
+    position: 'Nhân viên y tế',
+    phone: '0123456789',
+    email: 'nguyen.van.nam@hospital.com'
+  };
+
+  const [formData, setFormData] = useState({
+    recipientName: '',
+    recipientCCCD: '',
+    recipientBirthDate: '',
+    recipientPhone: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    bloodTypeRequired: '',
+    quantityNeeded: '',
+    description: '',
+    staffID: currentStaff.staffID, // Tự động gán
+    staffName: currentStaff.fullName // Tự động gán
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [savedRequests, setSavedRequests] = useState([
     {
-      id: 1,
-      patientName: 'Nguyễn Văn A',
-      bloodType: 'O-',
-      unitsNeeded: 3,
-      urgencyLevel: 'critical',
-      hospital: 'Bệnh viện Chợ Rẫy',
-      deadline: '2024-12-16 14:00',
-      status: 'active',
-      createdAt: '2024-12-15 10:30'
+      requestID: 'REQ001',
+      recipientID: 'RCP001',
+      recipientName: 'Nguyễn Văn Đức',
+      recipientCCCD: '001234567890',
+      recipientBirthDate: '1985-03-15',
+      recipientPhone: '0987654321',
+      emergencyContactName: 'Nguyễn Thị Lan',
+      emergencyContactPhone: '0912345678',
+      bloodTypeRequired: 'O-',
+      quantityNeeded: 3,
+      requestDate: '2024-12-15 10:30',
+      status: 'pending',
+      description: 'Bệnh nhân cần máu khẩn cấp sau tai nạn giao thông',
+      staffID: 'STF002',
+      staffName: 'Trần Thị Lan',
+      createdBy: 'Trần Thị Lan'
     },
     {
-      id: 2,
-      patientName: 'Trần Thị B',
-      bloodType: 'AB+',
-      unitsNeeded: 2,
-      urgencyLevel: 'high',
-      hospital: 'Bệnh viện Bạch Mai',
-      deadline: '2024-12-17 09:00',
+      requestID: 'REQ002',
+      recipientID: 'RCP002',
+      recipientName: 'Lê Thị Mai',
+      recipientCCCD: '002345678901',
+      recipientBirthDate: '1990-07-22',
+      recipientPhone: '0123456789',
+      emergencyContactName: 'Lê Văn Minh',
+      emergencyContactPhone: '0934567890',
+      bloodTypeRequired: 'AB+',
+      quantityNeeded: 2,
+      requestDate: '2024-12-15 08:15',
       status: 'fulfilled',
-      createdAt: '2024-12-15 08:15'
+      description: 'Phẫu thuật tim cần máu AB+',
+      staffID: 'STF001',
+      staffName: 'Nguyễn Văn Nam',
+      createdBy: 'Nguyễn Văn Nam'
     }
   ]);
 
@@ -76,61 +101,57 @@ const CreateEmergencyRequest = () => {  const [formData, setFormData] = useState
 
   const handleSubmit = (e) => {
     e.preventDefault();
-      // Validate required fields
-    const requiredFields = ['patientName', 'bloodType', 'unitsNeeded', 'doctorName', 'contactPhone', 'deadline'];
+    // Validate required fields
+    const requiredFields = ['recipientName', 'recipientCCCD', 'recipientBirthDate', 'recipientPhone', 'emergencyContactName', 'emergencyContactPhone', 'bloodTypeRequired', 'quantityNeeded'];
     const missingFields = requiredFields.filter(field => !formData[field]);
     
     if (missingFields.length > 0) {
       alert('Vui lòng điền đầy đủ các trường bắt buộc');
       return;
-    }    // Create new request
+    }
+
+    // Auto-generate recipient ID
+    const recipientID = `RCP${String(savedRequests.length + 1).padStart(3, '0')}`;
+
+    // Create new request
     const newRequest = {
-      id: savedRequests.length + 1,
-      patientName: formData.patientName,
-      bloodType: formData.bloodType,
-      unitsNeeded: parseInt(formData.unitsNeeded),
-      urgencyLevel: 'high', // Default urgency level for all emergency requests
-      hospital: 'N/A', // Default value since hospital info is removed
-      deadline: formData.deadline,
-      status: 'active',
-      createdAt: new Date().toLocaleString('vi-VN'),
-      ...formData
+      requestID: `REQ${String(savedRequests.length + 1).padStart(3, '0')}`,
+      recipientID: recipientID,
+      recipientName: formData.recipientName,
+      recipientCCCD: formData.recipientCCCD,
+      recipientBirthDate: formData.recipientBirthDate,
+      recipientPhone: formData.recipientPhone,
+      emergencyContactName: formData.emergencyContactName,
+      emergencyContactPhone: formData.emergencyContactPhone,
+      bloodTypeRequired: formData.bloodTypeRequired,
+      quantityNeeded: parseInt(formData.quantityNeeded),
+      requestDate: new Date().toLocaleString('vi-VN'),
+      status: 'pending',
+      description: formData.description || 'Yêu cầu máu khẩn cấp',
+      staffID: currentStaff.staffID,
+      staffName: currentStaff.fullName,
+      createdBy: currentStaff.fullName
     };
 
     setSavedRequests(prev => [newRequest, ...prev]);
-    setShowSuccess(true);    // Reset form
+    setShowSuccess(true);
+
+    // Reset form
     setFormData({
-      patientName: '',
-      patientAge: '',
-      patientGender: '',
-      bloodType: '',
-      unitsNeeded: '',
-      doctorName: '',
-      contactPhone: '',
-      medicalCondition: '',
-      deadline: '',
-      additionalNotes: ''
+      recipientName: '',
+      recipientCCCD: '',
+      recipientBirthDate: '',
+      recipientPhone: '',
+      emergencyContactName: '',
+      emergencyContactPhone: '',
+      bloodTypeRequired: '',
+      quantityNeeded: '',
+      description: '',
+      staffID: currentStaff.staffID, // Giữ nguyên thông tin nhân viên
+      staffName: currentStaff.fullName // Giữ nguyên thông tin nhân viên
     });
 
     setTimeout(() => setShowSuccess(false), 3000);
-  };
-
-  const getUrgencyBadgeVariant = (level) => {
-    switch (level) {
-      case 'critical': return 'danger';
-      case 'high': return 'warning';
-      case 'medium': return 'info';
-      default: return 'secondary';
-    }
-  };
-
-  const getUrgencyText = (level) => {
-    switch (level) {
-      case 'critical': return 'Cấp cứu';
-      case 'high': return 'Khẩn cấp';
-      case 'medium': return 'Ưu tiên';
-      default: return 'Bình thường';
-    }
   };
 
   const getStatusBadgeVariant = (status) => {
@@ -144,9 +165,9 @@ const CreateEmergencyRequest = () => {  const [formData, setFormData] = useState
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'active': return 'Đang tìm';
+      case 'pending': return 'Chờ xử lý';
       case 'fulfilled': return 'Đã có máu';
-      case 'expired': return 'Hết hạn';
+      case 'cancelled': return 'Đã hủy';
       default: return 'Không xác định';
     }
   };
@@ -188,52 +209,148 @@ const CreateEmergencyRequest = () => {  const [formData, setFormData] = useState
             </Card.Header>
             <Card.Body>
               <Form onSubmit={handleSubmit}>
-                {/* Patient Information */}
+                {/* Staff Information - Auto-filled */}
+                <div className="mb-4">
+                  <h6 className="text-primary mb-3">
+                    <FaUser className="me-2" />
+                    Nhân viên trách nhiệm
+                  </h6>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Mã nhân viên</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={currentStaff.staffID}
+                          disabled
+                          style={{ backgroundColor: '#f8f9fa' }}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Tên nhân viên</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={currentStaff.fullName}
+                          disabled
+                          style={{ backgroundColor: '#f8f9fa' }}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Chức vụ</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={currentStaff.position}
+                          disabled
+                          style={{ backgroundColor: '#f8f9fa' }}
+                        />
+                      </Form.Group>
+                    </Col>
+
+                  </Row>
+                </div>
+
+                {/* Recipient Information */}
                 <div className="mb-4">
                   <h6 className="text-primary mb-3">
                     <FaUser className="me-2" />
                     Thông tin bệnh nhân
                   </h6>
                   <Row>
-                    <Col md={6}>
+                    <Col md={12}>
                       <Form.Group className="mb-3">
                         <Form.Label>Họ và tên bệnh nhân *</Form.Label>
                         <Form.Control
                           type="text"
-                          name="patientName"
-                          value={formData.patientName}
+                          name="recipientName"
+                          value={formData.recipientName}
                           onChange={handleInputChange}
-                          placeholder="Nhập họ tên bệnh nhân"
+                          placeholder="Nhập họ và tên đầy đủ của bệnh nhân"
                           required
                         />
                       </Form.Group>
                     </Col>
-                    <Col md={3}>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Tuổi</Form.Label>
+                        <Form.Label>CCCD/CMND *</Form.Label>
                         <Form.Control
-                          type="number"
-                          name="patientAge"
-                          value={formData.patientAge}
+                          type="text"
+                          name="recipientCCCD"
+                          value={formData.recipientCCCD}
                           onChange={handleInputChange}
-                          placeholder="Tuổi"
-                          min="1"
-                          max="120"
+                          placeholder="Nhập số CCCD hoặc CMND"
+                          required
                         />
                       </Form.Group>
                     </Col>
-                    <Col md={3}>
+                    <Col md={6}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Giới tính</Form.Label>
-                        <Form.Select
-                          name="patientGender"
-                          value={formData.patientGender}
+                        <Form.Label>Ngày sinh *</Form.Label>
+                        <Form.Control
+                          type="date"
+                          name="recipientBirthDate"
+                          value={formData.recipientBirthDate}
                           onChange={handleInputChange}
-                        >
-                          <option value="">Chọn giới tính</option>
-                          <option value="male">Nam</option>
-                          <option value="female">Nữ</option>
-                        </Form.Select>
+                          required
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Số điện thoại *</Form.Label>
+                        <Form.Control
+                          type="tel"
+                          name="recipientPhone"
+                          value={formData.recipientPhone}
+                          onChange={handleInputChange}
+                          placeholder="Nhập số điện thoại bệnh nhân"
+                          required
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </div>
+
+                {/* Emergency Contact Information */}
+                <div className="mb-4">
+                  <h6 className="text-primary mb-3">
+                    <FaPhone className="me-2" />
+                    Thông tin người thân
+                  </h6>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Họ và tên người thân *</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="emergencyContactName"
+                          value={formData.emergencyContactName}
+                          onChange={handleInputChange}
+                          placeholder="Nhập họ và tên người thân"
+                          required
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Số điện thoại người thân *</Form.Label>
+                        <Form.Control
+                          type="tel"
+                          name="emergencyContactPhone"
+                          value={formData.emergencyContactPhone}
+                          onChange={handleInputChange}
+                          placeholder="Nhập số điện thoại người thân"
+                          required
+                        />
                       </Form.Group>
                     </Col>
                   </Row>
@@ -244,13 +361,14 @@ const CreateEmergencyRequest = () => {  const [formData, setFormData] = useState
                   <h6 className="text-primary mb-3">
                     <FaHeart className="me-2" />
                     Yêu cầu về máu
-                  </h6>                  <Row>
+                  </h6>
+                  <Row>
                     <Col md={6}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Nhóm máu *</Form.Label>
+                        <Form.Label>Nhóm máu cần *</Form.Label>
                         <Form.Select
-                          name="bloodType"
-                          value={formData.bloodType}
+                          name="bloodTypeRequired"
+                          value={formData.bloodTypeRequired}
                           onChange={handleInputChange}
                           required
                         >
@@ -268,107 +386,38 @@ const CreateEmergencyRequest = () => {  const [formData, setFormData] = useState
                     </Col>
                     <Col md={6}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Số đơn vị cần *</Form.Label>
+                        <Form.Label>Số lượng cần *</Form.Label>
                         <Form.Control
                           type="number"
-                          name="unitsNeeded"
-                          value={formData.unitsNeeded}
+                          name="quantityNeeded"
+                          value={formData.quantityNeeded}
                           onChange={handleInputChange}
                           placeholder="Số đơn vị"
                           min="1"
                           required
                         />
                       </Form.Group>
-                    </Col>                  </Row>
-                </div>
-
-                {/* Contact Information */}
-                <div className="mb-4">
-                  <h6 className="text-primary mb-3">
-                    <FaPhone className="me-2" />
-                    Thông tin liên hệ
-                  </h6>
-                  <Row>                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Nhân viên phụ trách *</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="doctorName"
-                          value={formData.doctorName}
-                          onChange={handleInputChange}
-                          placeholder="Tên nhân viên"
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Số điện thoại liên hệ *</Form.Label>
-                        <Form.Control
-                          type="tel"
-                          name="contactPhone"
-                          value={formData.contactPhone}
-                          onChange={handleInputChange}
-                          placeholder="Số điện thoại"
-                          required
-                        />
-                      </Form.Group>
                     </Col>
                   </Row>
                 </div>
 
-                {/* Medical Details */}
+                {/* Description */}
                 <div className="mb-4">
                   <h6 className="text-primary mb-3">
                     <FaMedkit className="me-2" />
-                    Chi tiết y tế
+                    Mô tả yêu cầu
                   </h6>
                   <Row>
-                    <Col md={6}>
+                    <Col md={12}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Tình trạng bệnh lý</Form.Label>
+                        <Form.Label>Mô tả chi tiết</Form.Label>
                         <Form.Control
                           as="textarea"
-                          rows={3}
-                          name="medicalCondition"
-                          value={formData.medicalCondition}
+                          rows={4}
+                          name="description"
+                          value={formData.description}
                           onChange={handleInputChange}
-                          placeholder="Mô tả tình trạng bệnh lý của bệnh nhân"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Ghi chú thêm</Form.Label>
-                        <Form.Control
-                          as="textarea"
-                          rows={3}
-                          name="additionalNotes"
-                          value={formData.additionalNotes}
-                          onChange={handleInputChange}
-                          placeholder="Thông tin bổ sung khác"
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </div>
-
-                {/* Deadline */}
-                <div className="mb-4">
-                  <h6 className="text-primary mb-3">
-                    <FaClock className="me-2" />
-                    Thời hạn
-                  </h6>
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Thời hạn cần máu *</Form.Label>
-                        <Form.Control
-                          type="datetime-local"
-                          name="deadline"
-                          value={formData.deadline}
-                          onChange={handleInputChange}
-                          required
+                          placeholder="Mô tả chi tiết về yêu cầu máu (lý do, tình trạng bệnh nhân, ghi chú đặc biệt...)"
                         />
                       </Form.Group>
                     </Col>
@@ -412,20 +461,25 @@ const CreateEmergencyRequest = () => {  const [formData, setFormData] = useState
               ) : (
                 <div className="request-list" style={{ maxHeight: '600px', overflowY: 'auto' }}>
                   {savedRequests.map(request => (
-                    <div key={request.id} className="request-item mb-3 p-3 border rounded">
+                    <div key={request.requestID} className="request-item mb-3 p-3 border rounded">
                       <div className="d-flex justify-content-between align-items-start mb-2">
-                        <strong>{request.patientName}</strong>
+                        <strong>{request.requestID}</strong>
                         <Badge bg={getStatusBadgeVariant(request.status)}>
                           {getStatusText(request.status)}
                         </Badge>
-                      </div>                      <div className="mb-1">
-                        <Badge bg="danger" className="me-2">{request.bloodType}</Badge>
-                        <Badge bg="warning">Khẩn cấp</Badge>
+                      </div>
+                      <div className="mb-1">
+                        <Badge bg="danger" className="me-2">{request.bloodTypeRequired}</Badge>
                       </div>
                       <div className="small text-muted mb-2">
-                        <div>Cần: {request.unitsNeeded} đơn vị</div>
-                        <div>Hạn: {request.deadline}</div>
-                        <div>Tạo: {request.createdAt}</div>
+                        <div>Bệnh nhân: {request.recipientName}</div>
+                        <div>CCCD: {request.recipientCCCD}</div>
+                        <div>SĐT: {request.recipientPhone}</div>
+                        <div>Người thân: {request.emergencyContactName}</div>
+                        <div>SĐT người thân: {request.emergencyContactPhone}</div>
+                        <div>Cần: {request.quantityNeeded} đơn vị</div>
+                        <div>Tạo bởi: {request.createdBy}</div>
+                        <div>Thời gian: {request.requestDate}</div>
                       </div>
                       <div className="d-flex gap-2">
                         <Button variant="outline-info" size="sm">
@@ -459,40 +513,61 @@ const CreateEmergencyRequest = () => {  const [formData, setFormData] = useState
               YÊU CẦU HIẾN MÁU KHẨN CẤP
             </h5>
             
+            {/* Staff Information */}
+            <div className="mb-4 p-3 bg-light rounded">
+              <h6 className="text-primary mb-2">Nhân viên trách nhiệm</h6>
+              <Row>
+                <Col md={6}>
+                  <div><strong>Mã NV:</strong> {currentStaff.staffID}</div>
+                  <div><strong>Họ tên:</strong> {currentStaff.fullName}</div>
+                </Col>
+                <Col md={6}>
+                  <div><strong>Chức vụ:</strong> {currentStaff.position}</div>
+                </Col>
+              </Row>
+            </div>
+            
             <Row>
               <Col md={6}>
                 <div className="mb-3">
-                  <strong>Bệnh nhân:</strong> {formData.patientName || 'Chưa nhập'}
+                  <strong>Họ và tên:</strong> {formData.recipientName || 'Chưa nhập'}
                 </div>
                 <div className="mb-3">
-                  <strong>Tuổi:</strong> {formData.patientAge || 'Chưa nhập'}
+                  <strong>CCCD/CMND:</strong> {formData.recipientCCCD || 'Chưa nhập'}
                 </div>
                 <div className="mb-3">
-                  <strong>Nhóm máu:</strong> 
-                  {formData.bloodType && (
-                    <Badge bg="danger" className="ms-2">{formData.bloodType}</Badge>
+                  <strong>Ngày sinh:</strong> {formData.recipientBirthDate || 'Chưa nhập'}
+                </div>
+                <div className="mb-3">
+                  <strong>Số điện thoại:</strong> {formData.recipientPhone || 'Chưa nhập'}
+                </div>
+                <div className="mb-3">
+                  <strong>Người thân:</strong> {formData.emergencyContactName || 'Chưa nhập'}
+                </div>
+                <div className="mb-3">
+                  <strong>SĐT người thân:</strong> {formData.emergencyContactPhone || 'Chưa nhập'}
+                </div>
+              </Col>
+              <Col md={6}>
+                <div className="mb-3">
+                  <strong>Nhóm máu cần:</strong> 
+                  {formData.bloodTypeRequired && (
+                    <Badge bg="danger" className="ms-2">{formData.bloodTypeRequired}</Badge>
                   )}
                 </div>
                 <div className="mb-3">
-                  <strong>Số đơn vị cần:</strong> {formData.unitsNeeded || 'Chưa nhập'}
-                </div>
-              </Col>              <Col md={6}>
-                <div className="mb-3">
-                  <strong>Nhân viên phụ trách:</strong> {formData.doctorName || 'Chưa nhập'}
+                  <strong>Số lượng cần:</strong> {formData.quantityNeeded || 'Chưa nhập'} đơn vị
                 </div>
                 <div className="mb-3">
-                  <strong>SĐT liên hệ:</strong> {formData.contactPhone || 'Chưa nhập'}
-                </div>
-                <div className="mb-3">
-                  <strong>Thời hạn:</strong> {formData.deadline || 'Chưa nhập'}
+                  <strong>ID sẽ tự tạo:</strong> <Badge bg="info">Tự động</Badge>
                 </div>
               </Col>
             </Row>
 
-            {formData.medicalCondition && (
+            {formData.description && (
               <div className="mb-3">
-                <strong>Tình trạng bệnh lý:</strong>
-                <p className="mt-1">{formData.medicalCondition}</p>
+                <strong>Mô tả:</strong>
+                <p className="mt-1">{formData.description}</p>
               </div>
             )}
           </div>
