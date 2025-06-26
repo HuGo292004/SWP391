@@ -27,6 +27,8 @@ const ApproveHealthForms = () => {
   const [healthForms, setHealthForms] = useState([
     {
       id: 1,
+      healthCheckID: 'HC001',
+      userID: 'USER001',
       fullName: 'Nguyễn Văn An',
       idCard: '123456789012',
       phone: '0901234567',
@@ -34,10 +36,17 @@ const ApproveHealthForms = () => {
       age: 28,
       gender: 'Nam',
       submittedDate: '2024-12-15 09:30',
-      status: 'pending'
+      status: 'pending',
+      createdBy: {
+        staffID: 'STAFF001',
+        staffName: 'BS. Trần Văn Nam',
+        position: 'Bác sĩ'
+      }
     },
     {
       id: 2,
+      healthCheckID: 'HC002',
+      userID: 'USER002',
       fullName: 'Trần Thị Bình',
       idCard: '987654321098',
       phone: '0912345678',
@@ -45,7 +54,12 @@ const ApproveHealthForms = () => {
       age: 32,
       gender: 'Nữ',
       submittedDate: '2024-12-15 10:15',
-      status: 'approved'
+      status: 'approved',
+      createdBy: {
+        staffID: 'STAFF002',
+        staffName: 'ThS. Lê Thị Hoa',
+        position: 'Y tá trưởng'
+      }
     }
   ]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,7 +70,9 @@ const ApproveHealthForms = () => {
 
   const filteredForms = healthForms.filter(form => {
     const matchesSearch = form.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         form.idCard.includes(searchTerm);
+                         form.idCard.includes(searchTerm) ||
+                         form.userID.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         form.healthCheckID.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || form.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -107,15 +123,16 @@ const ApproveHealthForms = () => {
   };
 
   return (
-    <Container fluid className="p-4">
+    <Container fluid className="p-4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
+      <div style={{ width: '100%', maxWidth: '1400px' }}>
       {/* Header */}
       <Row className="mb-4">
         <Col>
-          <h2 className="text-primary mb-2">
+          <h2 className="text-primary mb-2 text-center">
             <FaClipboardList className="me-2" />
             Duyệt Phiếu Sức Khỏe
           </h2>
-          <p className="text-muted mb-0">Quản lý và duyệt các phiếu khám sức khỏe của người hiến máu</p>
+          <p className="text-muted mb-0 text-center">Quản lý và duyệt các phiếu khám sức khỏe của người hiến máu</p>
         </Col>
       </Row>
 
@@ -137,7 +154,7 @@ const ApproveHealthForms = () => {
                 </InputGroup.Text>
                 <Form.Control
                   type="text"
-                  placeholder="Tìm theo tên, CCCD..."
+                  placeholder="Tìm theo tên, CCCD, ID người dùng, mã phiếu sức khỏe..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -175,19 +192,20 @@ const ApproveHealthForms = () => {
             <thead className="table-light">
               <tr>
                 <th>STT</th>
+                <th>ID người dùng</th>
                 <th>Họ tên</th>
                 <th>CCCD/CMND</th>
                 <th>Nhóm máu</th>
                 <th>Số điện thoại</th>
-                <th>Ngày nộp</th>
                 <th>Trạng thái</th>
+                <th>Ngày nộp</th>
                 <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {filteredForms.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center text-muted">
+                  <td colSpan="9" className="text-center text-muted">
                     Không tìm thấy phiếu sức khỏe nào
                   </td>
                 </tr>
@@ -196,10 +214,11 @@ const ApproveHealthForms = () => {
                   <tr key={form.id}>
                     <td>{index + 1}</td>
                     <td>
+                      <Badge bg="primary">{form.userID}</Badge>
+                    </td>
+                    <td>
                       <div>
                         <strong>{form.fullName}</strong>
-                        <br />
-                        <small className="text-muted">{form.age} tuổi - {form.gender}</small>
                       </div>
                     </td>
                     <td>{form.idCard}</td>
@@ -207,8 +226,8 @@ const ApproveHealthForms = () => {
                       <Badge bg="danger">{form.bloodType}</Badge>
                     </td>
                     <td>{form.phone}</td>
-                    <td>{form.submittedDate}</td>
                     <td>{getStatusBadge(form.status)}</td>
+                    <td>{form.submittedDate}</td>
                     <td>
                       <div className="d-flex gap-2">                        <Button 
                           variant="outline-info" 
@@ -249,7 +268,7 @@ const ApproveHealthForms = () => {
         <Modal.Header closeButton>
           <Modal.Title>
             <FaClipboardList className="me-2" />
-            Chi tiết Phiếu Sức khỏe - {selectedForm?.fullName}
+            Chi tiết Phiếu Sức khỏe - {selectedForm?.healthCheckID}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -262,13 +281,12 @@ const ApproveHealthForms = () => {
                     Thông tin cá nhân
                   </Card.Header>
                   <Card.Body>
+                    <p><strong>ID người dùng:</strong> <Badge bg="primary">{selectedForm.userID}</Badge></p>
                     <p><strong>Họ và tên:</strong> {selectedForm.fullName}</p>
                     <p><strong>CCCD/CMND:</strong> {selectedForm.idCard}</p>
-                    <p><strong>Tuổi:</strong> {selectedForm.age}</p>
-                    <p><strong>Giới tính:</strong> {selectedForm.gender}</p>
+                    <p><strong>Ngày sinh:</strong> {selectedForm.dateOfBirth || selectedForm.age}</p>
                     <p><strong>Số điện thoại:</strong> {selectedForm.phone}</p>
                     <p><strong>Nhóm máu:</strong> <Badge bg="danger">{selectedForm.bloodType}</Badge></p>
-                    <p><strong>Ngày nộp:</strong> {selectedForm.submittedDate}</p>
                     <p><strong>Trạng thái:</strong> {getStatusBadge(selectedForm.status)}</p>
                   </Card.Body>
                 </Card>
@@ -285,7 +303,6 @@ const ApproveHealthForms = () => {
                     <p><strong>Huyết áp:</strong> {selectedForm.bloodPressure || '120/80'} mmHg</p>
                     <p><strong>Nhịp tim:</strong> {selectedForm.heartRate || '72'} lần/phút</p>
                     <p><strong>Nhiệt độ:</strong> {selectedForm.temperature || '36.5'}°C</p>
-                    <p><strong>Hemoglobin:</strong> {selectedForm.hemoglobin || '14.5'} g/dL</p>
                   </Card.Body>
                 </Card>
               </Col>
@@ -305,6 +322,21 @@ const ApproveHealthForms = () => {
                     <p className="text-muted">
                       {selectedForm.notes || 'Không có ghi chú thêm'}
                     </p>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={12}>
+                <Card className="mt-3">
+                  <Card.Header>
+                    <FaUserMd className="me-2" />
+                    Thông tin tạo phiếu
+                  </Card.Header>
+                  <Card.Body>
+                    <p><strong>Mã phiếu sức khỏe:</strong> <Badge bg="success">{selectedForm.healthCheckID}</Badge></p>
+                    <p><strong>ID nhân viên:</strong> <Badge bg="info">{selectedForm.createdBy?.staffID || 'Không có thông tin'}</Badge></p>
+                    <p><strong>Người tạo:</strong> {selectedForm.createdBy?.staffName || 'Không có thông tin'}</p>
+                    <p><strong>Chức vụ:</strong> {selectedForm.createdBy?.position || 'Không có thông tin'}</p>
+                    <p><strong>Ngày nộp:</strong> {selectedForm.submittedDate}</p>
                   </Card.Body>
                 </Card>
               </Col>
@@ -341,6 +373,7 @@ const ApproveHealthForms = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      </div>
     </Container>
   );
 };

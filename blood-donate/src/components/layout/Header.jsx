@@ -733,30 +733,29 @@ import {
                             onClick: () => {
                               navigate(createRoleBasedPath('/create-emergency-request', currentRole));
                             }
+                          }
+                        ]
+                      }, {
+                        type: 'submenu',
+                        key: 'health-forms',
+                        icon: <HeartOutlined style={{ color: healthThemeColors.accent }} />,
+                        label: 'Phiếu sức khỏe',
+                        children: [
+                          {
+                            key: 'approve-health-forms',
+                            icon: <CheckCircleFilled style={{ color: healthThemeColors.success }} />,
+                            label: 'Duyệt phiếu',
+                            onClick: () => {
+                              navigate(createRoleBasedPath('/approve-health-forms', currentRole));
+                            }
                           },
                           {
-                            type: 'submenu',
-                            key: 'health-forms',
-                            icon: <HeartOutlined style={{ color: healthThemeColors.accent }} />,
-                            label: 'Phiếu sức khỏe',
-                            children: [
-                              {
-                                key: 'approve-health-forms',
-                                icon: <CheckCircleFilled style={{ color: healthThemeColors.success }} />,
-                                label: 'Duyệt phiếu',
-                                onClick: () => {
-                                  navigate(createRoleBasedPath('/approve-health-forms', currentRole));
-                                }
-                              },
-                              {
-                                key: 'create-health-forms',
-                                icon: <MedicineBoxOutlined style={{ color: healthThemeColors.primary }} />,
-                                label: 'Tạo phiếu',
-                                onClick: () => {
-                                  navigate(createRoleBasedPath('/create-health-forms', currentRole));
-                                }
-                              }
-                            ]
+                            key: 'create-health-forms',
+                            icon: <MedicineBoxOutlined style={{ color: healthThemeColors.primary }} />,
+                            label: 'Tạo phiếu',
+                            onClick: () => {
+                              navigate(createRoleBasedPath('/create-health-forms', currentRole));
+                            }
                           }
                         ]                      }, {                        key: 'blood-inventory',
                         icon: <MedicineBoxOutlined style={{ color: healthThemeColors.success }} />,
