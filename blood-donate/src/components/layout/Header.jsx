@@ -93,9 +93,13 @@ import {
     const currentRole = getUserRoleFromPath(location.pathname) || user?.role;
     
     const logout = async () => { 
+      console.log('Header logout called');
       localStorage.removeItem('userToken');
       localStorage.removeItem('username');
       localStorage.removeItem('userRole');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userFullName');
       setIsAuthenticated(false);
       setUser(null);
       navigate('/');

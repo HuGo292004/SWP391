@@ -17,7 +17,7 @@ const LoginPage = () => {
   const demoAccounts = {
     member: { email: 'member@example.com', password: 'member123', role: 'Member' },
     staff: { email: 'staff@gmail.com', password: 'staff123', role: 'Staff' }, // Real API credentials
-    admin: { email: 'admin@example.com', password: 'admin123', role: 'Admin' }
+    admin: { email: 'admin01@gmail.com', password: 'admin123', role: 'Admin' } // Real API credentials
   };
 
   const onFinish = async (values) => {
@@ -38,13 +38,34 @@ const LoginPage = () => {
         console.log('API Response data:', data);
         console.log('User email:', values.email);
         
-        // Store user info từ API response
+        // Store token
         localStorage.setItem('userToken', data.token || data.accessToken || 'authenticated');
         
-        // Determine role từ API response hoặc email pattern
-        let userRole = data.role || data.userRole;
-        if (!userRole) {
-          // Fallback: determine role từ email nếu API không trả về role
+        // Decode JWT token để lấy thông tin user
+        let userRole = '';
+        let userId = '';
+        let username = '';
+        
+        try {
+          if (data.token) {
+            // Decode JWT token payload
+            const base64Url = data.token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            
+            const tokenPayload = JSON.parse(jsonPayload);
+            console.log('JWT Token payload:', tokenPayload);
+            
+            // Lấy thông tin từ JWT claims
+            userRole = tokenPayload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'Member';
+            userId = tokenPayload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || '';
+            username = tokenPayload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || values.email;
+          }
+        } catch (error) {
+          console.error('Error decoding JWT token:', error);
+          // Fallback: determine role từ email pattern
           if (values.email.includes('staff@')) {
             userRole = 'Staff';
           } else if (values.email.includes('admin@')) {
@@ -52,15 +73,13 @@ const LoginPage = () => {
           } else {
             userRole = 'Member';
           }
+          username = values.email;
         }
         
         localStorage.setItem('userRole', userRole);
-        localStorage.setItem('username', data.username || data.email || values.email);
-        localStorage.setItem('userId', data.userId || data.id || '');
-        
-        // Store thêm thông tin nếu có
-        if (data.email) localStorage.setItem('userEmail', data.email);
-        if (data.fullName) localStorage.setItem('userFullName', data.fullName);
+        localStorage.setItem('username', username);
+        localStorage.setItem('userId', userId);
+        localStorage.setItem('userEmail', values.email);
         
         // Trigger storage event để update header
         window.dispatchEvent(new Event('storage'));
