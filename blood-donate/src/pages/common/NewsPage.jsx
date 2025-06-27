@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { Typography, Card, Row, Col, Tag, Space, Button, Divider, Modal, Form, Input, Select, Upload, message } from 'antd';
-import { CalendarOutlined, UserOutlined, RightOutlined, PlusOutlined, UploadOutlined, SaveOutlined, FileTextOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Typography, Card, Row, Col, Tag, Space, Button, Divider, Modal, Form, Input, Select, Upload, message, Spin, Popconfirm } from 'antd';
+import { CalendarOutlined, UserOutlined, RightOutlined, PlusOutlined, UploadOutlined, SaveOutlined, FileTextOutlined, EditOutlined, DeleteOutlined, BookOutlined, TrophyOutlined } from '@ant-design/icons';
+import { getAllBlogs, createBlog, updateBlog, deleteBlog, incrementViewCount } from '../../services/blogApi';
+import { UserAPI } from '../../services/userApi';
+import '../../styles/NewsPage.css';
 
 const { Title, Paragraph, Text } = Typography;
 const { Meta } = Card;
@@ -8,98 +11,425 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const NewsPage = () => {
-  const [form] = Form.useForm();
+  const [createForm] = Form.useForm();
+  const [editForm] = Form.useForm();
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [newsData, setNewsData] = useState([
-    {
-      id: 1,
-      title: "Chiến dịch hiến máu tình nguyện 'Giọt hồng yêu thương'",
-      summary: "Hơn 1000 người đã tham gia hiến máu trong chiến dịch, góp phần quan trọng vào nguồn máu dự trữ cho điều trị.",
-      image: "https://example.com/blood-donation-1.jpg",
-      date: "20/03/2024",
-      author: "Nguyễn Văn A",
-      category: "Chiến dịch",
-      tags: ["Hiến máu tình nguyện", "Cộng đồng"]
-    },
-    {
-      id: 2,
-      title: "Kỹ thuật mới trong bảo quản máu kéo dài thời gian sử dụng",
-      summary: "Các nhà khoa học đã phát triển phương pháp mới giúp kéo dài thời gian bảo quản máu lên đến 56 ngày.",
-      image: "https://example.com/blood-storage.jpg",
-      date: "18/03/2024",
-      author: "Trần Thị B",
-      category: "Khoa học",
-      tags: ["Công nghệ", "Nghiên cứu"]
-    },
-    {
-      id: 3,
-      title: "Hướng dẫn dinh dưỡng cho người hiến máu",
-      summary: "Chế độ ăn uống khoa học giúp người hiến máu phục hồi nhanh chóng và duy trì sức khỏe tốt.",
-      image: "https://example.com/nutrition.jpg",
-      date: "15/03/2024",
-      author: "Lê Văn C",
-      category: "Sức khỏe",
-      tags: ["Dinh dưỡng", "Sức khỏe"]
-    },
-    {
-      id: 4,
-      title: "Ngân hàng máu di động - Mô hình mới trong thu gom máu",
-      summary: "Xe ngân hàng máu lưu động được trang bị đầy đủ thiết bị, giúp việc hiến máu thuận tiện hơn.",
-      image: "https://example.com/mobile-bank.jpg",
-      date: "12/03/2024",
-      author: "Phạm Thị D",
-      category: "Công nghệ",      tags: ["Đổi mới", "Tiện ích"]
-    }
-  ]);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [newsData, setNewsData] = useState([]);
+  const [editingBlog, setEditingBlog] = useState(null);
+  const [userCache, setUserCache] = useState({}); // Cache để lưu thông tin user
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedNews, setSelectedNews] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(undefined);
+  const [sortBy, setSortBy] = useState('newest');
 
   // Kiểm tra role của user
   const userRole = localStorage.getItem('userRole');
+  // Ưu tiên userId từ API thực tế
+  const currentUserID = localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('id');
+  const currentUserFullName = localStorage.getItem('fullName') || localStorage.getItem('userName') || localStorage.getItem('name') || localStorage.getItem('username');
   const canCreateNews = userRole === 'Staff' || userRole === 'Admin';
+
+  // Debug: Log user info
+  console.log('Current user info:', {
+    userRole,
+    currentUserID,
+    currentUserFullName,
+    localStorage_userID: localStorage.getItem('userID'),
+    localStorage_userId: localStorage.getItem('userId'),
+    localStorage_id: localStorage.getItem('id')
+  });
 
   // Categories cho tin tức
   const categories = [
-    { value: 'campaign', label: 'Chiến dịch' },
-    { value: 'health', label: 'Sức khỏe' },
-    { value: 'announcement', label: 'Thông báo' },
-    { value: 'guide', label: 'Hướng dẫn' },
-    { value: 'event', label: 'Sự kiện' },
-    { value: 'science', label: 'Khoa học' },
-    { value: 'technology', label: 'Công nghệ' }
+    { value: 'Chiến dịch', label: 'Chiến dịch' },
+    { value: 'Sức khỏe', label: 'Sức khỏe' },
+    { value: 'Thông báo', label: 'Thông báo' },
+    { value: 'Hướng dẫn', label: 'Hướng dẫn' },
+    { value: 'Sự kiện', label: 'Sự kiện' },
+    { value: 'Khoa học', label: 'Khoa học' },
+    { value: 'Công nghệ', label: 'Công nghệ' }
   ];
+
+  // Load blogs when component mounts
+  useEffect(() => {
+    loadBlogs();
+  }, []);
+
+  // Load user info for all authors when newsData changes
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      const authorIDs = [...new Set(newsData.map(blog => blog.authorID))];
+      console.log('Loading user info for authorIDs:', authorIDs);
+      
+      for (const authorID of authorIDs) {
+        // Skip if already cached or is current user
+        if (userCache[authorID] || authorID === currentUserID) {
+          continue;
+        }
+        
+        try {
+          await getAuthorName(authorID); // This will cache the result
+        } catch (error) {
+          console.log('Failed to load user info for:', authorID, error);
+        }
+      }
+    };
+
+    if (newsData.length > 0) {
+      loadUserInfo();
+    }
+  }, [newsData, currentUserID, userCache]);
+
+  // Load all blogs from API
+  const loadBlogs = async () => {
+    try {
+      setPageLoading(true);
+      const response = await getAllBlogs();
+      console.log('Raw API response:', response);
+      
+      // Handle different response structures
+      const blogs = Array.isArray(response) ? response : (response?.data || response?.blogs || []);
+      console.log('Extracted blogs array:', blogs);
+      
+      // Process and validate blog data with more field mappings
+      const processedBlogs = (blogs || []).map((blog, index) => {
+        // Try multiple possible field names for ID
+        const blogID = blog.blogID || blog.id || blog.blogId || blog.Id || blog.ID || `temp-${Date.now()}-${index}`;
+        
+        // Try multiple possible field names for authorID - ưu tiên currentUserID nếu match
+        const authorID = blog.authorID || blog.authorId || blog.author_id || 
+                        blog.userId || blog.user_id || blog.createdBy || 
+                        blog.created_by || currentUserID || 'UNKNOWN_AUTHOR';
+        
+        // Try multiple possible field names for dates
+        const publishDate = blog.publishDate || blog.publish_date || blog.createdAt || 
+                           blog.created_at || blog.dateCreated || blog.date_created || 
+                           new Date().toISOString();
+        
+        // Try multiple possible field names for view count
+        const viewCount = blog.viewCount || blog.view_count || blog.views || 0;
+        
+        const processed = {
+          ...blog,
+          blogID: blogID,
+          authorID: authorID,
+          publishDate: publishDate,
+          viewCount: viewCount,
+          title: blog.title || 'Untitled',
+          content: blog.content || 'No content',
+          category: blog.category || 'Thông báo'
+        };
+        
+        console.log(`Blog ${index}:`, {
+          original: blog,
+          processed: processed
+        });
+        
+        return processed;
+      });
+      
+      // Filter out blogs with invalid IDs and log warnings
+      const validBlogs = processedBlogs.filter(blog => {
+        const isValid = blog.blogID && blog.blogID !== 'undefined' && !blog.blogID.startsWith('temp-');
+        if (!isValid) {
+          console.warn('Skipping blog with invalid ID:', blog);
+        }
+        return isValid;
+      });
+      
+      console.log('Valid blogs after filtering:', validBlogs);
+      
+      // If no valid blogs from API, add some sample data for testing
+      if (validBlogs.length === 0) {
+        console.log('No valid blogs from API, using sample data');
+        const sampleBlogs = [
+          {
+            blogID: 'sample-1',
+            authorID: currentUserID || '28697d11-561a-4992-a7ca-9dbb158bca8b',
+            title: "Hướng dẫn hiến máu an toàn",
+            content: "Hiến máu là một hành động nhân đạo cao cả. Để hiến máu an toàn, bạn cần đáp ứng các điều kiện về sức khỏe và tuân thủ quy trình. Trước khi hiến máu, hãy nghỉ ngơi đầy đủ, ăn uống đủ chất và thông báo với nhân viên y tế về tình trạng sức khỏe của mình.",
+            publishDate: "2024-06-25T10:00:00",
+            category: "Hướng dẫn",
+            viewCount: 1250
+          },
+          {
+            blogID: 'sample-2',
+            authorID: currentUserID || '28697d11-561a-4992-a7ca-9dbb158bca8b',
+            title: "Lợi ích của việc hiến máu",
+            content: "Hiến máu không chỉ giúp cứu sống người khác mà còn mang lại nhiều lợi ích cho người hiến. Việc hiến máu thường xuyên giúp cơ thể tái tạo máu mới, kiểm tra sức khỏe định kỳ và giảm nguy cơ mắc một số bệnh về tim mạch.",
+            publishDate: "2024-06-20T15:30:00",
+            category: "Sức khỏe",
+            viewCount: 890
+          }
+        ];
+        setNewsData(sampleBlogs);
+      } else {
+        setNewsData(validBlogs);
+      }
+    } catch (error) {
+      message.error('Không thể tải danh sách tin tức: ' + error.message);
+      console.error('Error loading blogs:', error);
+      // Set sample data as fallback
+      setNewsData([
+        {
+          blogID: 'fallback-1',
+          authorID: currentUserID || '28697d11-561a-4992-a7ca-9dbb158bca8b',
+          title: "Tin tức mẫu",
+          content: "Đây là tin tức mẫu khi không thể kết nối API",
+          publishDate: new Date().toISOString(),
+          category: "Thông báo",
+          viewCount: 0
+        }
+      ]);
+    } finally {
+      setPageLoading(false);
+    }
+  };
+
+  // Format date function
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
+  // Get summary from content
+  const getSummary = (content, maxLength = 150) => {
+    if (!content) return '';
+    return content.length > maxLength 
+      ? content.substring(0, maxLength) + '...' 
+      : content;
+  };
+
+  // Get author name from authorID
+  const getAuthorName = async (authorID) => {
+    console.log('Getting author name for authorID:', authorID);
+    console.log('Current user ID:', currentUserID);
+    console.log('Current user full name:', currentUserFullName);
+    
+    // Nếu authorID trùng với current user, hiển thị tên đầy đủ từ localStorage
+    if (authorID === currentUserID && currentUserFullName) {
+      console.log('Returning current user full name:', currentUserFullName);
+      return currentUserFullName;
+    }
+    
+    // Kiểm tra cache trước
+    if (userCache[authorID]) {
+      console.log('Returning cached user name:', userCache[authorID]);
+      return userCache[authorID];
+    }
+    
+    // Thử gọi API để lấy thông tin user
+    try {
+      const userInfo = await UserAPI.getUserDetail(authorID);
+      console.log('User info from API:', userInfo);
+      
+      const fullName = userInfo?.fullName || userInfo?.name || userInfo?.userName || `User ${authorID}`;
+      
+      // Lưu vào cache
+      setUserCache(prev => ({
+        ...prev,
+        [authorID]: fullName
+      }));
+      
+      console.log('Returning API user name:', fullName);
+      return fullName;
+    } catch (error) {
+      console.log('Error fetching user info:', error);
+      
+      // Fallback với mapping tạm thời
+      const authorMap = {
+        '28697d11-561a-4992-a7ca-9dbb158bca8b': 'staff', // ID thực tế từ API
+        'USER001': 'Nguyễn Văn A', // Backup cho test
+        'USER002': 'Trần Thị B', 
+        'USER003': 'Lê Văn C',
+        'USER004': 'Phạm Thị D',
+        'OTHER_USER': 'Người dùng khác'
+      };
+      
+      const authorName = authorMap[authorID] || `User ${authorID}` || 'Tác giả không xác định';
+      console.log('Returning fallback author name:', authorName);
+      
+      // Lưu vào cache để không gọi API lại
+      setUserCache(prev => ({
+        ...prev,
+        [authorID]: authorName
+      }));
+      
+      return authorName;
+    }
+  };
+
+  // Sync version for immediate rendering (sử dụng cache hoặc fallback)
+  const getAuthorNameSync = (authorID) => {
+    // Nếu authorID trùng với current user
+    if (authorID === currentUserID && currentUserFullName) {
+      return currentUserFullName;
+    }
+    
+    // Kiểm tra cache
+    if (userCache[authorID]) {
+      return userCache[authorID];
+    }
+    
+    // Fallback mapping
+    const authorMap = {
+      '28697d11-561a-4992-a7ca-9dbb158bca8b': 'staff', // ID thực tế từ API
+      'USER001': 'Nguyễn Văn A', // Backup cho test
+      'USER002': 'Trần Thị B', 
+      'USER003': 'Lê Văn C',
+      'USER004': 'Phạm Thị D',
+      'OTHER_USER': 'Người dùng khác'
+    };
+    
+    return authorMap[authorID] || `User ${authorID}` || 'Tác giả không xác định';
+  };
 
   const handleCreateNews = async (values) => {
     try {
       setLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Kiểm tra quyền tạo tin tức
+      if (!canCreateNews) {
+        message.error('Bạn không có quyền tạo tin tức. Chỉ Staff và Admin mới có thể tạo tin tức.');
+        return;
+      }
       
-      const newNews = {
-        id: newsData.length + 1,
+      // AuthorID phải là userID của tài khoản đang đăng nhập
+      if (!currentUserID) {
+        message.error('Không thể tạo tin tức: Chưa đăng nhập hoặc không có thông tin user');
+        console.error('Missing currentUserID:', {
+          currentUserID,
+          localStorage_userID: localStorage.getItem('userID'),
+          localStorage_userId: localStorage.getItem('userId'),
+          localStorage_id: localStorage.getItem('id')
+        });
+        return;
+      }
+      
+      const blogData = {
         title: values.title,
-        summary: values.content.substring(0, 150) + '...',
-        image: "https://example.com/new-news.jpg",
-        date: new Date().toLocaleDateString('vi-VN'),
-        author: localStorage.getItem('username') || 'Staff User',
-        category: getCategoryDisplayName(values.category),
-        tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : []
+        content: values.content,
+        category: values.category,
+        publishDate: new Date().toISOString(),
+        authorID: currentUserID, // Luôn gửi authorID từ user hiện tại
+        viewCount: 0
       };
       
-      setNewsData([newNews, ...newsData]);
+      console.log('Creating blog with data:', blogData);
+      console.log('Current user info:', {
+        userID: currentUserID,
+        userFullName: currentUserFullName,
+        userRole: userRole,
+        canCreateNews: canCreateNews
+      });
+      
+      const newBlog = await createBlog(blogData);
+      console.log('Created blog response:', newBlog);
+      
+      // Kiểm tra authorID trong response
+      if (newBlog && newBlog.authorID !== currentUserID) {
+        console.warn('Warning: Created blog authorID does not match current user!', {
+          expected: currentUserID,
+          actual: newBlog.authorID,
+          createdBlog: newBlog
+        });
+      }
+      
+      // Reload blogs to get updated list
+      await loadBlogs();
+      
       message.success('Tạo tin tức thành công!');
       setCreateModalVisible(false);
-      form.resetFields();
+      createForm.resetFields();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tạo tin tức');
+      console.error('Error creating blog:', error);
+      message.error('Có lỗi xảy ra khi tạo tin tức: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
   };
 
-  const getCategoryDisplayName = (categoryValue) => {
-    const category = categories.find(cat => cat.value === categoryValue);
-    return category ? category.label : categoryValue;
+  // Handle edit blog
+  const handleEditNews = async (values) => {
+    try {
+      setLoading(true);
+      
+      if (!editingBlog || !editingBlog.blogID || editingBlog.blogID === 'undefined') {
+        message.error('Không thể chỉnh sửa: Blog ID không hợp lệ');
+        return;
+      }
+      
+      const blogData = {
+        ...editingBlog,
+        title: values.title,
+        content: values.content,
+        category: values.category
+      };
+      
+      console.log('Updating blog with ID:', editingBlog.blogID, 'Data:', blogData);
+      
+      await updateBlog(editingBlog.blogID, blogData);
+      
+      // Reload blogs to get updated list
+      await loadBlogs();
+      
+      message.success('Cập nhật tin tức thành công!');
+      setEditModalVisible(false);
+      setEditingBlog(null);
+      editForm.resetFields();
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi cập nhật tin tức: ' + error.message);
+      console.error('Error updating blog:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle delete blog
+  const handleDeleteNews = async (blogID) => {
+    try {
+      if (!blogID || blogID === 'undefined') {
+        message.error('Không thể xóa: Blog ID không hợp lệ');
+        return;
+      }
+      
+      console.log('Deleting blog with ID:', blogID);
+      
+      await deleteBlog(blogID);
+      
+      // Remove from local state
+      setNewsData(prevData => prevData.filter(news => news.blogID !== blogID));
+      
+      message.success('Xóa tin tức thành công!');
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi xóa tin tức: ' + error.message);
+      console.error('Error deleting blog:', error);
+    }
+  };
+
+  // Open edit modal
+  const openEditModal = (blog) => {
+    console.log('Opening edit modal for blog:', blog);
+    
+    if (!blog || !blog.blogID || blog.blogID === 'undefined') {
+      message.error('Không thể chỉnh sửa: Blog không hợp lệ');
+      return;
+    }
+    
+    setEditingBlog(blog);
+    editForm.setFieldsValue({
+      title: blog.title || '',
+      content: blog.content || '',
+      category: blog.category || ''
+    });
+    setEditModalVisible(true);
   };
 
   const getCategoryColor = (category) => {
@@ -107,137 +437,297 @@ const NewsPage = () => {
       'Chiến dịch': '#1976D2',
       'Khoa học': '#2E7D32',
       'Sức khỏe': '#E91E63',
-      'Công nghệ': '#F57C00'
+      'Công nghệ': '#F57C00',
+      'Thông báo': '#FF9800',
+      'Hướng dẫn': '#9C27B0',
+      'Sự kiện': '#607D8B'
     };
     return colors[category] || '#1976D2';
   };
 
+  // Handle view news detail
+  const handleViewNews = async (news) => {
+    try {
+      // Tăng view count (chỉ tracking, không hiển thị)
+      await incrementViewCount(news.blogID);
+      
+      // Mở modal chi tiết
+      setSelectedNews(news);
+      setDetailModalVisible(true);
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+      // Vẫn cho phép xem chi tiết dù lỗi tăng view count
+      setSelectedNews(news);
+      setDetailModalVisible(true);
+    }
+  };
+
+  // Check if current user can edit/delete a blog
+  const canEditBlog = (blog) => {
+    // Lấy userID thực tế từ localStorage
+    const realUserID = localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('id');
+    
+    // Debug log để kiểm tra
+    console.log('Permission check:', {
+      userRole: userRole,
+      currentUserID: currentUserID,
+      realUserID: realUserID,
+      blogAuthorID: blog.authorID,
+      isOwner: blog.authorID === realUserID || blog.authorID === currentUserID
+    });
+    
+    // Admin có thể edit tất cả
+    if (userRole === 'Admin' || userRole === 'admin') {
+      console.log('Can edit: Admin permissions');
+      return true;
+    }
+    
+    // Staff có thể edit blog của chính mình
+    if (userRole === 'Staff' || userRole === 'staff') {
+      const isOwner = (realUserID && blog.authorID === realUserID) || 
+                     (currentUserID && blog.authorID === currentUserID);
+      console.log('Can edit (Staff):', isOwner);
+      return isOwner;
+    }
+    
+    console.log('Can edit: false (no permissions)');
+    return false;
+  };
+
+  // Filter and sort logic
+  const filteredAndSortedNews = React.useMemo(() => {
+    let filtered = newsData || [];
+    
+    // Filter by category
+    if (selectedCategory) {
+      filtered = filtered.filter(news => news.category === selectedCategory);
+    }
+    
+    // Sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'oldest':
+          return new Date(a.publishDate) - new Date(b.publishDate);
+        case 'newest':
+        default:
+          return new Date(b.publishDate) - new Date(a.publishDate);
+      }
+    });
+    
+    return filtered;
+  }, [newsData, selectedCategory, sortBy]);
+
   return (
-    <div style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <Title level={1} style={{ color: '#1976D2' }}>
-            Tin tức & Sự kiện
-          </Title>
-          <Paragraph style={{ fontSize: '16px', maxWidth: '800px', margin: '0 auto' }}>
+    <div className="news-page">
+      {/* Header Section */}
+      <div className="news-header">
+        <div className="news-header-content">
+          <h1 className="news-title">Tin tức & Sự kiện</h1>
+          <p className="news-subtitle">
             Cập nhật những tin tức mới nhất về hoạt động hiến máu và các sự kiện sắp diễn ra
-          </Paragraph>
-          
-          {canCreateNews && (
-            <div style={{ marginTop: '24px' }}>
+          </p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="news-container">
+        <div className="news-main-content">
+          {/* Controls Section */}
+          <div className="news-controls">
+            <div className="news-filters">
+              <div className="filter-group">
+                <Select
+                  placeholder="Sắp xếp"
+                  style={{ minWidth: 150 }}
+                  defaultValue="newest"
+                  value={sortBy}
+                  onChange={setSortBy}
+                  dropdownClassName="enhanced-select-dropdown"
+                >
+                  <Option value="newest">Mới nhất</Option>
+                  <Option value="oldest">Cũ nhất</Option>
+                </Select>
+              </div>
+            </div>
+            
+            {canCreateNews && (
               <Button
-                type="primary"
+                className="create-blog-btn"
                 icon={<PlusOutlined />}
                 onClick={() => setCreateModalVisible(true)}
                 size="large"
-                style={{
-                  backgroundColor: '#1976D2',
-                  borderColor: '#1976D2',
-                  borderRadius: '8px',
-                  fontWeight: '500'
-                }}
               >
                 Tạo tin tức mới
               </Button>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Blog List */}
+          <div className="blog-list">
+            {pageLoading ? (
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <div className="loading-text">Đang tải tin tức...</div>
+              </div>
+            ) : newsData && newsData.length > 0 ? (
+              <div className="blog-grid">
+                {filteredAndSortedNews.map((news, index) => (
+                  <div key={`news-${news.blogID || index}`} className="blog-card">
+                    <div className="blog-header">
+                      <div className="blog-meta">
+                        <h3 className="blog-title" onClick={() => handleViewNews(news)}>
+                          {news.title}
+                        </h3>
+                        <div className="blog-info">
+                          <div className="blog-info-item">
+                            <CalendarOutlined />
+                            <span>{formatDate(news.publishDate)}</span>
+                          </div>
+                          <div className="blog-info-item">
+                            <UserOutlined />
+                            <span>{getAuthorNameSync(news.authorID)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="blog-actions">
+                        <div className="blog-category">{news.category}</div>
+                        {canEditBlog(news) && news.blogID && news.blogID !== 'undefined' && (
+                          <>
+                            <Button
+                              className="blog-action-btn edit-btn"
+                              icon={<EditOutlined />}
+                              onClick={() => openEditModal(news)}
+                              title="Chỉnh sửa"
+                            />
+                            <Popconfirm
+                              title="Xóa tin tức"
+                              description="Bạn có chắc chắn muốn xóa tin tức này?"
+                              onConfirm={() => handleDeleteNews(news.blogID)}
+                              okText="Xóa"
+                              cancelText="Hủy"
+                              okType="danger"
+                            >
+                              <Button
+                                className="blog-action-btn delete-btn"
+                                icon={<DeleteOutlined />}
+                                title="Xóa"
+                              />
+                            </Popconfirm>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="blog-content" onClick={() => handleViewNews(news)}>
+                      {getSummary(news.content)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">📰</div>
+                <h3 className="empty-title">Chưa có tin tức nào</h3>
+                <p className="empty-description">
+                  {canCreateNews 
+                    ? "Hãy tạo tin tức đầu tiên của bạn!" 
+                    : "Các tin tức sẽ được hiển thị tại đây khi có cập nhật mới."
+                  }
+                </p>
+                {canCreateNews && (
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setCreateModalVisible(true)}
+                    style={{ marginTop: '16px' }}
+                  >
+                    Tạo tin tức đầu tiên
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        <Row gutter={[24, 24]}>
-          {newsData.map(news => (
-            <Col xs={24} sm={12} lg={8} key={news.id}>
-              <Card
-                hoverable
-                cover={
-                  <div style={{ 
-                    height: '200px', 
-                    background: '#f5f5f5',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#999',
-                    fontSize: '14px'
-                  }}>
-                    [Hình ảnh tin tức]
+        {/* Sidebar */}
+        <div className="news-sidebar">
+          <div className="sidebar-section">
+            <h3 className="sidebar-title">
+              <TrophyOutlined style={{ marginRight: '8px' }} />
+              Thống kê
+            </h3>
+            <div className="stats-grid">
+              <div className="stat-item">
+                <div className="stat-number">{newsData.length}</div>
+                <div className="stat-label">Tổng tin tức</div>
+              </div>
+              <div className="stat-item">
+                <div className="stat-number">{categories.length}</div>
+                <div className="stat-label">Danh mục</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="sidebar-section">
+            <h3 className="sidebar-title">
+              <BookOutlined style={{ marginRight: '8px' }} />
+              Danh mục
+            </h3>
+            <div className="category-list">
+              {categories.map((cat, index) => {
+                const count = newsData.filter(news => news.category === cat.value).length;
+                return (
+                  <div
+                    key={`sidebar-cat-${cat.value}-${index}`}
+                    className="category-item"
+                    onClick={() => setSelectedCategory(
+                      selectedCategory === cat.value ? undefined : cat.value
+                    )}
+                    style={{
+                      background: selectedCategory === cat.value ? '#e6f3ff' : 'white',
+                      borderColor: selectedCategory === cat.value ? '#1976d2' : '#e2e8f0'
+                    }}
+                  >
+                    <span className="category-name">{cat.label}</span>
+                    <span className="category-count">{count}</span>
                   </div>
-                }
-                style={{ 
-                  height: '100%',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-                }}
-              >
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                  <Tag color={getCategoryColor(news.category)} style={{ borderRadius: '4px' }}>
-                    {news.category}
-                  </Tag>
-                  
-                  <Title level={4} style={{ margin: '8px 0' }}>
-                    {news.title}
-                  </Title>
-                  
-                  <Paragraph type="secondary" ellipsis={{ rows: 2 }} style={{ margin: '0 0 12px 0' }}>
-                    {news.summary}
-                  </Paragraph>
-                  
-                  <Space split={<Divider type="vertical" />} style={{ fontSize: '13px', color: '#666' }}>
-                    <Space>
-                      <CalendarOutlined /> {news.date}
-                    </Space>
-                    <Space>
-                      <UserOutlined /> {news.author}
-                    </Space>
-                  </Space>
-                  
-                  <div style={{ marginTop: '16px' }}>
-                    {news.tags.map(tag => (
-                      <Tag key={tag} style={{ marginBottom: '8px', borderRadius: '4px' }}>
-                        {tag}
-                      </Tag>
-                    ))}
-                  </div>
-                  
-                  <Button type="link" style={{ padding: 0, height: 'auto', marginTop: '8px' }}>
-                    Đọc thêm <RightOutlined />
-                  </Button>
-                </Space>
-              </Card>
-            </Col>
-          ))}
-        </Row>        <div style={{ textAlign: 'center', marginTop: '40px' }}>
-          <Button type="primary" size="large" style={{ borderRadius: '8px' }}>
-            Xem thêm tin tức
-          </Button>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </Space>
+      </div>
 
       {/* Modal tạo tin tức mới */}
       <Modal
         title={
           <span>
-            <FileTextOutlined style={{ marginRight: '8px' }} />
+            <PlusOutlined style={{ marginRight: '8px' }} />
             Tạo tin tức mới
           </span>
         }
         open={createModalVisible}
         onCancel={() => {
           setCreateModalVisible(false);
-          form.resetFields();
+          createForm.resetFields();
         }}
         footer={null}
         width={800}
       >
         <Form
-          form={form}
+          form={createForm}
           layout="vertical"
           onFinish={handleCreateNews}
+          className="modal-form"
         >
           <Row gutter={16}>
             <Col span={16}>
               <Form.Item
                 name="title"
-                label="Tiêu đề"
+                label={<span className="form-label">Tiêu đề</span>}
                 rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
+                className="form-group"
               >
                 <Input placeholder="Nhập tiêu đề tin tức" />
               </Form.Item>
@@ -245,12 +735,13 @@ const NewsPage = () => {
             <Col span={8}>
               <Form.Item
                 name="category"
-                label="Danh mục"
+                label={<span className="form-label">Danh mục</span>}
                 rules={[{ required: true, message: 'Vui lòng chọn danh mục' }]}
+                className="form-group"
               >
                 <Select placeholder="Chọn danh mục">
-                  {categories.map(cat => (
-                    <Option key={cat.value} value={cat.value}>{cat.label}</Option>
+                  {categories.map((cat, index) => (
+                    <Option key={`create-${cat.value}-${index}`} value={cat.value}>{cat.label}</Option>
                   ))}
                 </Select>
               </Form.Item>
@@ -259,40 +750,26 @@ const NewsPage = () => {
 
           <Form.Item
             name="content"
-            label="Nội dung"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
+            label={<span className="form-label">Nội dung</span>}
+            rules={[
+              { required: true, message: 'Vui lòng nhập nội dung' },
+              { min: 50, message: 'Nội dung phải có ít nhất 50 ký tự' }
+            ]}
+            className="form-group"
           >
             <TextArea
-              rows={8}
-              placeholder="Nhập nội dung tin tức..."
+              rows={12}
+              placeholder="Nhập nội dung chi tiết của tin tức..."
+              showCount
+              maxLength={5000}
             />
-          </Form.Item>
-
-          <Form.Item
-            name="tags"
-            label="Tags (phân cách bằng dấu phẩy)"
-          >
-            <Input placeholder="VD: hiến máu, sức khỏe, thông báo" />
-          </Form.Item>
-
-          <Form.Item
-            name="image"
-            label="Hình ảnh"
-          >
-            <Upload
-              listType="picture"
-              beforeUpload={() => false}
-              maxCount={1}
-            >
-              <Button icon={<UploadOutlined />}>Tải lên hình ảnh</Button>
-            </Upload>
           </Form.Item>
 
           <Form.Item style={{ textAlign: 'right', marginTop: '24px' }}>
             <Space>
               <Button onClick={() => {
                 setCreateModalVisible(false);
-                form.resetFields();
+                createForm.resetFields();
               }}>
                 Hủy
               </Button>
@@ -303,8 +780,194 @@ const NewsPage = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Modal chỉnh sửa tin tức */}
+      <Modal
+        title={
+          <span>
+            <EditOutlined style={{ marginRight: '8px' }} />
+            Chỉnh sửa tin tức
+          </span>
+        }
+        open={editModalVisible}
+        onCancel={() => {
+          setEditModalVisible(false);
+          setEditingBlog(null);
+          editForm.resetFields();
+        }}
+        footer={null}
+        width={800}
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+          onFinish={handleEditNews}
+          className="modal-form"
+        >
+          <Row gutter={16}>
+            <Col span={16}>
+              <Form.Item
+                name="title"
+                label={<span className="form-label">Tiêu đề</span>}
+                rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
+                className="form-group"
+              >
+                <Input placeholder="Nhập tiêu đề tin tức" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="category"
+                label={<span className="form-label">Danh mục</span>}
+                rules={[{ required: true, message: 'Vui lòng chọn danh mục' }]}
+                className="form-group"
+              >
+                <Select placeholder="Chọn danh mục">
+                  {categories.map((cat, index) => (
+                    <Option key={`edit-${cat.value}-${index}`} value={cat.value}>{cat.label}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="content"
+            label={<span className="form-label">Nội dung</span>}
+            rules={[
+              { required: true, message: 'Vui lòng nhập nội dung' },
+              { min: 50, message: 'Nội dung phải có ít nhất 50 ký tự' }
+            ]}
+            className="form-group"
+          >
+            <TextArea
+              rows={12}
+              placeholder="Nhập nội dung chi tiết của tin tức..."
+              showCount
+              maxLength={5000}
+            />
+          </Form.Item>
+
+          <Form.Item style={{ textAlign: 'right', marginTop: '24px' }}>
+            <Space>
+              <Button onClick={() => {
+                setEditModalVisible(false);
+                setEditingBlog(null);
+                editForm.resetFields();
+              }}>
+                Hủy
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
+                Cập nhật tin tức
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal xem chi tiết tin tức */}
+      <Modal
+        title={
+          <span>
+            <FileTextOutlined style={{ marginRight: '8px' }} />
+            Chi tiết tin tức
+          </span>
+        }
+        open={detailModalVisible}
+        onCancel={() => {
+          setDetailModalVisible(false);
+          setSelectedNews(null);
+        }}
+        footer={[
+          <Button key="close" onClick={() => {
+            setDetailModalVisible(false);
+            setSelectedNews(null);
+          }}>
+            Đóng
+          </Button>
+        ]}
+        width={900}
+        style={{ top: 20 }}
+      >
+        {selectedNews && (
+          <div>
+            {/* Header thông tin */}
+            <div style={{ marginBottom: '24px' }}>
+              <Tag color={getCategoryColor(selectedNews.category)} style={{ marginBottom: '12px' }}>
+                {selectedNews.category}
+              </Tag>
+              <Title level={2} style={{ margin: '0 0 16px 0' }}>
+                {selectedNews.title}
+              </Title>
+              
+              <Space split={<Divider type="vertical" />} style={{ fontSize: '14px', color: '#666' }}>
+                <Space>
+                  <CalendarOutlined /> {formatDate(selectedNews.publishDate)}
+                </Space>
+                <Space>
+                  <UserOutlined /> {getAuthorNameSync(selectedNews.authorID)}
+                </Space>
+              </Space>
+            </div>
+
+            <Divider />
+
+            {/* Nội dung */}
+            <div style={{ 
+              lineHeight: '1.8', 
+              fontSize: '16px',
+              color: '#333',
+              whiteSpace: 'pre-wrap'
+            }}>
+              {selectedNews.content}
+            </div>
+
+            {/* Actions cho admin/staff */}
+            {canEditBlog(selectedNews) && (
+              <div style={{ 
+                marginTop: '32px', 
+                padding: '16px',
+                background: '#fafafa',
+                borderRadius: '8px',
+                textAlign: 'center'
+              }}>
+                <Space>
+                  <Button
+                    type="primary"
+                    icon={<EditOutlined />}
+                    onClick={() => {
+                      setDetailModalVisible(false);
+                      openEditModal(selectedNews);
+                    }}
+                  >
+                    Chỉnh sửa bài viết
+                  </Button>
+                  <Popconfirm
+                    title="Xóa tin tức"
+                    description="Bạn có chắc chắn muốn xóa tin tức này?"
+                    onConfirm={() => {
+                      setDetailModalVisible(false);
+                      handleDeleteNews(selectedNews.blogID);
+                    }}
+                    okText="Xóa"
+                    cancelText="Hủy"
+                    okType="danger"
+                  >
+                    <Button
+                      danger
+                      icon={<DeleteOutlined />}
+                    >
+                      Xóa bài viết
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
 
-export default NewsPage; 
+export default NewsPage;
