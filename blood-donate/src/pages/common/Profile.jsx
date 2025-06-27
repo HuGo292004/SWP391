@@ -40,6 +40,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { UserAPI } from '../../services/userApi';
 import '../../styles/pages.css';
 import '../../styles/Profile.css';
 
@@ -47,33 +48,131 @@ const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 
 const Profile = () => {
+  console.log('Profile component mounting...');
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [error, setError] = useState(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  // Mock user data based on role
+  // Fetch user data from API
+  const fetchUserData = async () => {
+    console.log('fetchUserData called...');
+    try {
+      setLoading(true);
+      
+      // Check if this is a demo account
+      const token = localStorage.getItem('userToken');
+      const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('username');
+      
+      // Only use demo data for Member (not Staff or Admin)
+      if (token === 'demo-token' && userEmail === 'member@example.com') {
+        console.log('Demo Member account detected, using mock data...');
+        const mockData = getMockUserData();
+        console.log('Using mock data for demo account:', mockData);
+        setUserInfo(mockData);
+        
+        const formValues = {
+          ...mockData,
+          dateOfBirth: mockData.dateOfBirth ? dayjs(mockData.dateOfBirth) : null
+        };
+        form.setFieldsValue(formValues);
+        return;
+      }
+      
+      console.log('Calling UserAPI.getCurrentUser...');
+      
+      // Get current user data from API
+      const userData = await UserAPI.getCurrentUser();
+      console.log('UserAPI response:', userData);
+      
+      // Check if userData is valid
+      if (!userData) {
+        throw new Error('No user data received from API');
+      }
+      
+      // Process the data based on what we receive from API
+      let processedUserData = {
+        userID: userData.userId || userData.userID || '',
+        username: userData.username || '',
+        fullName: userData.fullName || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        userIdCard: userData.userIdCard || '',
+        dateOfBirth: userData.dateOfBirth || null,
+        role: userData.role || '',
+        avatar: userData.avatar || null,
+      };
+      
+      // Nếu là Member, thêm các field mặc định
+      if (userData.role === 'Member') {
+        console.log('User is Member, adding default fields...');
+        processedUserData = {
+          ...processedUserData,
+          // Dữ liệu mặc định cho Member (chưa có API Donor)
+          address: '',
+          bloodType: 'O+',
+          weight: 65,
+          height: 170,
+          medicalHistory: 'Không có tiền sử bệnh lý',
+          emergencyContact: '',
+          donationCount: 0,
+          totalVolume: 0,
+          nextEligibleDate: null,
+          healthStatus: 'Chưa đăng ký hiến máu',
+          lastDonation: null,
+          achievements: [],
+          donationHistory: []
+        };
+      }
+      
+      setUserInfo(processedUserData);
+      console.log('User info set:', processedUserData);
+      
+      // Set form values, ensuring dateOfBirth is properly handled
+      const formValues = {
+        ...processedUserData,
+        dateOfBirth: processedUserData.dateOfBirth ? dayjs(processedUserData.dateOfBirth) : null
+      };
+      form.setFieldsValue(formValues);
+      
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      message.error('Không thể tải thông tin người dùng. Sử dụng dữ liệu mẫu.');
+      
+      // Fallback to mock data if API fails
+      const mockData = getMockUserData();
+      console.log('Using mock data:', mockData);
+      setUserInfo(mockData);
+      form.setFieldsValue(mockData);
+    } finally {
+      console.log('fetchUserData finished, setting loading to false');
+      setLoading(false);
+    }
+  };
+
+  // Mock user data as fallback
   const getMockUserData = () => {
-    const username = localStorage.getItem('username');
-    const role = localStorage.getItem('userRole');
+    const username = localStorage.getItem('username') || 'user123';
+    const role = localStorage.getItem('userRole') || 'Member';
     
     const baseInfo = {
-      username: username || 'user123',
-      role: role || 'Member',
-      avatar: null,
-      joinDate: '2023-01-15',
-      lastActive: dayjs().format('YYYY-MM-DD HH:mm:ss')
-    };    if (role === 'Member') {
+      userID: role === 'Member' ? 'MB001' : role === 'Staff' ? 'ST001' : 'AD001',
+      username: username,
+      fullName: role === 'Member' ? 'Nguyễn Văn An' : role === 'Staff' ? 'Trần Thị Bình' : 'Lê Văn Cường',
+      email: role === 'Member' ? 'nguyenvanan@email.com' : role === 'Staff' ? 'tranthibinh@bloodbank.vn' : 'levancuong@bloodbank.vn',
+      phone: role === 'Member' ? '0912345678' : role === 'Staff' ? '0923456789' : '0934567890',
+      userIdCard: role === 'Member' ? '079090001234' : role === 'Staff' ? '079085001122' : '079080005566',
+      dateOfBirth: role === 'Member' ? '1990-05-15' : role === 'Staff' ? '1985-03-20' : '1980-12-10',
+      role: role,
+      avatar: null
+    };
+
+    if (role === 'Member') {
       return {
         ...baseInfo,
-        userID: 'MB001', // Mã người dùng cho Member
-        fullName: 'Nguyễn Văn An',
-        email: 'nguyenvanan@email.com',phone: '0912345678',
-        citizenId: '079090001234',
         address: '123 Đường ABC, Quận 1, TP.HCM',
-        birthDate: '1990-05-15',
-        gender: 'Nam',
         bloodType: 'O+',
         weight: 65,
         height: 170,
@@ -93,40 +192,6 @@ const Profile = () => {
           { date: '2023-11-10', volume: 450, location: 'Trung tâm hiến máu XYZ', status: 'Hoàn thành' },
           { date: '2023-08-05', volume: 450, location: 'Bệnh viện DEF', status: 'Hoàn thành' }
         ]
-      };    } else if (role === 'Staff') {
-      return {
-        ...baseInfo,
-        staffID: 'ST001', // Đổi từ staffId thành staffID theo database
-        fullName: 'Trần Thị Bình',
-        email: 'tranthibinh@bloodbank.vn',        phone: '0923456789',
-        citizenId: '079085001122',
-        address: '456 Đường XYZ, Quận 3, TP.HCM',
-        birthDate: '1985-03-20',
-        gender: 'Nữ',        role: 'Nhân viên y tế', // Role từ database  
-        position: 'Nhân viên y tế',
-        shift: 'Ca sáng', // Thêm ca làm việc
-        specialization: 'Thu thập máu', // Thêm chuyên môn
-        workingHours: '8:00 - 17:00',
-        certification: 'Chứng chỉ hành nghề Y tế',
-        workLocation: 'Trung tâm hiến máu TP.HCM',
-        status: 'Đang hoạt động',
-        hireDate: '2019-03-15' // Ngày vào làm
-      };
-    } else if (role === 'Admin') {
-      return {
-        ...baseInfo,
-        fullName: 'Lê Văn Cường',
-        email: 'levancuong@bloodbank.vn',        phone: '0934567890',
-        citizenId: '079080005566',
-        address: '789 Đường GHI, Quận 5, TP.HCM',
-        birthDate: '1980-12-10',
-        gender: 'Nam',        department: 'Phòng Quản lý',
-        position: 'Quản trị viên hệ thống',
-        staffID: 'AD001', // Đổi từ staffId thành staffID
-        workingHours: '8:00 - 17:00',
-        accessLevel: 'Toàn quyền',
-        managedSystems: ['Quản lý người dùng', 'Quản lý kho máu', 'Báo cáo thống kê'],
-        hireDate: '2015-01-10' // Thêm ngày vào làm
       };
     }
 
@@ -134,26 +199,63 @@ const Profile = () => {
   };
 
   useEffect(() => {
+    console.log('=== Profile useEffect START ===');
+    console.log('Current location:', window.location.href);
+    console.log('Profile useEffect triggered');
+    
+    // Debug localStorage
+    console.log('=== DEBUG localStorage ===');
+    console.log('userToken:', localStorage.getItem('userToken'));
+    console.log('userId:', localStorage.getItem('userId'));
+    console.log('username:', localStorage.getItem('username'));
+    console.log('userRole:', localStorage.getItem('userRole'));
+    console.log('userEmail:', localStorage.getItem('userEmail'));
+    console.log('===========================');
+    
     // Check if user is logged in
     const token = localStorage.getItem('userToken');
+    console.log('Token found:', !!token);
+    console.log('Token value:', token);
+    
     if (!token) {
+      console.log('No token, redirecting to login');
+      console.log('Current path:', window.location.pathname);
       navigate('/login');
       return;
     }
 
-    // Simulate loading user data
-    setTimeout(() => {
-      const userData = getMockUserData();
-      setUserInfo(userData);
-      form.setFieldsValue(userData);
-      setLoading(false);
-    }, 1000);  }, [navigate, form]);
+    // Fetch user data from API
+    console.log('Token found, fetching user data...');
+    fetchUserData();
+    console.log('=== Profile useEffect END ===');
+  }, [navigate]);
+
+  // Add error boundary
+  if (error) {
+    return (
+      <div className="profile-error">
+        <Title level={4}>Có lỗi xảy ra</Title>
+        <p>{error}</p>
+        <Space>
+          <Button type="primary" onClick={() => {
+            setError(null);
+            fetchUserData();
+          }}>
+            Thử lại
+          </Button>
+          <Button onClick={() => navigate('/')}>
+            Về trang chủ
+          </Button>
+        </Space>
+      </div>
+    );
+  }
 
   const handleEditProfile = () => {
     // Set initial values cho form, đặc biệt là DatePicker
     const formValues = {
       ...userInfo,
-      birthDate: userInfo.birthDate ? dayjs(userInfo.birthDate) : null
+      dateOfBirth: userInfo.dateOfBirth ? dayjs(userInfo.dateOfBirth) : null
     };
     form.setFieldsValue(formValues);
     setEditModalVisible(true);
@@ -168,98 +270,117 @@ const Profile = () => {
     try {
       setLoading(true);
       
-      // Convert dayjs object to string for birthDate
+      // Convert dayjs object to string for dateOfBirth
       const processedValues = {
         ...values,
-        birthDate: values.birthDate ? values.birthDate.format('YYYY-MM-DD') : userInfo.birthDate
+        dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : userInfo.dateOfBirth
       };
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call API to update user
+      await UserAPI.updateUser(userInfo.userID, processedValues);
       
       const updatedInfo = { ...userInfo, ...processedValues };
       setUserInfo(updatedInfo);
       setEditModalVisible(false);
       message.success('Cập nhật thông tin thành công!');
+      
+      // Refresh data from server
+      await fetchUserData();
+      
     } catch (error) {
+      console.error('Error updating profile:', error);
       message.error('Có lỗi xảy ra khi cập nhật thông tin!');
     } finally {
       setLoading(false);
     }
   };
-  const renderPersonalInfo = () => (
-    <Card 
-      className="profile-card"
-      title={
-        <Space>
-          <UserOutlined style={{ color: '#1976D2' }} />
-          <span>Thông tin cá nhân</span>
-        </Space>
-      }
-      extra={
-        <Button 
-          type="primary" 
-          icon={<EditOutlined />} 
-          onClick={handleEditProfile}
-          className="profile-edit-btn"
-        >
-          Chỉnh sửa
-        </Button>
-      }
-    >      <Descriptions column={2} className="profile-descriptions">
-        <Descriptions.Item label="Mã người dùng">
-          <Space>
-            <SafetyCertificateOutlined style={{ color: '#1976D2' }} />
-            {userInfo.role === 'Member' ? (userInfo.userID || 'MB001') : 
-             userInfo.role === 'Staff' ? (userInfo.staffID || 'ST001') :
-             (userInfo.staffID || 'AD001')}
-          </Space>
-        </Descriptions.Item>
-        <Descriptions.Item label="Họ và tên">{userInfo.fullName}</Descriptions.Item>
-        <Descriptions.Item label="Tên đăng nhập">{userInfo.username}</Descriptions.Item>
-        <Descriptions.Item label="Email">
-          <Space>
-            <MailOutlined style={{ color: '#1976D2' }} />
-            {userInfo.email}
-          </Space>
-        </Descriptions.Item>        <Descriptions.Item label="Số điện thoại">
-          <Space>
-            <PhoneOutlined style={{ color: '#1976D2' }} />
-            {userInfo.phone}
-          </Space>
-        </Descriptions.Item>        <Descriptions.Item label="Căn cước công dân">
-          <Space>
-            <SafetyCertificateOutlined style={{ color: '#1976D2' }} />
-            {userInfo.citizenId}
-          </Space>
-        </Descriptions.Item>        <Descriptions.Item label="Ngày sinh">
-          <Space>
-            <CalendarOutlined style={{ color: '#1976D2' }} />
-            {dayjs(userInfo.birthDate).format('DD/MM/YYYY')}
-          </Space>
-        </Descriptions.Item>
-        <Descriptions.Item label="Giới tính">{userInfo.gender}</Descriptions.Item>
-        
-        {/* Hiển thị địa chỉ cho tất cả role */}
-        <Descriptions.Item label="Địa chỉ" span={2}>
-          <Space>
-            <EnvironmentOutlined style={{ color: '#1976D2' }} />
-            {userInfo.address}
-          </Space>
-        </Descriptions.Item>
-        
-        {/* Hiển thị liên hệ khẩn cấp chỉ cho Member */}
-        {userInfo.role === 'Member' && (
-          <Descriptions.Item label="Liên hệ khẩn cấp" span={2}>
+  const renderPersonalInfo = () => {
+    try {
+      return (
+        <Card 
+          className="profile-card"
+          title={
             <Space>
-              <PhoneOutlined style={{ color: '#1976D2' }} />
-              {userInfo.emergencyContact}
+              <UserOutlined style={{ color: '#1976D2' }} />
+              <span>Thông tin cá nhân</span>
             </Space>
-          </Descriptions.Item>
-        )}
-      </Descriptions>
-    </Card>
-  );
+          }
+          extra={
+            <Button 
+              type="primary" 
+              icon={<EditOutlined />} 
+              onClick={handleEditProfile}
+              className="profile-edit-btn"
+            >
+              Chỉnh sửa
+            </Button>
+          }
+        >
+          <Descriptions column={2} className="profile-descriptions">
+            <Descriptions.Item label="Mã nhân viên">
+              <Space>
+                <SafetyCertificateOutlined style={{ color: '#1976D2' }} />
+                {userInfo?.userID || 'N/A'}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="Họ và tên">{userInfo?.fullName || 'N/A'}</Descriptions.Item>
+            <Descriptions.Item label="Tên đăng nhập">{userInfo?.username || 'N/A'}</Descriptions.Item>
+            <Descriptions.Item label="Email">
+              <Space>
+                <MailOutlined style={{ color: '#1976D2' }} />
+                {userInfo?.email || 'N/A'}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="Số điện thoại">
+              <Space>
+                <PhoneOutlined style={{ color: '#1976D2' }} />
+                {userInfo?.phone || 'N/A'}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="Căn cước công dân">
+              <Space>
+                <SafetyCertificateOutlined style={{ color: '#1976D2' }} />
+                {userInfo?.userIdCard || 'N/A'}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="Ngày sinh">
+              <Space>
+                <CalendarOutlined style={{ color: '#1976D2' }} />
+                {userInfo?.dateOfBirth ? dayjs(userInfo.dateOfBirth).format('DD/MM/YYYY') : 'N/A'}
+              </Space>
+            </Descriptions.Item>
+            
+            {/* Hiển thị địa chỉ chỉ cho Member */}
+            {userInfo?.role === 'Member' && userInfo?.address && (
+              <Descriptions.Item label="Địa chỉ" span={2}>
+                <Space>
+                  <EnvironmentOutlined style={{ color: '#1976D2' }} />
+                  {userInfo.address}
+                </Space>
+              </Descriptions.Item>
+            )}
+            
+            {/* Hiển thị liên hệ khẩn cấp chỉ cho Member */}
+            {userInfo?.role === 'Member' && userInfo?.emergencyContact && (
+              <Descriptions.Item label="Liên hệ khẩn cấp" span={2}>
+                <Space>
+                  <PhoneOutlined style={{ color: '#1976D2' }} />
+                  {userInfo.emergencyContact}
+                </Space>
+              </Descriptions.Item>
+            )}
+          </Descriptions>
+        </Card>
+      );
+    } catch (error) {
+      console.error('Error rendering personal info:', error);
+      return (
+        <Card title="Thông tin cá nhân">
+          <p>Có lỗi khi hiển thị thông tin cá nhân</p>
+        </Card>
+      );
+    }
+  };
 
   const renderMemberSpecificInfo = () => {
     if (userInfo.role !== 'Member') return null;
@@ -294,7 +415,7 @@ const Profile = () => {
               >
                 <GiftOutlined className="blood-info-icon" style={{ color: '#52c41a' }} />
                 <div className="blood-info-value" style={{ color: '#52c41a' }}>
-                  {userInfo.donationCount}
+                  {userInfo.donationCount || 0}
                 </div>
                 <div className="blood-info-label">Lần hiến máu</div>
               </Card>
@@ -306,7 +427,7 @@ const Profile = () => {
               >
                 <MedicineBoxOutlined className="blood-info-icon" style={{ color: '#1976D2' }} />
                 <div className="blood-info-value" style={{ color: '#1976D2' }}>
-                  {userInfo.totalVolume}ml
+                  {userInfo.totalVolume || 0}ml
                 </div>
                 <div className="blood-info-label">Tổng lượng máu</div>
               </Card>
@@ -318,7 +439,7 @@ const Profile = () => {
               >
                 <CalendarOutlined className="blood-info-icon" style={{ color: '#fa8c16' }} />
                 <div className="blood-info-value" style={{ color: '#fa8c16', fontSize: '16px' }}>
-                  {dayjs(userInfo.nextEligibleDate).format('DD/MM/YYYY')}
+                  {userInfo.nextEligibleDate ? dayjs(userInfo.nextEligibleDate).format('DD/MM/YYYY') : 'N/A'}
                 </div>
                 <div className="blood-info-label">Lần tiếp theo</div>
               </Card>
@@ -328,19 +449,19 @@ const Profile = () => {
           <Divider />
 
           <Descriptions column={2} labelStyle={{ fontWeight: 'bold', color: '#666' }}>
-            <Descriptions.Item label="Cân nặng">{userInfo.weight} kg</Descriptions.Item>
-            <Descriptions.Item label="Chiều cao">{userInfo.height} cm</Descriptions.Item>
+            <Descriptions.Item label="Cân nặng">{userInfo.weight || 'N/A'} kg</Descriptions.Item>
+            <Descriptions.Item label="Chiều cao">{userInfo.height || 'N/A'} cm</Descriptions.Item>
             <Descriptions.Item label="Tình trạng sức khỏe">
-              <Tag color="green">{userInfo.healthStatus}</Tag>
+              <Tag color="green">{userInfo.healthStatus || 'N/A'}</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Lần hiến máu cuối">
-              {dayjs(userInfo.lastDonation).format('DD/MM/YYYY')}
+              {userInfo.lastDonation ? dayjs(userInfo.lastDonation).format('DD/MM/YYYY') : 'Chưa hiến máu'}
             </Descriptions.Item>
             <Descriptions.Item label="Tiền sử bệnh lý" span={2}>
-              {userInfo.medicalHistory}
+              {userInfo.medicalHistory || 'Không có thông tin'}
             </Descriptions.Item>
             <Descriptions.Item label="Liên hệ khẩn cấp" span={2}>
-              {userInfo.emergencyContact}
+              {userInfo.emergencyContact || 'Chưa cập nhật'}
             </Descriptions.Item>
           </Descriptions>
         </Card>
@@ -356,7 +477,8 @@ const Profile = () => {
               }
             >
               <List
-                dataSource={userInfo.achievements}
+                dataSource={userInfo.achievements || []}
+                locale={{ emptyText: 'Chưa có thành tích nào' }}
                 renderItem={(item) => (
                   <List.Item className="achievement-item">
                     <List.Item.Meta
@@ -385,18 +507,24 @@ const Profile = () => {
             >
               <Timeline
                 className="donation-timeline"
-                items={userInfo.donationHistory.map(donation => ({
-                  color: 'green',
-                  children: (
-                    <div>
-                      <div className="donation-date">
-                        {dayjs(donation.date).format('DD/MM/YYYY')}
+                items={(userInfo.donationHistory || []).length > 0 ? 
+                  userInfo.donationHistory.map(donation => ({
+                    color: 'green',
+                    children: (
+                      <div>
+                        <div className="donation-date">
+                          {dayjs(donation.date).format('DD/MM/YYYY')}
+                        </div>
+                        <div className="donation-details">{donation.volume}ml - {donation.location}</div>
+                        <Tag color="green" className="donation-status-tag">{donation.status}</Tag>
                       </div>
-                      <div className="donation-details">{donation.volume}ml - {donation.location}</div>
-                      <Tag color="green" className="donation-status-tag">{donation.status}</Tag>
-                    </div>
-                  )
-                }))}
+                    )
+                  })) : 
+                  [{
+                    color: 'gray',
+                    children: <div>Chưa có lịch sử hiến máu</div>
+                  }]
+                }
               />
             </Card>
           </Col>
@@ -406,88 +534,64 @@ const Profile = () => {
   };
 
   const renderStaffAdminInfo = () => {
-    if (userInfo.role === 'Member') return null;    return (
-      <Card 
-        className="profile-card work-info-card"
-        title={
-          <Space>
-            <SafetyCertificateOutlined style={{ color: '#1976D2' }} />
-            <span>Thông tin công việc</span>
-          </Space>
-        }
-      >        <Descriptions column={2} className="profile-descriptions">
-          <Descriptions.Item label="Mã nhân viên">{userInfo.staffID}</Descriptions.Item>
-          <Descriptions.Item label="Chức vụ">{userInfo.position}</Descriptions.Item>
-          <Descriptions.Item label="Trạng thái">
-            <Tag color="green">{userInfo.status}</Tag>
-          </Descriptions.Item>
-            {userInfo.role === 'Staff' && (
-            <>
-              <Descriptions.Item label="Ca làm việc">{userInfo.shift}</Descriptions.Item>
-              <Descriptions.Item label="Chuyên môn">{userInfo.specialization}</Descriptions.Item>
-              <Descriptions.Item label="Chứng chỉ" span={2}>{userInfo.certification}</Descriptions.Item>
-              <Descriptions.Item label="Nơi làm việc" span={2}>{userInfo.workLocation}</Descriptions.Item>
-            </>
-          )}            {userInfo.role === 'Admin' && (
-            <>
-              <Descriptions.Item label="Cấp độ truy cập">{userInfo.accessLevel}</Descriptions.Item>
-              <Descriptions.Item label="Hệ thống quản lý" span={2}>
-                <Space wrap>
-                  {userInfo.managedSystems.map(system => (
-                    <Tag key={system} color="blue">{system}</Tag>
-                  ))}
-                </Space>
-              </Descriptions.Item>
-            </>
-          )}
-        </Descriptions>
-      </Card>
-    );
+    if (userInfo.role === 'Member') return null;
+
+    // Chỉ hiển thị thông tin cơ bản từ database cho Staff/Admin
+    return null;
   };
   if (loading) {
+    console.log('Profile component: showing loading...');
     return (
-      <div className="profile-loading">
+      <div className="profile-loading" style={{ padding: '50px', textAlign: 'center' }}>
         <Spin size="large" />
+        <p style={{ marginTop: '16px' }}>Đang tải thông tin...</p>
       </div>
     );
   }
 
   if (!userInfo) {
+    console.log('Profile component: no user info...');
     return (
-      <div className="profile-error">
+      <div className="profile-error" style={{ padding: '50px', textAlign: 'center' }}>
         <Title level={4}>Không thể tải thông tin người dùng</Title>
-        <Button type="primary" onClick={() => navigate('/')}>
-          Về trang chủ
-        </Button>
+        <Space>
+          <Button type="primary" onClick={fetchUserData} loading={loading}>
+            Thử lại
+          </Button>
+          <Button onClick={() => navigate('/')}>
+            Về trang chủ
+          </Button>
+        </Space>
       </div>
     );
   }
   return (
     <div className="profile-container">
-      <div className="profile-content">        {/* Header Section */}
+      <div className="profile-content">
+        {/* Header Section */}
         <Card className="profile-header-card">
           <Row align="middle" gutter={[24, 24]}>
             <Col xs={24} sm={6} style={{ textAlign: 'center' }}>
               <Avatar 
                 size={120} 
                 icon={<UserOutlined />} 
-                src={userInfo.avatar}
+                src={userInfo?.avatar}
                 className="profile-avatar"
               />
             </Col>
             <Col xs={24} sm={18}>
               <Title level={2} className="profile-header-title">
-                {userInfo.fullName}
+                {userInfo?.fullName || 'Không có tên'}
               </Title>
               <Text type="secondary" className="profile-username">
-                @{userInfo.username}
+                @{userInfo?.username || 'unknown'}
               </Text>
               <div style={{ marginTop: '12px' }}>
                 <Tag 
-                  color={userInfo.role === 'Admin' ? 'red' : userInfo.role === 'Staff' ? 'blue' : 'green'}
+                  color={userInfo?.role === 'Admin' ? 'red' : userInfo?.role === 'Staff' ? 'blue' : 'green'}
                   className="profile-role-tag"
                 >
-                  {userInfo.role}
+                  {userInfo?.role || 'Unknown'}
                 </Tag>
               </div>
             </Col>
@@ -548,7 +652,7 @@ const Profile = () => {
               <Col xs={24} sm={12}>
                 <Form.Item 
                   label="Căn cước công dân" 
-                  name="citizenId"
+                  name="userIdCard"
                   rules={[
                     { required: true, message: 'Vui lòng nhập số CCCD!' },
                     { pattern: /^[0-9]{12}$/, message: 'CCCD phải có 12 chữ số!' }
@@ -558,19 +662,8 @@ const Profile = () => {
                 </Form.Item>
               </Col>              <Col xs={24} sm={12}>
                 <Form.Item 
-                  label="Giới tính" 
-                  name="gender"
-                >
-                  <Select>
-                    <Option value="Nam">Nam</Option>
-                    <Option value="Nữ">Nữ</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12}>
-                <Form.Item 
                   label="Ngày sinh" 
-                  name="birthDate"
+                  name="dateOfBirth"
                 >
                   <DatePicker 
                     style={{ width: '100%' }}
@@ -578,15 +671,20 @@ const Profile = () => {
                     placeholder="Chọn ngày sinh"
                   />
                 </Form.Item>
-              </Col>              <Col xs={24}>
-                <Form.Item 
-                  label="Địa chỉ" 
-                  name="address"
-                  rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
-                >
-                  <Input.TextArea rows={3} />
-                </Form.Item>
               </Col>
+
+              {/* Hiển thị trường địa chỉ chỉ cho Member */}
+              {userInfo.role === 'Member' && (
+                <Col xs={24}>
+                  <Form.Item 
+                    label="Địa chỉ" 
+                    name="address"
+                    rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
+                  >
+                    <Input.TextArea rows={3} />
+                  </Form.Item>
+                </Col>
+              )}
 
               {/* Hiển thị trường liên hệ khẩn cấp chỉ cho Member */}
               {userInfo.role === 'Member' && (
