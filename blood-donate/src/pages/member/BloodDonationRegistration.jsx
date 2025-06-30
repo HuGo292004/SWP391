@@ -31,10 +31,10 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { donorApi } from '../../services/donorApi';
 import '../../styles/BloodDonationRegistration.css';
 
 const { Title, Text, Paragraph } = Typography;
-const { Option } = Select;
 const { Step } = Steps;
 const { TextArea } = Input;
 
@@ -47,14 +47,6 @@ const BloodDonationRegistration = () => {
   const navigate = useNavigate();
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-  
-  const donationCenters = [
-    { value: 'center1', label: 'Trung tâm Hiến máu TP.HCM - Quận 1' },
-    { value: 'center2', label: 'Trung tâm Hiến máu TP.HCM - Quận 3' },
-    { value: 'center3', label: 'Bệnh viện Chợ Rẫy - Quận 5' },
-    { value: 'center4', label: 'Bệnh viện Đại học Y Dược - Quận 10' },
-    { value: 'center5', label: 'Trung tâm Y tế Quận 7' }
-  ];
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -62,19 +54,10 @@ const BloodDonationRegistration = () => {
     setSuccess('');
     
     try {
-      // Format datetime for appointment
-      const appointmentData = {
-        ...values,
-        appointmentDate: values.appointmentDate?.format('YYYY-MM-DD'),
-        appointmentTime: values.appointmentTime?.format('HH:mm'),
-        registrationDate: dayjs().format('YYYY-MM-DD HH:mm:ss')
-      };
+      // Call API through donorApi service
+      const result = await donorApi.registerBloodDonation(values);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Blood donation registration data:', appointmentData);
-      
+      console.log('Registration successful:', result);
       setSuccess('Đăng ký hiến máu thành công! Chúng tôi sẽ liên hệ với bạn để xác nhận lịch hẹn.');
       
       // Reset form after success
@@ -85,7 +68,8 @@ const BloodDonationRegistration = () => {
       }, 3000);
       
     } catch (err) {
-      setError('Đăng ký hiến máu thất bại. Vui lòng thử lại.');
+      console.error('Blood donation registration error:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -98,16 +82,12 @@ const BloodDonationRegistration = () => {
 
   const steps = [
     {
-      title: 'Thông tin liên hệ',
-      description: 'Xác nhận thông tin cá nhân'
+      title: 'Thông tin cá nhân',
+      description: 'Thông tin liên hệ và y tế'
     },
     {
-      title: 'Thông tin y tế',
-      description: 'Tình trạng sức khỏe'
-    },
-    {
-      title: 'Lịch hẹn',
-      description: 'Chọn ngày giờ hiến máu'
+      title: 'Lịch hẹn hiến máu',
+      description: 'Chọn ngày giờ và số lượng'
     }
   ];
 
@@ -134,7 +114,7 @@ const BloodDonationRegistration = () => {
     switch (currentStep) {
       case 0:
         return (
-          <Card title="Xác nhận thông tin liên hệ" className="step-card">
+          <Card title="Thông tin cá nhân" className="step-card">
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
@@ -189,17 +169,21 @@ const BloodDonationRegistration = () => {
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label="Tuổi"
-                  name="age"
+                  label="Ngày sinh"
+                  name="dateOfBirth"
                   rules={[
-                    { required: true, message: 'Vui lòng nhập tuổi!' },
-                    { pattern: /^[0-9]{2}$/, message: 'Tuổi phải từ 18-65!' }
+                    { required: true, message: 'Vui lòng chọn ngày sinh!' }
                   ]}
                 >
-                  <Input
-                    placeholder="Nhập tuổi"
+                  <DatePicker
+                    placeholder="Chọn ngày sinh"
                     className="modern-input"
-                    suffix="tuổi"
+                    style={{ width: '100%' }}
+                    format="DD/MM/YYYY"
+                    disabledDate={(current) => {
+                      // Cannot select dates after today or before 100 years ago
+                      return current && (current > dayjs().endOf('day') || current < dayjs().subtract(100, 'year'));
+                    }}
                   />
                 </Form.Item>
               </Col>
@@ -208,29 +192,30 @@ const BloodDonationRegistration = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  label="Giới tính"
-                  name="gender"
-                  rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
+                  label="Nhóm máu"
+                  name="bloodType"
+                  rules={[{ required: true, message: 'Vui lòng chọn nhóm máu!' }]}
                 >
-                  <Radio.Group className="modern-radio-group">
-                    <Radio value="male">Nam</Radio>
-                    <Radio value="female">Nữ</Radio>
-                  </Radio.Group>
+                  <Select 
+                    placeholder="Chọn nhóm máu" 
+                    className="modern-input"
+                    options={bloodTypes.map(type => ({
+                      label: <Tag color="red">{type}</Tag>,
+                      value: type
+                    }))}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label="Cân nặng"
-                  name="weight"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập cân nặng!' },
-                    { pattern: /^[0-9]{2,3}$/, message: 'Cân nặng phải từ 45-150kg!' }
-                  ]}
+                  label="Lần hiến máu gần nhất"
+                  name="lastDonation"
                 >
-                  <Input
-                    placeholder="Nhập cân nặng"
+                  <DatePicker
+                    placeholder="Chọn ngày hiến máu gần nhất (nếu có)"
                     className="modern-input"
-                    suffix="kg"
+                    style={{ width: '100%' }}
+                    format="DD/MM/YYYY"
                   />
                 </Form.Item>
               </Col>
@@ -246,54 +231,7 @@ const BloodDonationRegistration = () => {
             >
               <TextArea
                 placeholder="Nhập địa chỉ chi tiết"
-                rows={3}
-                className="modern-input"
-              />
-            </Form.Item>
-          </Card>
-        );
-
-      case 1:
-        return (
-          <Card title="Thông tin y tế và sức khỏe" className="step-card">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Nhóm máu"
-                  name="bloodType"
-                  rules={[{ required: true, message: 'Vui lòng chọn nhóm máu!' }]}
-                >
-                  <Select placeholder="Chọn nhóm máu" className="modern-input">
-                    {bloodTypes.map(type => (
-                      <Option key={type} value={type}>
-                        <Tag color="red">{type}</Tag>
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Lần hiến máu gần nhất"
-                  name="lastDonation"
-                >
-                  <DatePicker
-                    placeholder="Chọn ngày hiến máu gần nhất"
-                    className="modern-input"
-                    style={{ width: '100%' }}
-                    format="DD/MM/YYYY"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item
-              label="Tiền sử bệnh án"
-              name="medicalHistory"
-            >
-              <TextArea
-                placeholder="Mô tả tiền sử bệnh án (nếu có)"
-                rows={3}
+                rows={2}
                 className="modern-input"
               />
             </Form.Item>
@@ -308,144 +246,67 @@ const BloodDonationRegistration = () => {
                 className="modern-input"
               />
             </Form.Item>
-
-            <Divider>Xác nhận tình trạng sức khỏe</Divider>
-
-            <Form.Item
-              name="healthConditions"
-              valuePropName="checked"
-              rules={[
-                { 
-                  validator: (_, value) => {
-                    if (!value || value.length < 4) {
-                      return Promise.reject(new Error('Vui lòng xác nhận tất cả các điều kiện sức khỏe!'));
-                    }
-                    return Promise.resolve();
-                  }
-                }
-              ]}
-            >
-              <Checkbox.Group>
-                <Space direction="vertical" size="middle">
-                  <Checkbox value="noHeartDisease">
-                    <Text>Tôi không mắc bệnh tim mạch trong 6 tháng qua</Text>
-                  </Checkbox>
-                  <Checkbox value="noInfectiousDisease">
-                    <Text>Tôi không mắc bệnh truyền nhiễm (HIV, Viêm gan B/C, Giang mai)</Text>
-                  </Checkbox>
-                  <Checkbox value="noBloodDisorder">
-                    <Text>Tôi không mắc rối loạn máu hoặc thiếu máu</Text>
-                  </Checkbox>
-                  <Checkbox value="notPregnant">
-                    <Text>Tôi không trong thời kỳ mang thai hoặc cho con bú (đối với nữ)</Text>
-                  </Checkbox>
-                  <Checkbox value="noAlcohol">
-                    <Text>Tôi không sử dụng rượu bia trong 24 giờ qua</Text>
-                  </Checkbox>
-                </Space>
-              </Checkbox.Group>
-            </Form.Item>
           </Card>
         );
 
-      case 2:
+      case 1:
         return (
-          <Card title="Chọn lịch hẹn hiến máu" className="step-card">
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  label="Trung tâm hiến máu"
-                  name="donationCenter"
-                  rules={[{ required: true, message: 'Vui lòng chọn trung tâm hiến máu!' }]}
-                >
-                  <Select 
-                    placeholder="Chọn trung tâm hiến máu" 
-                    className="modern-input"
-                    showSearch
-                    optionFilterProp="children"
-                  >
-                    {donationCenters.map(center => (
-                      <Option key={center.value} value={center.value}>
-                        <Space>
-                          <EnvironmentOutlined />
-                          {center.label}
-                        </Space>
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Ngày hiến máu"
-                  name="appointmentDate"
-                  rules={[{ required: true, message: 'Vui lòng chọn ngày hiến máu!' }]}
-                >
-                  <DatePicker
-                    placeholder="Chọn ngày hiến máu"
-                    className="modern-input"
-                    style={{ width: '100%' }}
-                    format="DD/MM/YYYY"
-                    disabledDate={disabledDate}
-                    suffixIcon={<CalendarOutlined />}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Giờ hiến máu"
-                  name="appointmentTime"
-                  rules={[{ required: true, message: 'Vui lòng chọn giờ hiến máu!' }]}
-                >
-                  <TimePicker
-                    placeholder="Chọn giờ hiến máu"
-                    className="modern-input"
-                    style={{ width: '100%' }}
-                    format="HH:mm"
-                    minuteStep={30}
-                    suffixIcon={<ClockCircleOutlined />}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
+          <Card title="Lịch hẹn hiến máu" className="step-card">
             <Form.Item
-              label="Loại hiến máu"
-              name="donationType"
-              rules={[{ required: true, message: 'Vui lòng chọn loại hiến máu!' }]}
+              label="Ngày hiến máu"
+              name="appointmentDate"
+              rules={[{ required: true, message: 'Vui lòng chọn ngày hiến máu!' }]}
             >
-              <Radio.Group className="modern-radio-group">
-                <Space direction="vertical">
-                  <Radio value="whole">
-                    <Space direction="vertical" size={0}>
-                      <Text strong>Hiến máu toàn phần</Text>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        Hiến 350-450ml máu, chu kỳ 3 tháng
-                      </Text>
-                    </Space>
-                  </Radio>
-                  <Radio value="plasma">
-                    <Space direction="vertical" size={0}>
-                      <Text strong>Hiến huyết tương</Text>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        Hiến chỉ huyết tương, chu kỳ 2 tuần
-                      </Text>
-                    </Space>
-                  </Radio>
-                  <Radio value="platelets">
-                    <Space direction="vertical" size={0}>
-                      <Text strong>Hiến tiểu cầu</Text>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        Hiến tiểu cầu, chu kỳ 2 tuần
-                      </Text>
-                    </Space>
-                  </Radio>
-                </Space>
-              </Radio.Group>
+              <DatePicker
+                placeholder="Chọn ngày hiến máu"
+                className="modern-input"
+                style={{ width: '100%' }}
+                format="DD/MM/YYYY"
+                disabledDate={disabledDate}
+                suffixIcon={<CalendarOutlined />}
+              />
             </Form.Item>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Trạng thái đăng ký"
+                  name="status"
+                  initialValue="Pending"
+                >
+                  <Select
+                    placeholder="Chọn trạng thái"
+                    className="modern-input"
+                    options={[
+                      { value: 'Pending', label: 'Chờ xử lý' },
+                      { value: 'Confirmed', label: 'Đã xác nhận' },
+                      { value: 'Completed', label: 'Hoàn thành' },
+                      { value: 'Cancelled', label: 'Đã hủy' }
+                    ]}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Số lượng (ml)"
+                  name="quantity"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập số lượng!' },
+                    { pattern: /^[0-9]{2,3}$/, message: 'Số lượng phải từ 250-500ml!' }
+                  ]}
+                  initialValue="450"
+                >
+                  <Input
+                    placeholder="Nhập số lượng máu hiến"
+                    className="modern-input"
+                    suffix="ml"
+                    type="number"
+                    min={250}
+                    max={500}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <Form.Item
               label="Ghi chú"
@@ -453,7 +314,7 @@ const BloodDonationRegistration = () => {
             >
               <TextArea
                 placeholder="Ghi chú hoặc yêu cầu đặc biệt (nếu có)"
-                rows={3}
+                rows={2}
                 className="modern-input"
               />
             </Form.Item>
@@ -504,9 +365,7 @@ const BloodDonationRegistration = () => {
                 key={index} 
                 title={step.title} 
                 description={step.description}
-                icon={index === 0 ? <UserOutlined /> : 
-                     index === 1 ? <MedicineBoxOutlined /> : 
-                     <CalendarOutlined />}
+                icon={index === 0 ? <UserOutlined /> : <CalendarOutlined />}
               />
             ))}
           </Steps>

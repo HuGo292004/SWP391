@@ -7,7 +7,7 @@ import '../../styles/NewsPage.css';
 
 const { Title, Paragraph, Text } = Typography;
 const { Meta } = Card;
-const { Option } = Select;
+
 const { TextArea } = Input;
 
 const NewsPage = () => {
@@ -570,36 +570,63 @@ const NewsPage = () => {
                 <div className="loading-text">Đang tải tin tức...</div>
               </div>
             ) : newsData && newsData.length > 0 ? (
-              <div className="blog-grid">
+              <div className="blog-cards-container">
                 {filteredAndSortedNews.map((news, index) => (
-                  <div key={`news-${news.blogID || index}`} className="blog-card">
-                    <div className="blog-header">
-                      <div className="blog-meta">
-                        <h3 className="blog-title" onClick={() => handleViewNews(news)}>
-                          {news.title}
-                        </h3>
-                        <div className="blog-info">
-                          <div className="blog-info-item">
-                            <CalendarOutlined />
-                            <span>{formatDate(news.publishDate)}</span>
-                          </div>
-                          <div className="blog-info-item">
-                            <UserOutlined />
-                            <span>{getAuthorNameSync(news.authorID)}</span>
-                          </div>
+                  <Card
+                    key={`news-${news.blogID || index}`}
+                    className="news-card-modern"
+                    hoverable
+                    cover={
+                      <div className="news-card-image">
+                        <img 
+                          src={news.imageUrl || `https://picsum.photos/400/240?random=${index}`}
+                          alt={news.title}
+                          onError={(e) => {
+                            e.target.src = `https://via.placeholder.com/400x240/1976D2/white?text=${encodeURIComponent(news.category)}`;
+                          }}
+                        />
+                        <div className="news-card-overlay">
+                          <Tag className="news-card-category" color={getCategoryColor(news.category)}>
+                            {news.category}
+                          </Tag>
                         </div>
                       </div>
-                      
-                      <div className="blog-actions">
-                        <div className="blog-category">{news.category}</div>
+                    }
+                  >
+                    <div className="news-card-content">
+                      <h3 className="news-card-title">{news.title}</h3>
+                      <p className="news-card-description">
+                        {getSummary(news.content, 100)}
+                      </p>
+                      <div className="news-card-meta">
+                        <div className="news-card-author">
+                          <UserOutlined />
+                          <span>{getAuthorNameSync(news.authorID)}</span>
+                        </div>
+                        <div className="news-card-date">
+                          <CalendarOutlined />
+                          <span>{formatDate(news.publishDate)}</span>
+                        </div>
+                      </div>
+                      <div className="news-card-actions">
+                        <Button 
+                          className="news-detail-btn"
+                          onClick={() => handleViewNews(news)}
+                          block
+                        >
+                          Xem chi tiết
+                        </Button>
                         {canEditBlog(news) && news.blogID && news.blogID !== 'undefined' && (
-                          <>
+                          <div className="news-admin-actions">
                             <Button
-                              className="blog-action-btn edit-btn"
+                              type="primary"
+                              size="small"
                               icon={<EditOutlined />}
                               onClick={() => openEditModal(news)}
-                              title="Chỉnh sửa"
-                            />
+                              style={{ marginRight: '8px' }}
+                            >
+                              Sửa
+                            </Button>
                             <Popconfirm
                               title="Xóa tin tức"
                               description="Bạn có chắc chắn muốn xóa tin tức này?"
@@ -609,20 +636,18 @@ const NewsPage = () => {
                               okType="danger"
                             >
                               <Button
-                                className="blog-action-btn delete-btn"
+                                danger
+                                size="small"
                                 icon={<DeleteOutlined />}
-                                title="Xóa"
-                              />
+                              >
+                                Xóa
+                              </Button>
                             </Popconfirm>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
-                    
-                    <div className="blog-content" onClick={() => handleViewNews(news)}>
-                      {getSummary(news.content)}
-                    </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             ) : (

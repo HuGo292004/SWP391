@@ -36,7 +36,7 @@ import moment from 'moment';
 import '../../styles/pages.css';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
+
 const { Search } = Input;
 
 const BloodDonorManagement = () => {

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Typography, Collapse, Card, Space } from 'antd';
+import { Typography, Collapse, Space } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
+import '../../styles/SupportPage.css';
 
 const { Title, Paragraph } = Typography;
 const { Panel } = Collapse;
@@ -61,58 +62,118 @@ const FAQPage = () => {
   ];
 
   return (
-    <div style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <Title level={1} style={{ color: '#1976D2' }}>
-            <QuestionCircleOutlined style={{ marginRight: '12px' }} />
+    <div className="support-page">
+      {/* Header Section */}
+      <div className="support-header">
+        <div className="support-header-content">
+          <Title level={1} className="support-title" style={{ 
+            color: 'white',
+            fontSize: '3.5rem',
+            fontWeight: 800,
+            fontFamily: "'Poppins', sans-serif",
+            margin: '0 0 1rem 0',
+            textShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+            letterSpacing: '-0.02em'
+          }}>
+            <QuestionCircleOutlined style={{ marginRight: '1rem', color: 'white', fontSize: '3rem' }} />
             Câu hỏi thường gặp
           </Title>
-          <Paragraph style={{ fontSize: '16px', maxWidth: '800px', margin: '0 auto' }}>
+          <Paragraph className="support-subtitle" style={{ 
+            color: 'white',
+            fontSize: '1.3rem',
+            fontWeight: 400,
+            opacity: 0.95,
+            margin: '0 auto',
+            lineHeight: 1.6,
+            maxWidth: '600px'
+          }}>
             Tìm hiểu thông tin chi tiết về hiến máu nhân đạo thông qua các câu hỏi thường gặp dưới đây
           </Paragraph>
         </div>
+      </div>
 
-        {faqData.map((category, index) => (
-          <Card 
-            key={index}
-            title={category.category}
-            style={{ 
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-            }}
-            headStyle={{ 
-              backgroundColor: '#f5f5f5',
-              borderTopLeftRadius: '12px',
-              borderTopRightRadius: '12px'
-            }}
-          >
-            <Collapse 
-              bordered={false}
-              defaultActiveKey={['0']}
-              expandIconPosition="end"
-              style={{ background: 'white' }}
-            >
-              {category.questions.map((item, qIndex) => (
-                <Panel 
-                  header={item.question} 
-                  key={qIndex}
-                  style={{
-                    marginBottom: '8px',
-                    background: '#fafafa',
-                    borderRadius: '8px',
-                    border: '1px solid #f0f0f0'
-                  }}
-                >
-                  <Paragraph style={{ margin: 0 }}>
-                    {item.answer}
-                  </Paragraph>
-                </Panel>
-              ))}
-            </Collapse>
-          </Card>
-        ))}
-      </Space>
+      {/* Main Content */}
+      <div className="support-container">
+        <div className="support-main-content">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            {faqData.map((category, index) => (
+              <div key={index} style={{ 
+                borderBottom: index < faqData.length - 1 ? '1px solid rgba(25, 118, 210, 0.1)' : 'none',
+                paddingBottom: index < faqData.length - 1 ? '2.5rem' : '0',
+                marginBottom: index < faqData.length - 1 ? '2.5rem' : '0'
+              }}>
+                <div style={{ 
+                  marginBottom: '1.5rem',
+                  position: 'relative'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '4px',
+                    background: 'linear-gradient(135deg, #1976D2 0%, #42A5F5 100%)',
+                    borderRadius: '2px'
+                  }}></div>
+                  <h2 style={{
+                    fontFamily: "'Poppins', sans-serif",
+                    fontSize: '1.5rem',
+                    fontWeight: 600,
+                    color: '#1976D2',
+                    margin: '0 0 0 1.5rem',
+                    position: 'relative',
+                    zIndex: 1
+                  }}>{category.category}</h2>
+                </div>
+                <div style={{ marginLeft: '1.5rem' }}>
+                  <Collapse 
+                    bordered={false}
+                    defaultActiveKey={['0']}
+                    expandIconPosition="end"
+                    style={{ background: 'transparent' }}
+                  >
+                    {category.questions.map((item, qIndex) => (
+                      <Panel 
+                        header={
+                          <span style={{
+                            fontFamily: "'Poppins', sans-serif",
+                            fontSize: '1.1rem',
+                            fontWeight: 600,
+                            color: '#263238',
+                            lineHeight: '1.5'
+                          }}>
+                            {item.question}
+                          </span>
+                        } 
+                        key={qIndex}
+                        style={{
+                          marginBottom: '1rem',
+                          background: 'rgba(255, 255, 255, 0.8)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(25, 118, 210, 0.1)',
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        <Paragraph style={{
+                          fontSize: '1rem',
+                          lineHeight: '1.7',
+                          color: '#455A64',
+                          margin: 0,
+                          textAlign: 'justify'
+                        }}>
+                          {item.answer}
+                        </Paragraph>
+                      </Panel>
+                    ))}
+                  </Collapse>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
