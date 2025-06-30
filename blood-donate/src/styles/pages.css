@@ -1050,64 +1050,99 @@
    ======================================== */
 
 .appointment-page {
-  width: 100%;
-  padding: 24px;
-  background: #f8fafc;
   min-height: 100vh;
+  background: #FFFFFF;
+  padding: 0;
+  margin: 0;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 32px;
-  padding: 32px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(229, 231, 235, 0.5);
-}
-
-.header-content {
-  flex: 1;
-}
-
-.page-title {
-  color: #111827 !important;
-  font-size: 28px !important;
-  font-weight: 700 !important;
-  margin: 0 0 8px 0 !important;
+.appointment-page .page-header {
+  background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
+  color: #fff;
+  border-radius: 0 !important;
+  box-shadow: 0 4px 24px rgba(25, 118, 210, 0.10);
+  padding: 3rem 2rem 2.5rem 2rem;
+  margin-bottom: 2.5rem;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  position: relative;
+  width: 100%;
 }
 
-.title-icon {
-  color: #1976d2;
-  font-size: 32px;
+.appointment-page .page-header > .header-content {
+  flex: 1;
+  text-align: center;
 }
 
-.page-description {
-  color: #6b7280;
-  font-size: 16px;
-  margin: 0;
-  line-height: 1.5;
+.appointment-page .page-title {
+  color: #fff !important;
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+  margin: 0 0 0.5rem 0 !important;
+  letter-spacing: -1px;
+  text-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 }
 
-.book-appointment-btn {
-  height: 44px !important;
-  border-radius: 10px !important;
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+.appointment-page .title-icon {
+  color: #fff !important;
+  font-size: 2.2rem !important;
+  filter: drop-shadow(0 2px 8px #1976d2aa);
+}
+
+.appointment-page .page-description {
+  color: #e3f2fd !important;
+  font-size: 1.15rem !important;
+  font-weight: 400;
+  margin: 0 auto !important;
+  max-width: 600px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.appointment-page .book-appointment-btn {
+  background: linear-gradient(90deg, #1976D2 0%, #42A5F5 100%) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
   border: none !important;
-  font-weight: 600 !important;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3) !important;
-  transition: all 0.3s ease !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.15) !important;
+  padding: 0 2rem !important;
+  height: 52px !important;
+  font-size: 1.1rem !important;
+  margin-left: 2rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.book-appointment-btn:hover {
-  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%) !important;
-  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4) !important;
-  transform: translateY(-2px) !important;
+.appointment-page .book-appointment-btn:hover {
+  background: linear-gradient(90deg, #1565C0 0%, #1976D2 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.18) !important;
+  transform: translateY(-2px) scale(1.03);
+}
+
+@media (max-width: 900px) {
+  .appointment-page .page-header {
+    flex-direction: column;
+    padding: 2rem 1rem 1.5rem 1rem;
+    gap: 1.5rem;
+  }
+  .appointment-page .book-appointment-btn {
+    margin-left: 0;
+    margin-top: 1.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+  .appointment-page .page-title {
+    font-size: 2rem !important;
+  }
 }
 
 /* Calendar Card */
@@ -1146,9 +1181,30 @@
   border: none;
 }
 
+/* Restore normal calendar layout - remove flexbox reordering */
+
 .ant-picker-calendar .ant-picker-calendar-date {
   border-radius: 8px;
   transition: all 0.2s ease;
+  background: white;
+  margin: 2px;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date-value {
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.ant-picker-calendar .ant-picker-calendar-date-today .ant-picker-calendar-date-value {
+  background: #1976d2;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
 }
 
 .ant-picker-calendar .ant-picker-calendar-date:hover {
@@ -1338,6 +1394,7 @@
 @media (max-width: 768px) {
   .appointment-page {
     padding: 16px;
+    background: #FFFFFF;
   }
   
   .page-header {
@@ -1489,4 +1546,24 @@
   .donor-management-page .stat-card {
     margin-bottom: 12px;
   }
+}
+
+/* ========================================
+   CALENDAR HEADER ADJUSTMENT
+   ======================================== */
+
+/* Move calendar header controls up */
+.ant-picker-calendar .ant-picker-calendar-header {
+  margin-top: -12px !important;
+  padding-top: 8px !important;
+  padding-bottom: 12px !important;
+}
+
+/* Additional spacing adjustment for the calendar header selectors */
+.ant-picker-calendar .ant-picker-calendar-header .ant-select {
+  margin-top: -4px;
+}
+
+.ant-picker-calendar .ant-picker-calendar-header .ant-radio-group {
+  margin-top: -4px;
 }

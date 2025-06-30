@@ -1,0 +1,671 @@
+/* ========================================
+   SUPPORT PAGE - MEDICAL THEME DESIGN
+   ======================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap");
+
+:root {
+  /* Medical Theme Colors - khớp với website */
+  --primary-color: #1976D2;
+  --primary-light: #42A5F5;
+  --primary-dark: #1565C0;
+  --accent-color: #dc3545;
+  --accent-light: #e74c3c;
+  --secondary-color: #E91E63;
+  --success-color: #2E7D32;
+  --warning-color: #F57C00;
+  --error-color: #C62828;
+  --white: #FFFFFF;
+  --light-bg: #F8FAFC;
+  --text-dark: #263238;
+  --text-secondary: #455A64;
+  --text-muted: #78909C;
+  
+  /* Glass Effects */
+  --glass-background: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(25, 118, 210, 0.18);
+  --shadow-light: 0 8px 32px 0 rgba(25, 118, 210, 0.37);
+  --shadow-medium: 0 15px 35px rgba(25, 118, 210, 0.2);
+  --shadow-heavy: 0 20px 40px rgba(25, 118, 210, 0.3);
+  --border-color: rgba(25, 118, 210, 0.2);
+}
+
+.support-page {
+  min-height: 100vh;
+  background: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-dark);
+  padding: 0;
+  margin: 0;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Background overlay removed for clean white background */
+
+/* ========================================
+   HEADER SECTION
+   ======================================== */
+
+.support-header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  color: white;
+  padding: 4rem 0;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 20px rgba(25, 118, 210, 0.3);
+}
+
+.support-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border-radius: inherit;
+}
+
+.support-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.support-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  color: white;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  animation: slideInFromTop 1s ease-out;
+  letter-spacing: -0.02em;
+}
+
+.support-subtitle {
+  font-size: 1.3rem;
+  font-weight: 400;
+  opacity: 0.95;
+  margin: 0;
+  animation: slideInFromBottom 1s ease-out 0.3s both;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   MAIN CONTENT LAYOUT
+   ======================================== */
+
+.support-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.support-main-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(25, 118, 210, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.15);
+  overflow: hidden;
+  animation: slideInFromLeft 0.8s ease-out;
+  transition: all 0.3s ease;
+  padding: 2.5rem;
+}
+
+.support-main-content:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(25, 118, 210, 0.2);
+}
+
+/* ========================================
+   CONTACT INFO CARDS
+   ======================================== */
+
+.contact-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2.5rem;
+  margin-bottom: 3rem;
+}
+
+.contact-info-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(25, 118, 210, 0.1);
+  border-radius: 20px;
+  padding: 2.5rem;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.1);
+  height: 100%;
+  min-height: 200px;
+}
+
+.contact-info-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, 
+    rgba(25, 118, 210, 0.05) 0%, 
+    transparent 50%, 
+    rgba(220, 53, 69, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.contact-info-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(25, 118, 210, 0.2);
+  border-color: rgba(25, 118, 210, 0.3);
+}
+
+.contact-info-card:hover::before {
+  opacity: 1;
+}
+
+.contact-icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  padding: 1.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  color: white;
+  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
+  transition: all 0.3s ease;
+}
+
+.contact-info-card:hover .contact-icon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 30px rgba(25, 118, 210, 0.4);
+}
+
+.contact-icon.phone {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+}
+
+.contact-icon.email {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #f06292 100%);
+}
+
+.contact-icon.location {
+  background: linear-gradient(135deg, var(--success-color) 0%, #66bb6a 100%);
+}
+
+.contact-icon.clock {
+  background: linear-gradient(135deg, var(--warning-color) 0%, #ffb74d 100%);
+}
+
+.contact-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 1rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.contact-content {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+.contact-text {
+  display: block;
+  margin: 0.5rem 0;
+  transition: all 0.3s ease;
+}
+
+.contact-info-card:hover .contact-text {
+  color: var(--text-dark);
+}
+
+/* ========================================
+   CONTACT FORM SECTION
+   ======================================== */
+
+.contact-form-section {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(25, 118, 210, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.15);
+  overflow: hidden;
+  margin-top: 2rem;
+  transition: all 0.3s ease;
+}
+
+.contact-form-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(25, 118, 210, 0.2);
+}
+
+.form-header {
+  background: linear-gradient(135deg, 
+    rgba(25, 118, 210, 0.05) 0%, 
+    rgba(255, 255, 255, 0.8) 100%
+  );
+  padding: 2.5rem;
+  border-bottom: 1px solid rgba(25, 118, 210, 0.1);
+}
+
+.form-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin: 0 0 0.5rem 0;
+}
+
+.form-description {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.form-content {
+  padding: 2.5rem;
+}
+
+/* ========================================
+   FORM STYLES
+   ======================================== */
+
+.support-form {
+  margin-top: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.5rem !important;
+  font-size: 1rem !important;
+}
+
+.ant-input,
+.ant-input-lg,
+.ant-input.ant-input-lg {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(25, 118, 210, 0.2) !important;
+  border-radius: 12px !important;
+  color: var(--text-dark) !important;
+  backdrop-filter: blur(5px) !important;
+  transition: all 0.3s ease !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 1rem !important;
+}
+
+.ant-input:focus,
+.ant-input-lg:focus {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+.ant-input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-light) 100%) !important;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 0.875rem 2.5rem !important;
+  font-weight: 600 !important;
+  color: white !important;
+  box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3) !important;
+  transition: all 0.3s ease !important;
+  font-size: 1rem !important;
+  height: auto !important;
+  min-height: 48px !important;
+}
+
+.submit-btn:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 12px 25px rgba(220, 53, 69, 0.4) !important;
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent-color) 100%) !important;
+}
+
+.submit-btn:active {
+  transform: translateY(-1px) !important;
+}
+
+/* ========================================
+   MAP SECTION
+   ======================================== */
+
+.map-container {
+  background: linear-gradient(135deg, 
+    rgba(25, 118, 210, 0.1) 0%, 
+    rgba(255, 255, 255, 0.8) 100%
+  );
+  border-radius: 20px;
+  border: 1px solid rgba(25, 118, 210, 0.1);
+  overflow: hidden;
+  height: 100%;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.map-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.15);
+}
+
+.map-placeholder {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  border: 2px dashed rgba(25, 118, 210, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 1400px) {
+  .support-container {
+    max-width: 1200px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .support-container {
+    max-width: 1000px;
+  }
+  
+  .contact-info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .contact-info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .support-title {
+    font-size: 3rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .support-main-content {
+    padding: 2rem;
+  }
+  
+  .form-content,
+  .form-header {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .support-header {
+    padding: 3rem 0;
+  }
+  
+  .support-title {
+    font-size: 2.5rem;
+  }
+  
+  .support-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .support-container {
+    padding: 0 1rem 2rem 1rem;
+  }
+  
+  .support-main-content,
+  .form-content {
+    padding: 1.5rem;
+  }
+  
+  .form-header {
+    padding: 1.5rem;
+  }
+  
+  .contact-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .contact-info-card {
+    padding: 1.5rem;
+  }
+  
+  .contact-icon {
+    font-size: 2.5rem;
+    width: 70px;
+    height: 70px;
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .support-title {
+    font-size: 2rem;
+  }
+  
+  .support-subtitle {
+    font-size: 1rem;
+  }
+  
+  .support-container {
+    padding: 0 0.75rem 1.5rem 0.75rem;
+  }
+  
+  .support-main-content,
+  .form-content,
+  .form-header {
+    padding: 1.25rem;
+  }
+  
+  .contact-info-card {
+    padding: 1.25rem;
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
+  }
+  
+  .contact-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    padding: 1rem;
+  }
+  
+  .submit-btn {
+    width: 100% !important;
+    padding: 1rem 2rem !important;
+  }
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes medicalGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.support-page *:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.support-page button:focus {
+  outline: 2px solid var(--primary-color);
+}
+
+/* ========================================
+   FORM VALIDATION STYLES
+   ======================================== */
+
+.ant-form-item-has-error .ant-input,
+.ant-form-item-has-error .ant-input:focus {
+  border-color: var(--error-color) !important;
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.1) !important;
+}
+
+.ant-form-item-explain-error {
+  color: var(--error-color) !important;
+  font-weight: 500 !important;
+}
+
+/* ========================================
+   ENHANCED INTERACTIONS
+   ======================================== */
+
+.contact-info-card:active {
+  transform: translateY(-4px) scale(0.98);
+}
+
+.submit-btn:active {
+  transform: translateY(-1px) scale(0.98) !important;
+}
+
+/* ========================================
+   CUSTOM ANTD OVERRIDES
+   ======================================== */
+
+.ant-form-item-label > label {
+  color: var(--text-dark) !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+}
+
+.ant-col .ant-form-item-label {
+  padding-bottom: 0.25rem !important;
+}
+
+.ant-form-item {
+  margin-bottom: 1.5rem !important;
+}
+
+.ant-row {
+  margin: 0 !important;
+}
+
+.ant-col {
+  padding: 0 !important;
+} 

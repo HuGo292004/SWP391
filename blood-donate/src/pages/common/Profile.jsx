@@ -45,7 +45,7 @@ import '../../styles/pages.css';
 import '../../styles/Profile.css';
 
 const { Title, Text, Paragraph } = Typography;
-const { Option } = Select;
+
 
 const Profile = () => {
   console.log('Profile component mounting...');

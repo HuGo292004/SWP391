@@ -37,7 +37,7 @@ import {
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
+
 const { TabPane } = Tabs;
 
 const BloodInventory = () => {
