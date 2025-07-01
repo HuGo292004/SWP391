@@ -40,11 +40,60 @@ import {
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { UserAPI } from '../../services/userApi';
+import { 
+  getDonorProfileByUserId, 
+  generateDonorID,
+  createDonorProfile,
+  updateDonorProfile 
+} from '../../services/userManagementApi';
 import '../../styles/pages.css';
 import '../../styles/Profile.css';
 
 const { Title, Text, Paragraph } = Typography;
 
+// Hàm lấy tên nhóm máu từ bloodTypeID
+const getBloodTypeName = (bloodTypeID) => {
+  console.log('==== getBloodTypeName DEBUG ====');
+  console.log('Input bloodTypeID:', bloodTypeID);
+  console.log('Type of bloodTypeID:', typeof bloodTypeID);
+  console.log('Is null/undefined?', bloodTypeID == null);
+  
+  if (!bloodTypeID) {
+    console.log('No bloodTypeID provided, returning "Chưa xác định"');
+    return 'Chưa xác định';
+  }
+  
+  const bloodTypeMap = {
+    '44C1A0F7-92B9-4E1B-A628-03447F5B86D7': 'O+ (O Rh dương)',
+    '5BB618E3-25CE-45D8-B980-03D532EC2293': 'B- (B Rh âm)',
+    '11111111-1111-1111-1111-111111111111': 'A+ (A Rh dương)',
+    '11111111-1111-1111-1111-111111111002': 'A- (A Rh âm)',
+    '11111111-1111-1111-1111-111111111003': 'B+ (B Rh dương)',
+    '11111111-1111-1111-1111-111111111004': 'B- (B Rh âm)',
+    '11111111-1111-1111-1111-111111111005': 'AB+ (AB Rh dương)',
+    '11111111-1111-1111-1111-111111111006': 'AB- (AB Rh âm)',
+    '11111111-1111-1111-1111-111111111007': 'O+ (O Rh dương)',
+    '11111111-1111-1111-1111-111111111008': 'O- (O Rh âm)',
+    'FE6B963D-65ED-4681-96FF-213E2B9D7E9B': 'O- (O Rh âm)',
+    'B0B93608-6EA7-4F3E-8B24-37B66BF00C82': 'A+ (A Rh dương)',
+    'C070228E-DA24-4CD8-8286-84C2226674A3': 'B+ (B Rh dương)',
+    '5D60875F-D7DE-4DFE-A057-F8F433A7A932': 'AB- (AB Rh âm)',
+    'A12373C7-3BFC-496E-8021-C0031B9BCDD8': 'A- (A Rh âm)',
+    '5AE0C996-2594-48D2-8023-FD80676E4BCC': 'AB+ (AB Rh dương)'
+  };
+  
+  // Chuẩn hóa bloodTypeID (uppercase)
+  const normalizedID = String(bloodTypeID).toUpperCase();
+  console.log('Normalized bloodTypeID:', normalizedID);
+  console.log('Available keys in bloodTypeMap:', Object.keys(bloodTypeMap));
+  console.log('Is key found in map?', normalizedID in bloodTypeMap);
+  
+  const result = bloodTypeMap[normalizedID] || 'Chưa xác định';
+  console.log('Blood type mapping result:', result);
+  console.log('==== END getBloodTypeName DEBUG ====');
+  
+  return result;
+};
 
 const Profile = () => {
   console.log('Profile component mounting...');
@@ -104,22 +153,79 @@ const Profile = () => {
         avatar: userData.avatar || null,
       };
       
-      // Nếu là Member, thêm các field mặc định
+      // Nếu là Member, thêm các field mặc định và lấy thông tin donor profile từ API
       if (userData.role === 'Member') {
-        console.log('User is Member, adding default fields...');
-        processedUserData = {
-          ...processedUserData,
-          // Thông tin hiến máu từ database
-          donorID: userData.donorID || null, // ID hồ sơ hiến máu từ database
-          bloodTypeID: userData.bloodTypeID || null, // ID nhóm máu trong database
-          bloodType: userData.bloodType || null, // Tên hiển thị nhóm máu
-          isAvailable: userData.isAvailable !== undefined ? userData.isAvailable : true,
-          lastDonationDate: userData.lastDonationDate || null,
-          nextEligibleDate: userData.nextEligibleDate || null,
-          closestFacilityID: userData.closestFacilityID || null,
-          currentMedications: userData.currentMedications || '', // Thuốc đang sử dụng
-          address: userData.address || '' // Địa chỉ từ bảng Donor (chỉ cho Member)
-        };
+        console.log('User is Member, fetching donor profile from API...');
+        
+        try {
+          // Lấy thông tin donor profile từ API
+          const donorProfile = await getDonorProfileByUserId(userData.userId || userData.userID || userData.id);
+          console.log('Donor profile from API:', donorProfile);
+          console.log('Donor profile keys:', donorProfile ? Object.keys(donorProfile) : 'null');
+          
+          if (donorProfile && (donorProfile.donorID || donorProfile.donorId)) {
+            // Đã có hồ sơ hiến máu - sử dụng thông tin thực tế từ database
+            const bloodTypeID = donorProfile.bloodTypeId || donorProfile.bloodTypeID || donorProfile.BloodTypeId || donorProfile.BloodTypeID;
+            const userId = donorProfile.userId || donorProfile.userID || donorProfile.UserId || donorProfile.UserID;
+            const address = donorProfile.Address || donorProfile.address || userData.address || ''; // Ưu tiên Address (viết hoa) từ database
+            
+            console.log('Donor profile bloodTypeID from database:', bloodTypeID);
+            console.log('Donor profile userID from database:', userId);
+            console.log('Donor profile Address from database:', address);
+            console.log('Raw donor profile from API:', donorProfile);
+            console.log('All donor profile fields:', Object.keys(donorProfile));
+            
+            processedUserData = {
+              ...processedUserData,
+              donorID: donorProfile.donorId || donorProfile.donorID,
+              bloodTypeID: bloodTypeID,
+              bloodType: getBloodTypeName(bloodTypeID),
+              isAvailable: donorProfile.isAvailable !== undefined ? donorProfile.isAvailable : true,
+              lastDonationDate: donorProfile.lastDonationDate || donorProfile.LastDonationDate,
+              nextEligibleDate: donorProfile.nextEligibleDate || donorProfile.NextEligibleDate,
+              currentMedications: donorProfile.currentMedications || donorProfile.CurrentMedications || '',
+              address: address, // Sử dụng address đã mapping từ Address
+              hasDonorProfile: true,
+              donorUserId: userId // Lưu userID từ donor profile để debug
+            };
+            console.log('User has donor profile from API:', processedUserData);
+            console.log('Blood type mapped to:', processedUserData.bloodType);
+            console.log('Final bloodTypeID value:', processedUserData.bloodTypeID);
+            console.log('Final address value:', processedUserData.address);
+            console.log('Donor userID value:', processedUserData.donorUserId);
+          } else {
+            // Chưa có hồ sơ hiến máu - hiển thị thông tin mặc định
+            processedUserData = {
+              ...processedUserData,
+              donorID: null, // Chưa có mã hiến máu
+              bloodTypeID: null,
+              bloodType: null,
+              isAvailable: true,
+              lastDonationDate: null,
+              nextEligibleDate: null,
+              currentMedications: '',
+              address: userData.address || '',
+              hasDonorProfile: false
+            };
+            console.log('User has NO donor profile, using defaults:', processedUserData);
+          }
+        } catch (donorError) {
+          console.log('Error fetching donor profile from API:', donorError.message);
+          // Không có hồ sơ hiến máu hoặc lỗi API - sử dụng thông tin mặc định
+          processedUserData = {
+            ...processedUserData,
+            donorID: null, // Chưa có mã hiến máu
+            bloodTypeID: null,
+            bloodType: null,
+            isAvailable: true,
+            lastDonationDate: null,
+            nextEligibleDate: null,
+            currentMedications: '',
+            address: userData.address || '',
+            hasDonorProfile: false
+          };
+          console.log('Using default values due to API error:', processedUserData);
+        }
       }
       
       setUserInfo(processedUserData);
@@ -168,15 +274,15 @@ const Profile = () => {
       return {
         ...baseInfo,
         address: '123 Đường ABC, Quận 1, TP.HCM',
-        // Thông tin hiến máu từ database
+        // Thông tin hiến máu mẫu (chỉ dùng khi API không hoạt động)
         donorID: 'DN001',
-        bloodTypeID: 1,
-        bloodType: 'O+',
+        bloodTypeID: '44C1A0F7-92B9-4E1B-A628-03447F5B86D7', // O+ GUID
+        bloodType: 'O+ (O Rh dương)',
         isAvailable: true,
         lastDonationDate: '2024-02-15',
         nextEligibleDate: '2024-08-15',
-        closestFacilityID: 1,
-        currentMedications: 'Không có thuốc đang sử dụng'
+        currentMedications: 'Không có thuốc đang sử dụng',
+        hasDonorProfile: true // Mock data có donor profile
       };
     }
 
@@ -272,8 +378,39 @@ const Profile = () => {
         processedValues.nextEligibleDate = nextDate.format('YYYY-MM-DD');
       }
       
-      // Call API to update user
+      // Call API to update user basic info
       await UserAPI.updateUser(userInfo.userID, processedValues);
+      
+      // Nếu là Member và có thông tin donor profile, cập nhật hoặc tạo mới donor profile
+      if (userInfo.role === 'Member' && userInfo.hasDonorProfile && userInfo.donorID) {
+        try {
+          // Cập nhật donor profile hiện có
+          const donorData = {
+            donorID: userInfo.donorID,
+            userID: userInfo.userID, // Quan trọng: phải có userID để không bị mất liên kết
+            bloodTypeID: userInfo.bloodTypeID, // Giữ nguyên bloodTypeID hiện tại
+            isAvailable: userInfo.isAvailable,
+            lastDonationDate: processedValues.lastDonationDate,
+            nextEligibleDate: processedValues.nextEligibleDate,
+            currentMedications: processedValues.currentMedications || userInfo.currentMedications || '',
+            address: processedValues.address // Cập nhật địa chỉ từ form
+          };
+          
+          console.log('=== DONOR PROFILE UPDATE DEBUG ===');
+          console.log('Updating donor profile with data:', donorData);
+          console.log('userInfo.userID:', userInfo.userID);
+          console.log('userInfo.donorID:', userInfo.donorID);
+          console.log('processedValues.address:', processedValues.address);
+          console.log('Request will send Address (capital A) to API');
+          console.log('===================================');
+          
+          await updateDonorProfile(userInfo.donorID, donorData);
+          console.log('Donor profile updated successfully');
+        } catch (donorError) {
+          console.error('Error updating donor profile:', donorError);
+          message.warning('Cập nhật thông tin cá nhân thành công, nhưng không thể cập nhật hồ sơ hiến máu');
+        }
+      }
       
       const updatedInfo = { ...userInfo, ...processedValues };
       setUserInfo(updatedInfo);
@@ -361,8 +498,8 @@ const Profile = () => {
   const renderMemberSpecificInfo = () => {
     if (userInfo.role !== 'Member') return null;
 
-    // Nếu chưa có mã hồ sơ hiến máu, hiển thị nút đăng ký
-    if (!userInfo.donorID) {
+    // Nếu chưa có hồ sơ hiến máu, hiển thị nút đăng ký
+    if (!userInfo.hasDonorProfile || !userInfo.donorID) {
       return (
         <Card 
           className="profile-card"
@@ -430,6 +567,11 @@ const Profile = () => {
             {userInfo.donorID && (
               <Tag color="blue" style={{ marginLeft: '8px' }}>
                 ID: {userInfo.donorID}
+              </Tag>
+            )}
+            {userInfo.hasDonorProfile && (
+              <Tag color="green" style={{ marginLeft: '4px', fontSize: '11px' }}>
+                Đã đồng bộ
               </Tag>
             )}
           </Space>
@@ -696,11 +838,11 @@ const Profile = () => {
                 </Form.Item>
               </Col>
 
-              {/* Chỉ hiển thị địa chỉ cho Member có mã hiến máu */}
-              {userInfo.role === 'Member' && userInfo.donorID && (
+              {/* Chỉ hiển thị địa chỉ và thông tin hiến máu cho Member có mã hiến máu */}
+              {userInfo.role === 'Member' && userInfo.hasDonorProfile && userInfo.donorID && (
                 <>
                   <Col xs={24}>
-                    <Divider orientation="left">Thông tin liên hệ</Divider>
+                    <Divider orientation="left">Thông tin liên hệ và hiến máu</Divider>
                   </Col>
                   
                   <Col xs={24}>
@@ -710,6 +852,20 @@ const Profile = () => {
                       rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
                     >
                       <Input.TextArea rows={3} placeholder="Nhập địa chỉ liên hệ" />
+                    </Form.Item>
+                  </Col>
+                  
+
+                  
+                  <Col xs={24}>
+                    <Form.Item 
+                      label="Thuốc đang sử dụng" 
+                      name="currentMedications"
+                    >
+                      <Input.TextArea 
+                        rows={2} 
+                        placeholder="Nhập thông tin về thuốc đang sử dụng (nếu có)" 
+                      />
                     </Form.Item>
                   </Col>
                 </>

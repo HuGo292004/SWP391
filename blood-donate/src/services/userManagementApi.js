@@ -253,7 +253,13 @@ export const formatUserData = (apiUser) => {
     donationCount: apiUser.donationCount || apiUser.DonationCount || 0,
     lastDonationDate: apiUser.lastDonationDate || apiUser.LastDonationDate,
     nextEligibleDate: apiUser.nextEligibleDate || apiUser.NextEligibleDate,
-    reasonInactive: apiUser.reasonInactive || apiUser.inactiveReason || apiUser.ReasonInactive || apiUser.InactiveReason
+    reasonInactive: apiUser.reasonInactive || apiUser.inactiveReason || apiUser.ReasonInactive || apiUser.InactiveReason,
+    // Donor profile fields
+    donorID: apiUser.donorID || apiUser.donorId || apiUser.DonorID || apiUser.DonorId,
+    bloodTypeID: apiUser.bloodTypeID || apiUser.bloodTypeId || apiUser.BloodTypeID || apiUser.BloodTypeId,
+    isAvailable: apiUser.isAvailable !== undefined ? apiUser.isAvailable : 
+                 apiUser.IsAvailable !== undefined ? apiUser.IsAvailable : true,
+    currentMedications: apiUser.currentMedications || apiUser.CurrentMedications
   };
 };
 
@@ -290,5 +296,167 @@ export const formatUserDataForApi = (formData) => {
   if (formData.nextEligibleDate) cleanData.nextEligibleDate = formData.nextEligibleDate;
   if (formData.reasonInactive) cleanData.reasonInactive = formData.reasonInactive;
   
+  // Donor profile fields
+  if (formData.donorID) cleanData.donorID = formData.donorID;
+  if (formData.bloodTypeID) cleanData.bloodTypeID = formData.bloodTypeID; // Giữ nguyên GUID
+  if (formData.isAvailable !== undefined) cleanData.isAvailable = formData.isAvailable === 'true' || formData.isAvailable === true;
+  if (formData.currentMedications) cleanData.currentMedications = formData.currentMedications;
+  
   return cleanData;
+};
+
+// API: Tạo hồ sơ hiến máu mới
+export const createDonorProfile = async (userId, donorData) => {
+  try {
+    // Tạo donorID đồng bộ với backend
+    const donorID = donorData.donorID || generateDonorID(userId);
+    
+    debugLog(`Creating donor profile for user ${userId} with donorID ${donorID}`);
+    
+    const response = await fetch(`${API_BASE_URL}/api/Donor`, {
+      method: 'POST',
+      headers: createHeaders(),
+      body: JSON.stringify({
+        userID: userId,
+        donorID: donorID,
+        bloodTypeID: donorData.bloodTypeID,
+        isAvailable: donorData.isAvailable !== undefined ? donorData.isAvailable : true,
+        lastDonationDate: donorData.lastDonationDate || null,
+        nextEligibleDate: donorData.nextEligibleDate || null,
+        currentMedications: donorData.currentMedications || null,
+        Address: donorData.address || null // Sử dụng Address (viết hoa) theo database
+      })
+    });
+
+    const data = await handleResponse(response);
+    
+    debugLog(`Donor profile created successfully for user ${userId}`, data);
+    return data;
+  } catch (error) {
+    debugLog(`Error creating donor profile for user ${userId}`, error);
+    console.error(`Error creating donor profile for user ${userId}:`, error);
+    throw error;
+  }
+};
+
+// API: Cập nhật hồ sơ hiến máu
+export const updateDonorProfile = async (donorId, donorData) => {
+  try {
+    debugLog(`Updating donor profile ${donorId}`, donorData);
+    
+    const response = await fetch(`${API_BASE_URL}/api/Donor/${donorId}`, {
+      method: 'PUT',
+      headers: createHeaders(),
+      body: JSON.stringify({
+        donorID: donorData.donorID,
+        userID: donorData.userID, // Quan trọng: phải có userID để không bị mất liên kết
+        bloodTypeID: donorData.bloodTypeID,
+        isAvailable: donorData.isAvailable,
+        lastDonationDate: donorData.lastDonationDate,
+        nextEligibleDate: donorData.nextEligibleDate,
+        currentMedications: donorData.currentMedications,
+        Address: donorData.address // Sử dụng Address (viết hoa) theo database
+      })
+    });
+
+    const data = await handleResponse(response);
+    
+    debugLog(`Donor profile ${donorId} updated successfully`, data);
+    return data;
+  } catch (error) {
+    debugLog(`Error updating donor profile ${donorId}`, error);
+    console.error(`Error updating donor profile ${donorId}:`, error);
+    throw error;
+  }
+};
+
+// API: Lấy hồ sơ hiến máu theo userId
+export const getDonorProfileByUserId = async (userId) => {
+  try {
+    debugLog(`Fetching donor profile for user ${userId}`);
+    
+    // Lấy tất cả donors và filter theo userID
+    const response = await fetch(`${API_BASE_URL}/api/Donor`, {
+      method: 'GET', 
+      headers: createHeaders(),
+    });
+    
+    if (!response.ok) {
+      debugLog(`Failed to fetch donors list: ${response.status}`);
+      return null;
+    }
+    
+    const allDonors = await handleResponse(response);
+    debugLog(`All donors fetched, filtering for user ${userId}`, allDonors);
+    
+    // Tìm donor có userID khớp
+    let foundDonor = null;
+    let donorsList = [];
+    
+    // Xử lý các format response khác nhau
+    if (Array.isArray(allDonors)) {
+      donorsList = allDonors;
+    } else if (allDonors && allDonors.data && Array.isArray(allDonors.data)) {
+      donorsList = allDonors.data;
+    } else if (allDonors && typeof allDonors === 'object') {
+      // Có thể response là object chứa donors
+      donorsList = Object.values(allDonors).find(val => Array.isArray(val)) || [];
+    }
+    
+    // Tìm donor với userID khớp (thử nhiều format khác nhau)
+    foundDonor = donorsList.find(donor => {
+      if (!donor) return false;
+      
+      const donorUserID = donor.userID || donor.userId || donor.UserID || donor.UserId;
+      return donorUserID === userId;
+    });
+    
+    if (foundDonor) {
+      debugLog(`Found donor profile for user ${userId}`, foundDonor);
+      return foundDonor;
+    } else {
+      debugLog(`No donor profile found for user ${userId} in ${donorsList.length} donors`);
+      return null;
+    }
+    
+  } catch (error) {
+    debugLog(`Error fetching donor profile for user ${userId}`, error);
+    console.error(`Error fetching donor profile for user ${userId}:`, error);
+    return null; // Trả về null thay vì throw error để không crash app
+  }
+};
+
+// API: Lấy hồ sơ hiến máu theo donorId
+export const getDonorProfileByDonorId = async (donorId) => {
+  try {
+    debugLog(`Fetching donor profile ${donorId}`);
+    const response = await fetch(`${API_BASE_URL}/api/Donor/${donorId}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse(response);
+    debugLog(`Donor profile ${donorId} fetched successfully`, data);
+    return data;
+  } catch (error) {
+    debugLog(`Error fetching donor profile ${donorId}`, error);
+    console.error(`Error fetching donor profile ${donorId}:`, error);
+    throw error;
+  }
+};
+
+// Utility function: Tạo donorID đồng bộ với backend
+export const generateDonorID = (userID) => {
+  if (!userID) return null;
+  
+  // Logic tạo donorID giống như backend:
+  // Lấy 6 ký tự cuối của userID (bỏ dấu gạch ngang) và thêm prefix "DN"
+  const shortId = userID.replace(/-/g, '').slice(-6).toUpperCase();
+  return `DN${shortId}`;
+};
+
+// Utility function: Kiểm tra format donorID có hợp lệ không
+export const isValidDonorID = (donorID) => {
+  if (!donorID) return false;
+  // Format: DN + 6 ký tự alphanumeric
+  return /^DN[A-Z0-9]{6}$/.test(donorID);
 };
