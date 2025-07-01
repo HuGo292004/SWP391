@@ -1304,7 +1304,7 @@ const HomePage = () => {
                 </Card.Body>
               </Card>
             </Col>
-          </Row></Container>
+
       </section>
     </div>
   );

@@ -233,6 +233,9 @@ const LoginPage = () => {
                 className="modern-input"
               />
             </Form.Item>
+            <div style={{ textAlign: 'right', marginBottom: 16 }}>
+              <Link to="/forgot-password" className="forgot-password-link">Quên mật khẩu?</Link>
+            </div>
 
             {error && (
               <Alert

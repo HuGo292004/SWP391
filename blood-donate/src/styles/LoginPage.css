@@ -611,4 +611,15 @@
   .modern-submit-btn {
     height: 44px !important;
   }
+}
+
+.forgot-password-link {
+  color: #dc3545;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.forgot-password-link:hover {
+  color: #a71d2a;
+  text-decoration: underline;
 } 
