@@ -35,7 +35,8 @@ import {
   FaUserMd,
   FaUserFriends,
   FaFilter,
-  FaSync
+  FaSync,
+  FaInfoCircle
 } from 'react-icons/fa';
 import '../../styles/UserManagementBootstrap.css';
 import { 
@@ -48,7 +49,13 @@ import {
   formatUserDataForApi,
   mapRoleForApi,
   getCurrentUserRole,
-  hasValidToken
+  hasValidToken,
+  createDonorProfile,
+  updateDonorProfile,
+  getDonorProfileByUserId,
+  getDonorProfileByDonorId,
+  generateDonorID,
+  isValidDonorID
 } from '../../services/userManagementApi';
 
 const UserManagement = () => {
@@ -269,7 +276,53 @@ const UserManagement = () => {
     try {
       // Lấy chi tiết đầy đủ từ API
       const detailData = await getUserDetail(user.id);
-      const formattedDetail = formatUserData(detailData);
+      let formattedDetail = formatUserData(detailData);
+      
+      // Nếu là Member, cố gắng lấy thêm thông tin hồ sơ hiến máu
+      if (user.role === 'Member') {
+        try {
+          const donorProfile = await getDonorProfileByUserId(user.id);
+          console.log('Donor profile response for user detail:', donorProfile);
+          
+          if (donorProfile && (donorProfile.donorID || donorProfile.donorId || donorProfile.DonorID)) {
+            // ĐÃ CÓ hồ sơ hiến máu - hiển thị thông tin thực tế
+            formattedDetail = {
+              ...formattedDetail,
+              donorID: donorProfile.donorID || donorProfile.donorId || donorProfile.DonorID,
+              bloodTypeID: donorProfile.bloodTypeID || donorProfile.bloodTypeId || donorProfile.BloodTypeID,
+              isAvailable: donorProfile.isAvailable !== undefined ? donorProfile.isAvailable : 
+                          (donorProfile.IsAvailable !== undefined ? donorProfile.IsAvailable : true),
+              lastDonationDate: donorProfile.lastDonationDate || donorProfile.LastDonationDate,
+              nextEligibleDate: donorProfile.nextEligibleDate || donorProfile.NextEligibleDate,
+              currentMedications: donorProfile.currentMedications || donorProfile.CurrentMedications,
+              hasDonorProfile: true // Đánh dấu đã có hồ sơ
+            };
+            console.log('User has donor profile, displaying:', formattedDetail.donorID);
+          } else {
+            // CHƯA CÓ hồ sơ hiến máu - hiển thị donorID sẽ được tạo
+            const autoDonorID = generateDonorID(user.id);
+            formattedDetail = {
+              ...formattedDetail,
+              donorID: `${autoDonorID} (Sẽ được tạo)`,
+              isAvailable: true, // Mặc định có thể hiến máu
+              hasDonorProfile: false // Đánh dấu chưa có hồ sơ
+            };
+            console.log('User has NO donor profile, will create:', formattedDetail.donorID);
+          }
+        } catch (donorError) {
+          console.log('Error getting donor profile for user:', user.id, donorError);
+          // CHƯA CÓ hồ sơ hiến máu - hiển thị donorID sẽ được tạo
+          const autoDonorID = generateDonorID(user.id);
+          formattedDetail = {
+            ...formattedDetail,
+            donorID: `${autoDonorID} (Sẽ được tạo)`,
+            isAvailable: true, // Mặc định có thể hiến máu
+            hasDonorProfile: false // Đánh dấu chưa có hồ sơ
+          };
+          console.log('Error getting donor profile, will create:', formattedDetail.donorID);
+        }
+      }
+      
       setViewingUser(formattedDetail);
       setShowDetailModal(true);
     } catch (error) {
@@ -321,7 +374,52 @@ const UserManagement = () => {
     try {
       // Lấy chi tiết đầy đủ từ API trước khi edit
       const detailData = await getUserDetail(user.id);
-      const formattedDetail = formatUserData(detailData);
+      let formattedDetail = formatUserData(detailData);
+      
+      // Nếu là Member, cố gắng lấy thêm thông tin hồ sơ hiến máu
+      if (user.role === 'Member') {
+        try {
+          const donorProfile = await getDonorProfileByUserId(user.id);
+          console.log('Donor profile response for edit modal:', donorProfile);
+          
+          if (donorProfile && (donorProfile.donorID || donorProfile.donorId)) {
+            // ĐÃ CÓ hồ sơ hiến máu - sử dụng thông tin thực tế
+            formattedDetail = {
+              ...formattedDetail,
+              donorID: donorProfile.donorID || donorProfile.donorId,
+              bloodTypeID: donorProfile.bloodTypeID || donorProfile.bloodTypeId,
+              isAvailable: donorProfile.isAvailable !== undefined ? donorProfile.isAvailable : true,
+              lastDonationDate: donorProfile.lastDonationDate || donorProfile.LastDonationDate,
+              nextEligibleDate: donorProfile.nextEligibleDate || donorProfile.NextEligibleDate,
+              currentMedications: donorProfile.currentMedications || donorProfile.CurrentMedications,
+              hasDonorProfile: true // Đánh dấu đã có hồ sơ
+            };
+            console.log('Edit modal: User has donor profile, using:', formattedDetail.donorID);
+          } else {
+            // CHƯA CÓ hồ sơ hiến máu - tạo donorID tự động cho preview
+            const autoDonorID = generateDonorID(user.id);
+            formattedDetail = {
+              ...formattedDetail,
+              donorID: autoDonorID, // Tự động tạo donorID (không hiển thị "sẽ được tạo" trong form edit)
+              isAvailable: true, // Mặc định có thể hiến máu
+              hasDonorProfile: false // Đánh dấu chưa có hồ sơ
+            };
+            console.log('Edit modal: User has NO donor profile, will create:', formattedDetail.donorID);
+          }
+        } catch (donorError) {
+          console.log('No donor profile found for user (edit):', user.id, donorError.message);
+          // CHƯA CÓ hồ sơ hiến máu - tạo donorID tự động cho preview  
+          const autoDonorID = generateDonorID(user.id);
+          formattedDetail = {
+            ...formattedDetail,
+            donorID: autoDonorID, // Tự động tạo donorID
+            isAvailable: true, // Mặc định có thể hiến máu
+            hasDonorProfile: false // Đánh dấu chưa có hồ sơ
+          };
+          console.log('Edit modal: Error getting donor profile, will create:', formattedDetail.donorID);
+        }
+      }
+      
       setEditingUser(formattedDetail);
       setShowModal(true);
     } catch (error) {
@@ -363,13 +461,55 @@ const UserManagement = () => {
       // Xử lý dữ liệu trước khi gửi API
       const processedValues = formatUserDataForApi(values);
       
-      // Gọi API cập nhật
+      // Gọi API cập nhật thông tin cơ bản
       await updateUser(editingUser.id, processedValues);
+      
+      // Nếu là Member, xử lý hồ sơ hiến máu
+      if (editingUser.role === 'Member') {
+        // Tự động tạo donorID dựa trên userID
+        const autoDonorID = generateDonorID(editingUser.id);
+        
+        const donorData = {
+          donorID: autoDonorID, // Sử dụng donorID tự động tạo đồng bộ
+          bloodTypeID: values.bloodTypeID || null, // Giữ nguyên GUID
+          isAvailable: values.isAvailable === 'true',
+          lastDonationDate: values.lastDonationDate || null,
+          nextEligibleDate: values.nextEligibleDate || null,
+          currentMedications: values.currentMedications || null
+        };
+        
+        // Kiểm tra xem đã có hồ sơ hiến máu chưa
+        try {
+          const existingDonorProfile = await getDonorProfileByUserId(editingUser.id);
+          
+          if (existingDonorProfile && existingDonorProfile.donorID) {
+            // Đã có hồ sơ - cập nhật (giữ nguyên donorID hiện tại)
+            donorData.donorID = existingDonorProfile.donorID;
+            await updateDonorProfile(existingDonorProfile.donorID, donorData);
+            showMessage('Cập nhật thông tin người dùng và hồ sơ hiến máu thành công');
+          } else {
+            // Chưa có hồ sơ - tạo mới với donorID tự động
+            await createDonorProfile(editingUser.id, donorData);
+            showMessage('Cập nhật thông tin người dùng và tạo hồ sơ hiến máu thành công');
+          }
+        } catch (donorError) {
+          // API lỗi hoặc chưa có hồ sơ hiến máu, tạo mới
+          console.log('Creating new donor profile due to error or no existing profile:', donorError.message);
+          try {
+            await createDonorProfile(editingUser.id, donorData);
+            showMessage('Cập nhật thông tin người dùng và tạo hồ sơ hiến máu thành công');
+          } catch (createError) {
+            console.error('Error creating donor profile:', createError);
+            showMessage('Cập nhật thông tin người dùng thành công, nhưng không thể tạo hồ sơ hiến máu. Vui lòng thử lại.', 'warning');
+          }
+        }
+      } else {
+        showMessage('Cập nhật thông tin người dùng thành công');
+      }
       
       // Reload danh sách users
       await loadUsers();
       
-      showMessage('Cập nhật thông tin người dùng thành công');
       setShowModal(false);
       setEditingUser(null);
     } catch (error) {
@@ -389,6 +529,45 @@ const UserManagement = () => {
       case 'Member': return 'success';
       default: return 'secondary';
     }
+  };
+
+  // Hàm lấy tên nhóm máu từ bloodTypeID
+  const getBloodTypeName = (bloodTypeID) => {
+    console.log('==== UserManagement getBloodTypeName DEBUG ====');
+    console.log('Input bloodTypeID:', bloodTypeID);
+    console.log('Type of bloodTypeID:', typeof bloodTypeID);
+    console.log('Is null/undefined?', bloodTypeID == null);
+    
+    const bloodTypeMap = {
+      '44C1A0F7-92B9-4E1B-A628-03447F5B86D7': 'O+ (O Rh dương)',
+      '5BB618E3-25CE-45D8-B980-03D532EC2293': 'B- (B Rh âm)',
+      '11111111-1111-1111-1111-111111111111': 'A+ (A Rh dương)',
+      '11111111-1111-1111-1111-111111111002': 'A- (A Rh âm)',
+      '11111111-1111-1111-1111-111111111003': 'B+ (B Rh dương)',
+      '11111111-1111-1111-1111-111111111004': 'B- (B Rh âm)',
+      '11111111-1111-1111-1111-111111111005': 'AB+ (AB Rh dương)',
+      '11111111-1111-1111-1111-111111111006': 'AB- (AB Rh âm)',
+      '11111111-1111-1111-1111-111111111007': 'O+ (O Rh dương)',
+      '11111111-1111-1111-1111-111111111008': 'O- (O Rh âm)',
+      'FE6B963D-65ED-4681-96FF-213E2B9D7E9B': 'O- (O Rh âm)',
+      'B0B93608-6EA7-4F3E-8B24-37B66BF00C82': 'A+ (A Rh dương)',
+      'C070228E-DA24-4CD8-8286-84C2226674A3': 'B+ (B Rh dương)',
+      '5D60875F-D7DE-4DFE-A057-F8F433A7A932': 'AB- (AB Rh âm)',
+      'A12373C7-3BFC-496E-8021-C0031B9BCDD8': 'A- (A Rh âm)',
+      '5AE0C996-2594-48D2-8023-FD80676E4BCC': 'AB+ (AB Rh dương)'
+    };
+    
+    // Chuẩn hóa bloodTypeID (uppercase)  
+    const normalizedID = String(bloodTypeID).toUpperCase();
+    console.log('Normalized bloodTypeID:', normalizedID);
+    console.log('Available keys in bloodTypeMap:', Object.keys(bloodTypeMap));
+    console.log('Is key found in map?', normalizedID in bloodTypeMap);
+    
+    const result = bloodTypeMap[normalizedID] || 'Chưa xác định';
+    console.log('Blood type mapping result:', result);
+    console.log('==== END UserManagement getBloodTypeName DEBUG ====');
+    
+    return result;
   };
 
   // Thống kê
@@ -735,13 +914,21 @@ const UserManagement = () => {
                           <Card.Body>
                             <div className="info-item mb-3">
                               <strong>Mã hồ sơ hiến máu (donorID):</strong>
-                              <Badge bg="primary" className="ms-2">
-                                {viewingUser.donorID || 'Chưa đăng ký'}
-                              </Badge>
+                              {viewingUser.hasDonorProfile ? (
+                                <Badge bg="success" className="ms-2">
+                                  {viewingUser.donorID}
+                                </Badge>
+                              ) : (
+                                <Badge bg="warning" className="ms-2">
+                                  {viewingUser.donorID}
+                                </Badge>
+                              )}
                             </div>
                             <div className="info-item mb-3">
-                              <strong>ID nhóm máu (bloodTypeID):</strong>
-                              <span className="ms-2">{viewingUser.bloodTypeID || 'Chưa xác định'}</span>
+                              <strong>Nhóm máu (bloodType):</strong>
+                              <span className="ms-2">
+                                {viewingUser.bloodTypeID ? getBloodTypeName(viewingUser.bloodTypeID) : 'Chưa xác định'}
+                              </span>
                             </div>
                             <div className="info-item mb-3">
                               <strong>Trạng thái sẵn sàng (isAvailable):</strong>
@@ -811,16 +998,20 @@ const UserManagement = () => {
                     <hr />
                     
                     <Row>
-                      <Col md={6}>
-                        <Card className="text-center">
-                          <Card.Body>
-                            <FaHeart className="text-danger mb-2" size={24} />
-                            <h5>Trạng thái đăng ký</h5>
-                            <h3 className={`${viewingUser.donorID ? 'text-success' : 'text-warning'}`}>
-                              {viewingUser.donorID ? 'Đã đăng ký' : 'Chưa đăng ký'}
-                            </h3>
-                          </Card.Body>
-                        </Card>
+                      <Col md={6}>                          <Card className="text-center">
+                            <Card.Body>
+                              <FaHeart className="text-danger mb-2" size={24} />
+                              <h5>Trạng thái đăng ký</h5>
+                              <h3 className={`${viewingUser.hasDonorProfile ? 'text-success' : 'text-warning'}`}>
+                                {viewingUser.hasDonorProfile ? 'Đã đăng ký' : 'Chưa đăng ký'}
+                              </h3>
+                              {!viewingUser.hasDonorProfile && (
+                                <small className="text-muted">
+                                  Sử dụng chức năng "Chỉnh sửa" để tạo hồ sơ hiến máu
+                                </small>
+                              )}
+                            </Card.Body>
+                          </Card>
                       </Col>
                       <Col md={6}>
                         <Card className="text-center">
@@ -971,6 +1162,17 @@ const UserManagement = () => {
                     <span><FaHeart className="me-2" />Hồ sơ hiến máu</span>
                   }>
                     <div className="mt-3">
+                      <Alert variant="info" className="mb-3">
+                        <h6 className="mb-1">
+                          <FaHeart className="me-2" />
+                          Hướng dẫn tạo/chỉnh sửa hồ sơ hiến máu
+                        </h6>
+                        <small>
+                          • <strong>Mã hồ sơ hiến máu (donorID)</strong> sẽ được hệ thống tự động tạo dựa trên ID người dùng<br/>
+                          • Hệ thống sẽ tự động tạo hồ sơ mới nếu member chưa có hồ sơ hiến máu<br/>
+                          • Nếu đã có hồ sơ, hệ thống sẽ cập nhật thông tin hiện có
+                        </small>
+                      </Alert>
                       <Card className="mb-3">
                         <Card.Header className="bg-light">
                           <h6 className="mb-0 text-primary">
@@ -986,11 +1188,12 @@ const UserManagement = () => {
                                 <Form.Control
                                   type="text"
                                   name="donorID"
-                                  defaultValue={editingUser.donorID || ''}
-                                  placeholder="VD: DN001"
+                                  value={editingUser.donorID || `DN${editingUser.id.split('-').pop().substring(0, 6).toUpperCase()}`}
+                                  disabled
+                                  className="bg-light"
                                 />
                                 <Form.Text className="text-muted">
-                                  Để trống nếu chưa đăng ký hiến máu
+                                  <strong>Tự động:</strong> Hệ thống sẽ tự động tạo hoặc sử dụng mã hồ sơ hiến máu hiện có.
                                 </Form.Text>
                               </Form.Group>
                             </Col>
@@ -998,16 +1201,27 @@ const UserManagement = () => {
                               <Form.Group className="mb-3">
                                 <Form.Label>ID nhóm máu (bloodTypeID)</Form.Label>
                                 <Form.Select name="bloodTypeID" defaultValue={editingUser.bloodTypeID || ''}>
-                                  <option value="">Chọn ID nhóm máu</option>
-                                  <option value="1">1 - O+</option>
-                                  <option value="2">2 - O-</option>
-                                  <option value="3">3 - A+</option>
-                                  <option value="4">4 - A-</option>
-                                  <option value="5">5 - B+</option>
-                                  <option value="6">6 - B-</option>
-                                  <option value="7">7 - AB+</option>
-                                  <option value="8">8 - AB-</option>
+                                  <option value="">Chọn nhóm máu</option>
+                                  <option value="44C1A0F7-92B9-4E1B-A628-03447F5B86D7">O+ (Nhóm máu O Rh dương)</option>
+                                  <option value="5BB618E3-25CE-45D8-B980-03D532EC2293">B- (Nhóm máu B Rh âm)</option>
+                                  <option value="11111111-1111-1111-1111-111111111111">A+ (Nhóm máu A Rh dương)</option>
+                                  <option value="11111111-1111-1111-1111-111111111002">A- (Nhóm máu A Rh âm)</option>
+                                  <option value="11111111-1111-1111-1111-111111111003">B+ (Nhóm máu B Rh dương)</option>
+                                  <option value="11111111-1111-1111-1111-111111111004">B- (Nhóm máu B Rh âm)</option>
+                                  <option value="11111111-1111-1111-1111-111111111005">AB+ (Nhóm máu AB Rh dương)</option>
+                                  <option value="11111111-1111-1111-1111-111111111006">AB- (Nhóm máu AB Rh âm)</option>
+                                  <option value="11111111-1111-1111-1111-111111111007">O+ (Nhóm máu O Rh dương)</option>
+                                  <option value="11111111-1111-1111-1111-111111111008">O- (Nhóm máu O Rh âm)</option>
+                                  <option value="FE6B963D-65ED-4681-96FF-213E2B9D7E9B">O- (Nhóm máu O Rh âm)</option>
+                                  <option value="B0B93608-6EA7-4F3E-8B24-37B66BF00C82">A+ (Nhóm máu A Rh dương)</option>
+                                  <option value="C070228E-DA24-4CD8-8286-84C2226674A3">B+ (Nhóm máu B Rh dương)</option>
+                                  <option value="5D60875F-D7DE-4DFE-A057-F8F433A7A932">AB- (Nhóm máu AB Rh âm)</option>
+                                  <option value="A12373C7-3BFC-496E-8021-C0031B9BCDD8">A- (Nhóm máu A Rh âm)</option>
+                                  <option value="5AE0C996-2594-48D2-8023-FD80676E4BCC">AB+ (Nhóm máu AB Rh dương)</option>
                                 </Form.Select>
+                                <Form.Text className="text-muted">
+                                  Chọn nhóm máu ABO và Rh của người hiến máu
+                                </Form.Text>
                               </Form.Group>
                             </Col>
                           </Row>
