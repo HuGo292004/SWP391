@@ -17,7 +17,8 @@ import {
   Tab,
   Tabs,
   OverlayTrigger,
-  Tooltip
+  Tooltip,
+  Spinner
 } from 'react-bootstrap';
 import { 
   FaSearch, 
@@ -25,31 +26,37 @@ import {
   FaEye, 
   FaUser, 
   FaUsers, 
-  FaCog, 
   FaPhone, 
   FaHome, 
   FaIdCard, 
   FaCalendarAlt, 
   FaHeart, 
   FaMedkit, 
-  FaShieldAlt,
   FaUserMd,
   FaUserFriends,
-  FaChartBar,
   FaFilter,
-  FaTimes,
-  FaCheck
+  FaSync
 } from 'react-icons/fa';
 import '../../styles/UserManagementBootstrap.css';
+import { 
+  getAllUsers, 
+  getUsersByRole, 
+  searchUserByName, 
+  updateUser, 
+  getUserDetail,
+  formatUserData,
+  formatUserDataForApi,
+  mapRoleForApi,
+  getCurrentUserRole,
+  hasValidToken
+} from '../../services/userManagementApi';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [searchType, setSearchType] = useState('fullName'); // 'fullName', 'username', 'idCard'
+  const [searchType, setSearchType] = useState('fullName'); // 'fullName', 'username', 'userIdCard'
   const [filterRole, setFilterRole] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterBloodType, setFilterBloodType] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [showAlert, setShowAlert] = useState({ show: false, message: '', type: 'success' });
@@ -57,6 +64,27 @@ const UserManagement = () => {
   // State cho modal xem chi tiết
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [viewingUser, setViewingUser] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  
+  // State cho việc cập nhật user
+  const [updating, setUpdating] = useState(false);
+  
+  // State cho kiểm tra quyền
+  const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [canEdit, setCanEdit] = useState(false);
+
+  // Kiểm tra quyền khi component mount
+  useEffect(() => {
+    const role = getCurrentUserRole();
+    setCurrentUserRole(role);
+    // Staff và Admin đều có thể chỉnh sửa thông tin Member
+    setCanEdit(role === 'Admin' || role === 'Staff');
+  }, []);
+
+  // Load users khi component mount
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   // Hàm hiển thị thông báo
   const showMessage = (message, type = 'success') => {
@@ -64,205 +92,146 @@ const UserManagement = () => {
     setTimeout(() => setShowAlert({ show: false, message: '', type: 'success' }), 3000);
   };
 
-  // Mock data - chỉ hiển thị Staff và Member (không hiển thị Admin)
-  const mockUsers = [    {
-      id: 2,
-      username: 'staff01',
-      staffID: 'ST001', // Mã nhân viên
-      email: 'staff01@blooddonate.com',
-      fullName: 'Trần Thị Staff',
-      role: 'Staff',
-      status: 'active',
-      createdAt: '2024-02-10',
-      lastLogin: '2024-12-19',
-      // Thông tin bổ sung
-      phone: '0987654321',
-      address: '123 Đường ABC, Quận 1, TP.HCM',
-      dateOfBirth: '1990-05-15',
-      gender: 'Nữ',
-      idCard: '123456789012',
-      bloodType: 'A+',
-      emergencyContact: '0901234567',
-      department: 'Phòng Kỹ thuật',
-      position: 'Nhân viên',
-      salary: '15,000,000 VND',
-      startDate: '2024-02-10',
-      permissions: ['Quản lý người dùng', 'Theo dõi hiến máu'],
-      // Thông tin hiến máu cho Staff
-      donationCount: 2,
-      lastDonationDate: '2024-09-15',
-      nextEligibleDate: '2024-12-15'
-    },    {
-      id: 3,
-      username: 'member01',
-      userID: 'MB001', // Mã người dùng cho Member
-      email: 'member01@gmail.com',
-      fullName: 'Lê Văn Member',
-      role: 'Member',
-      status: 'active',
-      createdAt: '2024-03-05',
-      lastLogin: '2024-12-18',
-      // Thông tin bổ sung
-      phone: '0912345678',
-      address: '456 Đường XYZ, Quận 3, TP.HCM',
-      dateOfBirth: '1995-08-20',
-      gender: 'Nam',
-      idCard: '987654321098',
-      bloodType: 'O+',
-      emergencyContact: '0908765432',
-      weight: '70kg',
-      height: '175cm',
-      medicalHistory: 'Không có bệnh lý đặc biệt',
-      donationCount: 5,
-      lastDonationDate: '2024-10-15',
-      nextEligibleDate: '2025-01-15'
-    },    {
-      id: 4,
-      username: 'member02',
-      userID: 'MB002', // Mã người dùng cho Member
-      email: 'member02@gmail.com',
-      fullName: 'Phạm Thị Hoa',
-      role: 'Member',
-      status: 'inactive',
-      createdAt: '2024-04-12',
-      lastLogin: '2024-11-20',
-      // Thông tin bổ sung
-      phone: '0923456789',
-      address: '789 Đường DEF, Quận 7, TP.HCM',
-      dateOfBirth: '1988-12-03',
-      gender: 'Nữ',
-      idCard: '456789123456',
-      bloodType: 'B+',
-      emergencyContact: '0934567890',
-      weight: '55kg',
-      height: '160cm',
-      medicalHistory: 'Từng bị thiếu máu nhẹ',
-      donationCount: 2,
-      lastDonationDate: '2024-08-10',
-      nextEligibleDate: '2024-11-10',
-      reasonInactive: 'Tạm ngưng theo yêu cầu cá nhân'
-    },    {
-      id: 5,
-      username: 'staff02',
-      staffID: 'ST002', // Mã nhân viên
-      email: 'staff02@blooddonate.com',
-      fullName: 'Hoàng Văn Staff',
-      role: 'Staff',
-      status: 'active',
-      createdAt: '2024-05-08',
-      lastLogin: '2024-12-15',
-      // Thông tin bổ sung cho Staff
-      phone: '0945678912',
-      address: '321 Đường Staff, Quận 5, TP.HCM',
-      dateOfBirth: '1987-11-22',
-      gender: 'Nam',
-      idCard: '654321987654',
-      bloodType: 'B+',
-      emergencyContact: '0956789123',
-      department: 'Phòng Hành chính',
-      position: 'Trưởng phòng',
-      salary: '20,000,000 VND',
-      startDate: '2024-05-08',
-      permissions: ['Quản lý tài khoản', 'Báo cáo thống kê'],
-      // Thông tin hiến máu cho Staff
-      donationCount: 4,
-      lastDonationDate: '2024-11-05',
-      nextEligibleDate: '2025-02-05'
-    },
-    {
-      id: 6,
-      username: 'member03',
-      email: 'member03@gmail.com',
-      fullName: 'Nguyễn Thị Mai',
-      role: 'Member',
-      status: 'active',
-      createdAt: '2024-06-01',
-      lastLogin: '2024-12-16',
-      // Thông tin bổ sung cho Member
-      phone: '0934567891',
-      address: '159 Đường GHI, Quận 10, TP.HCM',
-      dateOfBirth: '1992-03-14',
-      gender: 'Nữ',
-      idCard: '789123456789',
-      bloodType: 'AB+',
-      emergencyContact: '0967891234',
-      weight: '52kg',
-      height: '158cm',
-      medicalHistory: 'Không có vấn đề sức khỏe',
-      donationCount: 3,
-      lastDonationDate: '2024-09-20',
-      nextEligibleDate: '2024-12-20'
-    },
-    {
-      id: 7,
-      username: 'staff03',
-      email: 'staff03@blooddonate.com',
-      fullName: 'Lê Văn Nam',
-      role: 'Staff',
-      status: 'inactive',
-      createdAt: '2024-07-15',
-      lastLogin: '2024-10-30',
-      // Thông tin bổ sung cho Staff
-      phone: '0978912345',
-      address: '753 Đường Staff3, Quận 4, TP.HCM',
-      dateOfBirth: '1985-07-08',
-      gender: 'Nam',
-      idCard: '147258369147',
-      bloodType: 'O-',
-      emergencyContact: '0989123456',
-      department: 'Phòng Y tế',
-      position: 'Bác sĩ',
-      salary: '25,000,000 VND',
-      startDate: '2024-07-15',
-      permissions: ['Khám sàng lọc', 'Tư vấn y tế'],
-      reasonInactive: 'Nghỉ thai sản',
-      donationCount: 1,
-      lastDonationDate: '2024-06-20',
-      nextEligibleDate: '2024-09-20'
-    }
-  ];
-
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
+  // Hàm tải danh sách người dùng từ API
   const loadUsers = async () => {
     setLoading(true);
     try {
-      // Giả lập API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setUsers(mockUsers);
+      let userData;
+      
+      // Nếu có filter role và không phải 'all', sử dụng API lọc theo role
+      if (filterRole && filterRole !== 'all') {
+        const apiRole = mapRoleForApi(filterRole);
+        userData = await getUsersByRole(apiRole);
+      } else {
+        // Ngược lại, lấy tất cả user
+        userData = await getAllUsers();
+      }
+      
+      // Handle different response formats
+      let usersArray = [];
+      if (Array.isArray(userData)) {
+        usersArray = userData;
+      } else if (userData && userData.users && Array.isArray(userData.users)) {
+        usersArray = userData.users;
+      } else if (userData && userData.data && Array.isArray(userData.data)) {
+        usersArray = userData.data;
+      } else if (userData && typeof userData === 'object') {
+        // If it's an object, try to find array property
+        const possibleArrays = Object.values(userData).filter(val => Array.isArray(val));
+        if (possibleArrays.length > 0) {
+          usersArray = possibleArrays[0];
+        }
+      }
+      
+      // Format dữ liệu từ API
+      const formattedUsers = usersArray.map(formatUserData);
+      
+      // Lọc bỏ Admin nếu cần thiết (tùy theo business logic)
+      const filteredUsers = formattedUsers.filter(user => user.role !== 'Admin');
+      
+      setUsers(filteredUsers);
     } catch (error) {
-      showMessage('Không thể tải danh sách người dùng', 'danger');
+      console.error('Error loading users:', error);
+      showMessage(`Không thể tải danh sách người dùng: ${error.message}`, 'danger');
+      // Fallback to empty array
+      setUsers([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // Hàm tìm kiếm người dùng
+  const performSearch = async (searchValue) => {
+    if (!searchValue.trim()) {
+      // Nếu không có text tìm kiếm, load lại tất cả users
+      loadUsers();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let userData;
+      
+      if (searchType === 'fullName') {
+        // Sử dụng API tìm kiếm theo tên
+        userData = await searchUserByName(searchValue);
+      } else {
+        // Đối với các loại tìm kiếm khác, vẫn lấy tất cả rồi filter client-side
+        userData = await getAllUsers();
+      }
+      
+      // Handle different response formats
+      let usersArray = [];
+      if (Array.isArray(userData)) {
+        usersArray = userData;
+      } else if (userData && userData.users && Array.isArray(userData.users)) {
+        usersArray = userData.users;
+      } else if (userData && userData.data && Array.isArray(userData.data)) {
+        usersArray = userData.data;
+      } else if (userData && typeof userData === 'object') {
+        // If it's an object, try to find array property
+        const possibleArrays = Object.values(userData).filter(val => Array.isArray(val));
+        if (possibleArrays.length > 0) {
+          usersArray = possibleArrays[0];
+        }
+      }
+      
+      const formattedUsers = usersArray.map(formatUserData);
+      
+      // Filter client-side cho các loại tìm kiếm không có API riêng
+      let filteredUsers = formattedUsers;
+      
+      if (searchType !== 'fullName') {
+        filteredUsers = formattedUsers.filter(user => {
+          switch (searchType) {
+            case 'username':
+              return user.username && user.username.toLowerCase().includes(searchValue.toLowerCase());
+            case 'userIdCard':
+              return user.userIdCard && user.userIdCard.includes(searchValue);
+            default:
+              return true;
+          }
+        });
+      }
+      
+      // Lọc bỏ Admin
+      filteredUsers = filteredUsers.filter(user => user.role !== 'Admin');
+      
+      setUsers(filteredUsers);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      showMessage(`Lỗi tìm kiếm: ${error.message}`, 'danger');
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSearch = (value) => {
     setSearchText(value);
-    console.log('Search triggered:', { searchType, value });
+    // Debounce search - thực hiện tìm kiếm sau 300ms
+    const timeoutId = setTimeout(() => {
+      performSearch(value);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
   };
+
   const handleSearchTypeChange = (type) => {
-    console.log('Dropdown clicked, changing search type to:', type);
     setSearchType(type);
-    console.log('Search type changed to:', type);
     // Clear search text when changing search type
     if (searchText) {
       setSearchText('');
-      console.log('Search text cleared');
+      performSearch(''); // Reset to all users
     }
   };
 
   const handleRoleFilter = (value) => {
     setFilterRole(value);
-  };
-
-  const handleStatusFilter = (value) => {
-    setFilterStatus(value);
-  };
-
-  const handleBloodTypeFilter = (value) => {
-    setFilterBloodType(value);
+    // Reload users with new filter
+    setTimeout(() => {
+      loadUsers();
+    }, 100);
   };
 
   // Logic tìm kiếm và lọc
@@ -280,8 +249,8 @@ const UserManagement = () => {
         case 'username':
           matchSearch = user.username.toLowerCase().includes(searchText.toLowerCase());
           break;
-        case 'idCard':
-          matchSearch = user.idCard && user.idCard.includes(searchText);
+        case 'userIdCard':
+          matchSearch = user.userIdCard && user.userIdCard.includes(searchText);
           break;
         default:
           matchSearch = true;
@@ -291,15 +260,27 @@ const UserManagement = () => {
     }
 
     const matchRole = filterRole === 'all' || user.role === filterRole;
-    const matchStatus = filterStatus === 'all' || user.status === filterStatus;
-    const matchBloodType = filterBloodType === 'all' || user.bloodType === filterBloodType;
     
-    return matchSearch && matchRole && matchStatus && matchBloodType;
+    return matchSearch && matchRole;
   });
 
-  const showUserDetail = (user) => {
-    setViewingUser(user);
-    setShowDetailModal(true);
+  const showUserDetail = async (user) => {
+    setLoadingDetail(true);
+    try {
+      // Lấy chi tiết đầy đủ từ API
+      const detailData = await getUserDetail(user.id);
+      const formattedDetail = formatUserData(detailData);
+      setViewingUser(formattedDetail);
+      setShowDetailModal(true);
+    } catch (error) {
+      console.error('Error fetching user detail:', error);
+      showMessage(`Không thể tải chi tiết người dùng: ${error.message}`, 'danger');
+      // Fallback to current user data
+      setViewingUser(user);
+      setShowDetailModal(true);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
   
   const handleDetailCancel = () => {
@@ -307,15 +288,51 @@ const UserManagement = () => {
     setViewingUser(null);
   };
 
-  const showEditModal = (user) => {
-    // Chỉ cho phép sửa thông tin Member, không cho phép sửa Staff
-    if (user.role === 'Staff') {
-      showMessage('Bạn không có quyền chỉnh sửa thông tin của Staff khác', 'warning');
+  const showEditModal = async (user) => {
+    // Kiểm tra quyền trước khi cho phép edit
+    if (!canEdit) {
+      showMessage('Bạn không có quyền chỉnh sửa thông tin người dùng. Chỉ Admin và Staff mới có thể thực hiện thao tác này.', 'danger');
       return;
     }
     
-    setEditingUser(user);
-    setShowModal(true);
+    if (!hasValidToken()) {
+      showMessage('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'danger');
+      return;
+    }
+    
+    // Kiểm tra quyền chỉnh sửa theo role
+    if (user.role === 'Staff') {
+      // Staff không được chỉnh sửa Staff khác (chỉ Admin mới được)
+      if (currentUserRole === 'Staff') {
+        showMessage('Staff không có quyền chỉnh sửa thông tin của Staff khác', 'warning');
+        return;
+      }
+    }
+    
+    // Admin có thể chỉnh sửa Admin khác, nhưng Staff thì không
+    if (user.role === 'Admin') {
+      if (currentUserRole !== 'Admin') {
+        showMessage('Bạn không có quyền chỉnh sửa thông tin của Admin', 'warning');
+        return;
+      }
+    }
+    
+    setLoadingDetail(true);
+    try {
+      // Lấy chi tiết đầy đủ từ API trước khi edit
+      const detailData = await getUserDetail(user.id);
+      const formattedDetail = formatUserData(detailData);
+      setEditingUser(formattedDetail);
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error fetching user detail for edit:', error);
+      showMessage(`Không thể tải thông tin chi tiết: ${error.message}`, 'warning');
+      // Fallback to current user data
+      setEditingUser(user);
+      setShowModal(true);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const handleCancel = () => {
@@ -325,54 +342,45 @@ const UserManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Kiểm tra quyền trước khi thực hiện
+    if (!canEdit) {
+      showMessage('Bạn không có quyền chỉnh sửa thông tin người dùng. Chỉ Admin và Staff mới có thể thực hiện thao tác này.', 'danger');
+      return;
+    }
+    
+    if (!hasValidToken()) {
+      showMessage('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'danger');
+      return;
+    }
+    
+    setUpdating(true);
+    
     const formData = new FormData(e.target);
     const values = Object.fromEntries(formData.entries());
     
     try {
-      // Xử lý dữ liệu trước khi lưu
-      const processedValues = {
-        ...values,
-        // Xử lý weight và height - thêm đơn vị nếu cần
-        weight: values.weight ? `${values.weight}kg` : '',
-        height: values.height ? `${values.height}cm` : '',
-        // Chuyển donationCount về number
-        donationCount: parseInt(values.donationCount) || 0
-      };
+      // Xử lý dữ liệu trước khi gửi API
+      const processedValues = formatUserDataForApi(values);
       
-      // Chỉ cập nhật thông tin Member
-      const updatedUsers = users.map(user => 
-        user.id === editingUser.id ? { ...user, ...processedValues } : user
-      );
-      setUsers(updatedUsers);
+      // Gọi API cập nhật
+      await updateUser(editingUser.id, processedValues);
+      
+      // Reload danh sách users
+      await loadUsers();
+      
       showMessage('Cập nhật thông tin người dùng thành công');
       setShowModal(false);
       setEditingUser(null);
     } catch (error) {
-      showMessage('Có lỗi xảy ra khi cập nhật thông tin', 'danger');
+      console.error('Error updating user:', error);
+      showMessage(`Lỗi cập nhật: ${error.message}`, 'danger');
+    } finally {
+      setUpdating(false);
     }
   };
 
-  const toggleUserStatus = async (userId, currentStatus) => {
-    try {
-      // Tìm user để kiểm tra role
-      const targetUser = users.find(user => user.id === userId);
-      
-      // Kiểm tra quyền: Staff không được vô hiệu hóa Staff khác
-      if (targetUser && targetUser.role === 'Staff') {
-        showMessage('Bạn không có quyền thay đổi trạng thái của Staff khác', 'warning');
-        return;
-      }
-      
-      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-      const updatedUsers = users.map(user =>
-        user.id === userId ? { ...user, status: newStatus } : user
-      );
-      setUsers(updatedUsers);
-      showMessage(`${newStatus === 'active' ? 'Kích hoạt' : 'Vô hiệu hóa'} người dùng thành công`);
-    } catch (error) {
-      showMessage('Không thể thay đổi trạng thái người dùng', 'danger');
-    }
-  };
+
 
   const getRoleBadgeVariant = (role) => {
     switch (role) {
@@ -383,28 +391,12 @@ const UserManagement = () => {
     }
   };
 
-  const getStatusBadgeVariant = (status) => {
-    return status === 'active' ? 'success' : 'danger';
-  };
-
   // Thống kê
   const stats = {
     total: users.length,
-    active: users.filter(u => u.status === 'active').length,
     staff: users.filter(u => u.role === 'Staff').length,
     member: users.filter(u => u.role === 'Member').length,
   };
-
-  // Debug useEffect
-  useEffect(() => {
-    console.log('Filter states updated:', { 
-      searchType, 
-      searchText, 
-      filterRole, 
-      filterStatus, 
-      filterBloodType 
-    });
-  }, [searchType, searchText, filterRole, filterStatus, filterBloodType]);
 
   return (
     <Container fluid className="user-management-container">
@@ -421,7 +413,7 @@ const UserManagement = () => {
 
       {/* Thống kê */}
       <Row className="mb-4">
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={4} md={6} className="mb-3">
           <Card className="stats-card h-100">
             <Card.Body className="text-center">
               <div className="d-flex align-items-center justify-content-center mb-2">
@@ -432,18 +424,7 @@ const UserManagement = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col lg={3} md={6} className="mb-3">
-          <Card className="stats-card h-100">
-            <Card.Body className="text-center">
-              <div className="d-flex align-items-center justify-content-center mb-2">
-                <FaCheck className="me-2 text-success" size={24} />
-                <h5 className="mb-0">Đang hoạt động</h5>
-              </div>
-              <h3 className="text-success mb-0">{stats.active}</h3>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={4} md={6} className="mb-3">
           <Card className="stats-card h-100">
             <Card.Body className="text-center">
               <div className="d-flex align-items-center justify-content-center mb-2">
@@ -454,7 +435,7 @@ const UserManagement = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col lg={3} md={6} className="mb-3">
+        <Col lg={4} md={6} className="mb-3">
           <Card className="stats-card h-100">
             <Card.Body className="text-center">
               <div className="d-flex align-items-center justify-content-center mb-2">
@@ -469,7 +450,7 @@ const UserManagement = () => {
       <Card className="search-filter-section mb-4">
         <Card.Body>
           <Row className="align-items-center">
-            <Col lg={5} md={12} className="mb-3 mb-lg-0">
+            <Col lg={7} md={8} className="mb-3 mb-lg-0">
               <InputGroup>
                 <DropdownButton
                   variant="outline-secondary"
@@ -477,7 +458,7 @@ const UserManagement = () => {
                     searchType === 'id' ? 'ID' :
                     searchType === 'fullName' ? 'Họ và tên' :
                     searchType === 'username' ? 'Username' :
-                    searchType === 'idCard' ? 'CMND/CCCD' :
+                    searchType === 'userIdCard' ? 'CMND/CCCD' :
                     'Chọn loại tìm kiếm'
                   }
                   id="search-type-dropdown"
@@ -500,8 +481,8 @@ const UserManagement = () => {
                     Username
                   </Dropdown.Item>
                   <Dropdown.Item 
-                    onClick={() => handleSearchTypeChange('idCard')}
-                    active={searchType === 'idCard'}
+                    onClick={() => handleSearchTypeChange('userIdCard')}
+                    active={searchType === 'userIdCard'}
                   >
                     CMND/CCCD
                   </Dropdown.Item>
@@ -512,7 +493,7 @@ const UserManagement = () => {
                     searchType === 'id' ? 'Nhập ID người dùng...' :
                     searchType === 'fullName' ? 'Nhập họ và tên...' :
                     searchType === 'username' ? 'Nhập username...' :
-                    searchType === 'idCard' ? 'Nhập số CMND/CCCD...' :
+                    searchType === 'userIdCard' ? 'Nhập số CMND/CCCD...' :
                     'Nhập từ khóa tìm kiếm...'
                   }
                   value={searchText}
@@ -524,31 +505,20 @@ const UserManagement = () => {
                 </Button>
               </InputGroup>
             </Col>
-            <Col lg={2} md={4} className="mb-3 mb-lg-0">
-              <Form.Select value={filterRole} onChange={(e) => handleRoleFilter(e.target.value)}>
+            <Col lg={5} md={4} className="mb-3 mb-lg-0 d-flex gap-2 align-items-center">
+              <Button 
+                variant="outline-primary" 
+                onClick={loadUsers}
+                disabled={loading}
+                className="me-2"
+                title="Refresh danh sách"
+              >
+                {loading ? <Spinner animation="border" size="sm" /> : <FaSync />}
+              </Button>
+              <Form.Select value={filterRole} onChange={(e) => handleRoleFilter(e.target.value)} style={{minWidth: '150px'}}>
                 <option value="all">Tất cả vai trò</option>
                 <option value="Staff">Staff</option>
                 <option value="Member">Member</option>
-              </Form.Select>
-            </Col>
-            <Col lg={2} md={4} className="mb-3 mb-lg-0">
-              <Form.Select value={filterStatus} onChange={(e) => handleStatusFilter(e.target.value)}>
-                <option value="all">Tất cả trạng thái</option>
-                <option value="active">Hoạt động</option>
-                <option value="inactive">Không hoạt động</option>
-              </Form.Select>
-            </Col>
-            <Col lg={3} md={4} className="mb-3 mb-lg-0">
-              <Form.Select value={filterBloodType} onChange={(e) => handleBloodTypeFilter(e.target.value)}>
-                <option value="all">Tất cả nhóm máu</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
               </Form.Select>
             </Col>
           </Row>
@@ -563,20 +533,16 @@ const UserManagement = () => {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Tên đăng nhập</th>
                   <th>Họ và tên</th>
                   <th>Email</th>
                   <th>Vai trò</th>
-                  <th>Trạng thái</th>
-                  <th>Nhóm máu</th>
-                  <th>Ngày có thể hiến máu gần nhất</th>
                   <th>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="text-center">
+                    <td colSpan={5} className="text-center">
                       <div className="spinner-border" role="status">
                         <span className="visually-hidden">Loading...</span>
                       </div>
@@ -584,7 +550,7 @@ const UserManagement = () => {
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center text-muted">
+                    <td colSpan={5} className="text-center text-muted">
                       Không có dữ liệu phù hợp
                     </td>
                   </tr>
@@ -592,7 +558,6 @@ const UserManagement = () => {
                   filteredUsers.map(user => (
                     <tr key={user.id}>
                       <td>{user.id}</td>
-                      <td>{user.username}</td>
                       <td>
                         <div className="d-flex align-items-center">
                           <FaUser className="me-2 text-muted" />
@@ -604,31 +569,6 @@ const UserManagement = () => {
                         <Badge bg={getRoleBadgeVariant(user.role)}>
                           {user.role}
                         </Badge>
-                      </td>
-                      <td>
-                        <Badge bg={getStatusBadgeVariant(user.status)}>
-                          {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-                        </Badge>
-                      </td>                      <td>
-                        {user.role === 'Staff' ? (
-                          <Badge bg="secondary">N/A</Badge>
-                        ) : (
-                          <Badge bg="danger" className="blood-type-badge">
-                            {user.bloodType || 'Chưa xác định'}
-                          </Badge>
-                        )}
-                      </td>
-                      <td>
-                        {user.role === 'Staff' ? (
-                          <Badge bg="secondary">N/A</Badge>
-                        ) : (
-                          <Badge bg={
-                            user.nextEligibleDate && new Date(user.nextEligibleDate) <= new Date() 
-                              ? 'success' : 'warning'
-                          }>
-                            {user.nextEligibleDate || 'Chưa xác định'}
-                          </Badge>
-                        )}
                       </td>
                       <td>
                         <div className="d-flex gap-2">
@@ -645,32 +585,21 @@ const UserManagement = () => {
                             </Button>
                           </OverlayTrigger>
                           
-                          {user.role === 'Member' && (
+                          {/* Hiển thị nút chỉnh sửa dựa trên quyền */}
+                          {((user.role === 'Member') || 
+                            (user.role === 'Staff' && currentUserRole === 'Admin') ||
+                            (user.role === 'Admin' && currentUserRole === 'Admin')) && (
                             <OverlayTrigger
                               placement="top"
-                              overlay={<Tooltip>Chỉnh sửa</Tooltip>}
+                              overlay={<Tooltip>{canEdit ? 'Chỉnh sửa' : 'Chỉ Admin và Staff có quyền chỉnh sửa'}</Tooltip>}
                             >
                               <Button
                                 variant="outline-warning"
                                 size="sm"
                                 onClick={() => showEditModal(user)}
+                                disabled={!canEdit}
                               >
                                 <FaEdit />
-                              </Button>
-                            </OverlayTrigger>
-                          )}
-                          
-                          {user.role === 'Member' && (
-                            <OverlayTrigger
-                              placement="top"
-                              overlay={<Tooltip>{user.status === 'active' ? 'Vô hiệu hóa' : 'Kích hoạt'}</Tooltip>}
-                            >
-                              <Button
-                                variant={user.status === 'active' ? 'outline-danger' : 'outline-success'}
-                                size="sm"
-                                onClick={() => toggleUserStatus(user.id, user.status)}
-                              >
-                                {user.status === 'active' ? <FaTimes /> : <FaCheck />}
                               </Button>
                             </OverlayTrigger>
                           )}
@@ -691,21 +620,28 @@ const UserManagement = () => {
           <Modal.Title>
             <FaUser className="me-2" />
             Chi tiết người dùng
+            {loadingDetail && <Spinner animation="border" size="sm" className="ms-2" />}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {viewingUser && (
+          {loadingDetail ? (
+            <div className="text-center p-4">
+              <Spinner animation="border" />
+              <p className="mt-2">Đang tải thông tin chi tiết...</p>
+            </div>
+          ) : viewingUser && (
             <Tabs defaultActiveKey="personal" id="user-detail-tabs">
               <Tab eventKey="personal" title={
                 <span><FaUser className="me-2" />Thông tin cá nhân</span>
               }>                <div className="mt-3">
                   <Row>
-                    <Col md={6}>                      <div className="info-item">
+                    <Col md={6}>
+                      <div className="info-item">
                         <strong>Mã người dùng:</strong>
                         <span>
-                          {viewingUser.role === 'Member' ? (viewingUser.userID || 'MB001') : 
-                           viewingUser.role === 'Staff' ? (viewingUser.staffID || 'ST001') :
-                           (viewingUser.staffID || 'AD001')}
+                          {viewingUser.role === 'Member' ? (viewingUser.userID || viewingUser.id) : 
+                           viewingUser.role === 'Staff' ? (viewingUser.staffID || viewingUser.id) :
+                           viewingUser.id}
                         </span>
                       </div>
                     </Col>
@@ -713,15 +649,6 @@ const UserManagement = () => {
                       <div className="info-item">
                         <strong>Họ và tên:</strong>
                         <span>{viewingUser.fullName}</span>
-                      </div>
-                    </Col>
-                  </Row>
-                  
-                  <Row>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Username:</strong>
-                        <span>{viewingUser.username}</span>
                       </div>
                     </Col>
                   </Row>
@@ -741,23 +668,25 @@ const UserManagement = () => {
                         </strong>
                         <span>{viewingUser.phone || 'Chưa cập nhật'}</span>
                       </div>
-                    </Col>                  </Row>
+                    </Col>
+                  </Row>
                   
                   <Row>
-                    <Col md={4}>
-                      <div className="info-item">
-                        <strong>Giới tính:</strong>
-                        <span>{viewingUser.gender || 'Chưa cập nhật'}</span>
-                      </div>
-                    </Col>
-                    <Col md={4}>
+                    <Col md={6}>
                       <div className="info-item">
                         <strong>
                           <FaIdCard className="me-2" />
-                          CMND/CCCD:
+                          CCCD/CMND:
                         </strong>
-                        <span>{viewingUser.idCard || 'Chưa cập nhật'}</span>
-                      </div>                    </Col>
+                        <span>{viewingUser.userIdCard || 'Chưa cập nhật'}</span>
+                      </div>
+                    </Col>
+                    <Col md={6}>
+                      <div className="info-item">
+                        <strong>Ngày sinh:</strong>
+                        <span>{viewingUser.dateOfBirth || 'Chưa cập nhật'}</span>
+                      </div>
+                    </Col>
                   </Row>
                   
                   {/* Chỉ hiển thị cho Member */}
@@ -774,24 +703,6 @@ const UserManagement = () => {
                           </div>
                         </Col>
                       </Row>
-                      
-                      <Row>
-                        <Col md={4}>
-                          <div className="info-item">
-                            <strong>Ngày sinh:</strong>
-                            <span>{viewingUser.dateOfBirth || 'Chưa cập nhật'}</span>
-                          </div>
-                        </Col>
-                        <Col md={8}>
-                          <div className="info-item">
-                            <strong>
-                              <FaPhone className="me-2 text-danger" />
-                              Liên hệ khẩn cấp:
-                            </strong>
-                            <span>{viewingUser.emergencyContact || 'Chưa cập nhật'}</span>
-                          </div>
-                        </Col>
-                      </Row>
                     </>
                   )}
                   
@@ -804,123 +715,121 @@ const UserManagement = () => {
                         </Badge>
                       </div>
                     </Col>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Trạng thái:</strong>
-                        <Badge bg={getStatusBadgeVariant(viewingUser.status)} className="ms-2">
-                          {viewingUser.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-                        </Badge>
-                      </div>
-                    </Col>
                   </Row></div>
               </Tab>
               
               {viewingUser.role === 'Member' && (
                 <Tab eventKey="medical" title={
-                  <span><FaHeart className="me-2" />Thông tin y tế</span>
+                  <span><FaHeart className="me-2" />Hồ sơ hiến máu</span>
                 }>
                   <div className="mt-3">
                     <Row>
-                      <Col md={4}>
-                        <div className="info-item">
-                          <strong>Nhóm máu:</strong>
-                          <Badge bg="danger" className="ms-2 blood-type-badge">
-                            {viewingUser.bloodType || 'Chưa xác định'}
-                          </Badge>
-                        </div>
+                      <Col md={6}>
+                        <Card className="h-100">
+                          <Card.Header className="bg-light">
+                            <h6 className="mb-0 text-primary">
+                              <FaUser className="me-2" />
+                              Thông tin cơ bản
+                            </h6>
+                          </Card.Header>
+                          <Card.Body>
+                            <div className="info-item mb-3">
+                              <strong>Mã hồ sơ hiến máu (donorID):</strong>
+                              <Badge bg="primary" className="ms-2">
+                                {viewingUser.donorID || 'Chưa đăng ký'}
+                              </Badge>
+                            </div>
+                            <div className="info-item mb-3">
+                              <strong>ID nhóm máu (bloodTypeID):</strong>
+                              <span className="ms-2">{viewingUser.bloodTypeID || 'Chưa xác định'}</span>
+                            </div>
+                            <div className="info-item mb-3">
+                              <strong>Trạng thái sẵn sàng (isAvailable):</strong>
+                              <Badge 
+                                bg={viewingUser.isAvailable !== false ? 'success' : 'warning'} 
+                                className="ms-2"
+                              >
+                                {viewingUser.isAvailable !== false ? 'Có thể hiến máu' : 'Không thể hiến máu'}
+                              </Badge>
+                            </div>
+                          </Card.Body>
+                        </Card>
                       </Col>
-                      <Col md={4}>
-                        <div className="info-item">
-                          <strong>Cân nặng:</strong>
-                          <span>{viewingUser.weight || 'Chưa cập nhật'}</span>
-                        </div>
-                      </Col>
-                      <Col md={4}>
-                        <div className="info-item">
-                          <strong>Chiều cao:</strong>
-                          <span>{viewingUser.height || 'Chưa cập nhật'}</span>
-                        </div>
+                      <Col md={6}>
+                        <Card className="h-100">
+                          <Card.Header className="bg-light">
+                            <h6 className="mb-0 text-info">
+                              <FaCalendarAlt className="me-2" />
+                              Lịch trình hiến máu
+                            </h6>
+                          </Card.Header>
+                          <Card.Body>
+                            <div className="info-item mb-3">
+                              <strong>
+                                <FaCalendarAlt className="me-2" />
+                                Lần hiến máu cuối (lastDonationDate):
+                              </strong>
+                              <span className="ms-2">{viewingUser.lastDonationDate || 'Chưa hiến máu lần nào'}</span>
+                            </div>
+                            <div className="info-item mb-3">
+                              <strong>
+                                <FaCalendarAlt className="me-2" />
+                                Có thể hiến tiếp theo (nextEligibleDate):
+                              </strong>
+                              <span className="ms-2">{viewingUser.nextEligibleDate || 'Có thể hiến ngay'}</span>
+                            </div>
+                            <div className="info-item mb-3">
+                              <strong>
+                                <FaHome className="me-2" />
+                                Địa chỉ:
+                              </strong>
+                              <span className="ms-2">{viewingUser.address || 'Chưa cập nhật địa chỉ'}</span>
+                            </div>
+                          </Card.Body>
+                        </Card>
                       </Col>
                     </Row>
                     
-                    <Row>
-                      <Col md={4}>
-                        <div className="info-item">
-                          <strong>Số lần hiến máu:</strong>
-                          <Badge bg="success" className="ms-2">
-                            {viewingUser.donationCount || 0}
-                          </Badge>
-                        </div>
-                      </Col>
-                      <Col md={4}>
-                        <div className="info-item">
-                          <strong>Lần hiến máu cuối:</strong>
-                          <span>{viewingUser.lastDonationDate || 'Chưa hiến máu'}</span>
-                        </div>
-                      </Col>
-                      <Col md={4}>
-                        <div className="info-item">
-                          <strong>Ngày có thể hiến tiếp:</strong>
-                          <Badge bg={
-                            viewingUser.nextEligibleDate && new Date(viewingUser.nextEligibleDate) <= new Date() 
-                              ? 'success' : 'warning'
-                          } className="ms-2">
-                            {viewingUser.nextEligibleDate || 'Chưa xác định'}
-                          </Badge>
-                        </div>
-                      </Col>
-                    </Row>
-                    
-                    <Row>
+                    <Row className="mt-3">
                       <Col md={12}>
-                        <div className="info-item">
-                          <strong>
-                            <FaMedkit className="me-2" />
-                            Tiền sử bệnh:
-                          </strong>
-                          <span>{viewingUser.medicalHistory || 'Không có thông tin'}</span>
-                        </div>
+                        <Card>
+                          <Card.Header className="bg-light">
+                            <h6 className="mb-0 text-warning">
+                              <FaMedkit className="me-2" />
+                              Thuốc đang sử dụng (currentMedications):
+                            </h6>
+                          </Card.Header>
+                          <Card.Body>
+                            <div className="info-item">
+                              <span>{viewingUser.currentMedications || 'Không có thuốc đang sử dụng'}</span>
+                            </div>
+                          </Card.Body>
+                        </Card>
                       </Col>
                     </Row>
                     
                     <hr />
                     
                     <Row>
-                      <Col md={4}>
+                      <Col md={6}>
                         <Card className="text-center">
                           <Card.Body>
                             <FaHeart className="text-danger mb-2" size={24} />
-                            <h5>Tổng lần hiến</h5>
-                            <h3 className="text-danger">{viewingUser.donationCount || 0}</h3>
+                            <h5>Trạng thái đăng ký</h5>
+                            <h3 className={`${viewingUser.donorID ? 'text-success' : 'text-warning'}`}>
+                              {viewingUser.donorID ? 'Đã đăng ký' : 'Chưa đăng ký'}
+                            </h3>
                           </Card.Body>
                         </Card>
                       </Col>
-                      <Col md={4}>
+                      <Col md={6}>
                         <Card className="text-center">
                           <Card.Body>
                             <FaMedkit className="text-primary mb-2" size={24} />
-                            <h5>Lượng máu đã hiến</h5>
-                            <h3 className="text-primary">{(viewingUser.donationCount || 0) * 350}ml</h3>
-                          </Card.Body>
-                        </Card>
-                      </Col>
-                      <Col md={4}>
-                        <Card className="text-center">
-                          <Card.Body>
-                            <FaCheck className={`mb-2 ${
-                              viewingUser.nextEligibleDate && new Date(viewingUser.nextEligibleDate) <= new Date()
-                                ? 'text-success' : 'text-danger'
-                            }`} size={24} />
-                            <h5>Trạng thái hiến máu</h5>
-                            <h6 className={
-                              viewingUser.nextEligibleDate && new Date(viewingUser.nextEligibleDate) <= new Date()
-                                ? 'text-success' : 'text-danger'
-                            }>
-                              {viewingUser.nextEligibleDate && new Date(viewingUser.nextEligibleDate) <= new Date()
-                                ? 'Có thể hiến'
-                                : 'Chưa đủ thời gian'
-                              }
-                            </h6>
+                            <h5>Tình trạng sức khỏe</h5>
+                            <h3 className={`${viewingUser.isAvailable !== false ? 'text-success' : 'text-warning'}`}>
+                              {viewingUser.isAvailable !== false ? 'Khỏe mạnh' : 'Cần kiểm tra'}
+                            </h3>
                           </Card.Body>
                         </Card>
                       </Col>
@@ -954,31 +863,18 @@ const UserManagement = () => {
                   <span><FaUser className="me-2" />Thông tin cơ bản</span>
                 }>                  <div className="mt-3">
                     <Row>
-                      <Col md={6}>                        <Form.Group className="mb-3">
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
                           <Form.Label>Mã người dùng</Form.Label>
                           <Form.Control
                             type="text"
-                            value={editingUser.role === 'Member' ? (editingUser.userID || 'MB001') : 
-                                   editingUser.role === 'Staff' ? (editingUser.staffID || 'ST001') :
-                                   (editingUser.staffID || 'AD001')}
+                            value={editingUser.role === 'Member' ? (editingUser.userID || editingUser.id) : 
+                                   editingUser.role === 'Staff' ? (editingUser.staffID || editingUser.id) :
+                                   editingUser.id}
                             disabled
                           />
                         </Form.Group>
                       </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Tên đăng nhập</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="username"
-                            defaultValue={editingUser.username}
-                            disabled
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                    
-                    <Row>
                       <Col md={6}>
                         <Form.Group className="mb-3">
                           <Form.Label>Họ và tên *</Form.Label>
@@ -992,17 +888,18 @@ const UserManagement = () => {
                       </Col>
                     </Row>
                     
-                    <Form.Group className="mb-3">
-                      <Form.Label>Email *</Form.Label>
-                      <Form.Control
-                        type="email"
-                        name="email"
-                        defaultValue={editingUser.email}
-                        required
-                      />
-                    </Form.Group>
-                    
                     <Row>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Email *</Form.Label>
+                          <Form.Control
+                            type="email"
+                            name="email"
+                            defaultValue={editingUser.email}
+                            required
+                          />
+                        </Form.Group>
+                      </Col>
                       <Col md={6}>
                         <Form.Group className="mb-3">
                           <Form.Label>Số điện thoại</Form.Label>
@@ -1012,76 +909,47 @@ const UserManagement = () => {
                             defaultValue={editingUser.phone || ''}
                             pattern="[0-9]{10,11}"
                           />
-                        </Form.Group>                      </Col>
-                    </Row>
-                    
-                    {/* Chỉ hiển thị cho Member */}
-                    {editingUser?.role === 'Member' && (
-                      <>
-                        <Row>
-                          <Col md={6}>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Liên hệ khẩn cấp</Form.Label>
-                              <Form.Control
-                                type="tel"
-                                name="emergencyContact"
-                                defaultValue={editingUser.emergencyContact || ''}
-                                pattern="[0-9]{10,11}"
-                              />
-                            </Form.Group>
-                          </Col>
-                        </Row>
-                        
-                        <Form.Group className="mb-3">
-                          <Form.Label>Địa chỉ</Form.Label>
-                          <Form.Control
-                            as="textarea"
-                            rows={2}
-                            name="address"
-                            defaultValue={editingUser.address || ''}
-                          />
-                        </Form.Group>
-                        
-                        <Row>
-                          <Col md={4}>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Ngày sinh</Form.Label>
-                              <Form.Control
-                                type="date"
-                                name="dateOfBirth"
-                                defaultValue={editingUser.dateOfBirth || ''}
-                              />
-                            </Form.Group>
-                          </Col>
-                        </Row>
-                      </>
-                    )}
-                    
-                    <Row>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Giới tính</Form.Label>
-                          <Form.Select name="gender" defaultValue={editingUser.gender || ''}>
-                            <option value="">Chọn giới tính</option>
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                            <option value="Khác">Khác</option>
-                          </Form.Select>
                         </Form.Group>
                       </Col>
-                      <Col md={4}>
+                    </Row>
+                    
+                    <Row>
+                      <Col md={6}>
                         <Form.Group className="mb-3">
-                          <Form.Label>CMND/CCCD</Form.Label>
+                          <Form.Label>CCCD/CMND</Form.Label>
                           <Form.Control
                             type="text"
-                            name="idCard"
-                            defaultValue={editingUser.idCard || ''}
+                            name="userIdCard"
+                            defaultValue={editingUser.userIdCard || ''}
                             pattern="[0-9]{9,12}"
                             disabled
                           />
                         </Form.Group>
                       </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Ngày sinh</Form.Label>
+                          <Form.Control
+                            type="date"
+                            name="dateOfBirth"
+                            defaultValue={editingUser.dateOfBirth || ''}
+                          />
+                        </Form.Group>
+                      </Col>
                     </Row>
+                    
+                    {/* Chỉ hiển thị cho Member */}
+                    {editingUser?.role === 'Member' && (
+                      <Form.Group className="mb-3">
+                        <Form.Label>Địa chỉ</Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={2}
+                          name="address"
+                          defaultValue={editingUser.address || ''}
+                        />
+                      </Form.Group>
+                    )}
                     
                     <Row>
                       <Col md={6}>
@@ -1089,133 +957,149 @@ const UserManagement = () => {
                           <Form.Label>Vai trò</Form.Label>
                           <Form.Select name="role" defaultValue={editingUser.role} disabled>
                             <option value="Member">Member</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Trạng thái *</Form.Label>
-                          <Form.Select name="status" defaultValue={editingUser.status} required>
-                            <option value="active">Hoạt động</option>
-                            <option value="inactive">Không hoạt động</option>
+                            <option value="Staff">Staff</option>
                           </Form.Select>
                         </Form.Group>
                       </Col>
                     </Row>
-                    
-                    <Form.Group className="mb-3">
-                      <Form.Label>Lý do vô hiệu hóa (nếu có)</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={2}
-                        name="reasonInactive"
-                        defaultValue={editingUser.reasonInactive || ''}
-                      />
-                    </Form.Group>
                   </div>
                 </Tab>
                 
-                <Tab eventKey="medical" title={
-                  <span><FaHeart className="me-2" />Thông tin y tế</span>
-                }>
-                  <div className="mt-3">
-                    <Row>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Nhóm máu</Form.Label>
-                          <Form.Select name="bloodType" defaultValue={editingUser.bloodType || ''}>
-                            <option value="">Chọn nhóm máu</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                            <option value="O+">O+</option>
-                            <option value="O-">O-</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Cân nặng (kg)</Form.Label>
-                          <Form.Control
-                            type="number"
-                            name="weight"
-                            defaultValue={editingUser.weight ? editingUser.weight.replace('kg', '') : ''}
-                            min="30"
-                            max="200"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Chiều cao (cm)</Form.Label>
-                          <Form.Control
-                            type="number"
-                            name="height"
-                            defaultValue={editingUser.height ? editingUser.height.replace('cm', '') : ''}
-                            min="120"
-                            max="250"
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                    
-                    <Row>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Số lần hiến máu</Form.Label>
-                          <Form.Control
-                            type="number"
-                            name="donationCount"
-                            defaultValue={editingUser.donationCount || 0}
-                            min="0"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Lần hiến máu cuối</Form.Label>
-                          <Form.Control
-                            type="date"
-                            name="lastDonationDate"
-                            defaultValue={editingUser.lastDonationDate || ''}
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Ngày có thể hiến tiếp</Form.Label>
-                          <Form.Control
-                            type="date"
-                            name="nextEligibleDate"
-                            defaultValue={editingUser.nextEligibleDate || ''}
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                    
-                    <Form.Group className="mb-3">
-                      <Form.Label>Tiền sử bệnh</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={3}
-                        name="medicalHistory"
-                        defaultValue={editingUser.medicalHistory || ''}
-                      />
-                    </Form.Group>
-                  </div>
-                </Tab>
+                {/* Chỉ hiển thị tab hồ sơ hiến máu cho Member */}
+                {editingUser.role === 'Member' && (
+                  <Tab eventKey="medical" title={
+                    <span><FaHeart className="me-2" />Hồ sơ hiến máu</span>
+                  }>
+                    <div className="mt-3">
+                      <Card className="mb-3">
+                        <Card.Header className="bg-light">
+                          <h6 className="mb-0 text-primary">
+                            <FaUser className="me-2" />
+                            Thông tin cơ bản
+                          </h6>
+                        </Card.Header>
+                        <Card.Body>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Mã hồ sơ hiến máu (donorID)</Form.Label>
+                                <Form.Control
+                                  type="text"
+                                  name="donorID"
+                                  defaultValue={editingUser.donorID || ''}
+                                  placeholder="VD: DN001"
+                                />
+                                <Form.Text className="text-muted">
+                                  Để trống nếu chưa đăng ký hiến máu
+                                </Form.Text>
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>ID nhóm máu (bloodTypeID)</Form.Label>
+                                <Form.Select name="bloodTypeID" defaultValue={editingUser.bloodTypeID || ''}>
+                                  <option value="">Chọn ID nhóm máu</option>
+                                  <option value="1">1 - O+</option>
+                                  <option value="2">2 - O-</option>
+                                  <option value="3">3 - A+</option>
+                                  <option value="4">4 - A-</option>
+                                  <option value="5">5 - B+</option>
+                                  <option value="6">6 - B-</option>
+                                  <option value="7">7 - AB+</option>
+                                  <option value="8">8 - AB-</option>
+                                </Form.Select>
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={12}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Trạng thái sẵn sàng (isAvailable)</Form.Label>
+                                <Form.Select name="isAvailable" defaultValue={editingUser.isAvailable !== false ? 'true' : 'false'}>
+                                  <option value="true">Có thể hiến máu</option>
+                                  <option value="false">Không thể hiến máu</option>
+                                </Form.Select>
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                        </Card.Body>
+                      </Card>
+                      
+                      <Card className="mb-3">
+                        <Card.Header className="bg-light">
+                          <h6 className="mb-0 text-info">
+                            <FaCalendarAlt className="me-2" />
+                            Lịch trình hiến máu
+                          </h6>
+                        </Card.Header>
+                        <Card.Body>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Lần hiến máu cuối (lastDonationDate)</Form.Label>
+                                <Form.Control
+                                  type="date"
+                                  name="lastDonationDate"
+                                  defaultValue={editingUser.lastDonationDate || ''}
+                                />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Có thể hiến tiếp theo (nextEligibleDate)</Form.Label>
+                                <Form.Control
+                                  type="date"
+                                  name="nextEligibleDate"
+                                  defaultValue={editingUser.nextEligibleDate || ''}
+                                />
+                                <Form.Text className="text-muted">
+                                  Thường là 12 tuần sau lần hiến cuối
+                                </Form.Text>
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                        </Card.Body>
+                      </Card>
+                      
+                      <Card className="mb-3">
+                        <Card.Header className="bg-light">
+                          <h6 className="mb-0 text-warning">
+                            <FaMedkit className="me-2" />
+                            Thông tin y tế
+                          </h6>
+                        </Card.Header>
+                        <Card.Body>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Thuốc đang sử dụng (currentMedications)</Form.Label>
+                            <Form.Control
+                              as="textarea"
+                              rows={3}
+                              name="currentMedications"
+                              defaultValue={editingUser.currentMedications || ''}
+                              placeholder="Mô tả các loại thuốc đang sử dụng hoặc ghi 'Không có thuốc đang sử dụng'"
+                            />
+                          </Form.Group>
+                        </Card.Body>
+                      </Card>
+                    </div>
+                  </Tab>
+                )}
               </Tabs>
             )}
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={handleCancel}>
+            <Button variant="secondary" onClick={handleCancel} disabled={updating}>
               Hủy
             </Button>
-            <Button variant="primary" type="submit">
-              Lưu thay đổi
+            <Button variant="primary" type="submit" disabled={updating}>
+              {updating ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Đang cập nhật...
+                </>
+              ) : (
+                'Lưu thay đổi'
+              )}
             </Button>
           </Modal.Footer>
         </Form>

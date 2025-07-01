@@ -17,10 +17,8 @@ import {
   Select,
   message,
   Spin,
-  Progress,
-  Badge,
-  List,
-  Timeline
+  Switch,
+  InputNumber
 } from 'antd';
 import {
   UserOutlined,
@@ -31,12 +29,13 @@ import {
   MailOutlined,
   EnvironmentOutlined,
   CalendarOutlined,
+  SafetyCertificateOutlined,
   HeartOutlined,
   MedicineBoxOutlined,
-  TrophyOutlined,
-  HistoryOutlined,
-  GiftOutlined,
-  SafetyCertificateOutlined
+  FileTextOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  WarningOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -110,20 +109,16 @@ const Profile = () => {
         console.log('User is Member, adding default fields...');
         processedUserData = {
           ...processedUserData,
-          // Dữ liệu mặc định cho Member (chưa có API Donor)
-          address: '',
-          bloodType: 'O+',
-          weight: 65,
-          height: 170,
-          medicalHistory: 'Không có tiền sử bệnh lý',
-          emergencyContact: '',
-          donationCount: 0,
-          totalVolume: 0,
-          nextEligibleDate: null,
-          healthStatus: 'Chưa đăng ký hiến máu',
-          lastDonation: null,
-          achievements: [],
-          donationHistory: []
+          // Thông tin hiến máu từ database
+          donorID: userData.donorID || null, // ID hồ sơ hiến máu từ database
+          bloodTypeID: userData.bloodTypeID || null, // ID nhóm máu trong database
+          bloodType: userData.bloodType || null, // Tên hiển thị nhóm máu
+          isAvailable: userData.isAvailable !== undefined ? userData.isAvailable : true,
+          lastDonationDate: userData.lastDonationDate || null,
+          nextEligibleDate: userData.nextEligibleDate || null,
+          closestFacilityID: userData.closestFacilityID || null,
+          currentMedications: userData.currentMedications || '', // Thuốc đang sử dụng
+          address: userData.address || '' // Địa chỉ từ bảng Donor (chỉ cho Member)
         };
       }
       
@@ -173,25 +168,15 @@ const Profile = () => {
       return {
         ...baseInfo,
         address: '123 Đường ABC, Quận 1, TP.HCM',
+        // Thông tin hiến máu từ database
+        donorID: 'DN001',
+        bloodTypeID: 1,
         bloodType: 'O+',
-        weight: 65,
-        height: 170,
-        medicalHistory: 'Không có tiền sử bệnh lý',
-        emergencyContact: 'Nguyễn Thị B - 0987654321',
-        donationCount: 5,
-        totalVolume: 2500,
+        isAvailable: true,
+        lastDonationDate: '2024-02-15',
         nextEligibleDate: '2024-08-15',
-        healthStatus: 'Tốt',
-        lastDonation: '2024-02-15',
-        achievements: [
-          { title: 'Người hiến máu tích cực', date: '2024-01-01', type: 'bronze' },
-          { title: 'Hiến máu 5 lần', date: '2024-02-15', type: 'silver' }
-        ],
-        donationHistory: [
-          { date: '2024-02-15', volume: 450, location: 'Bệnh viện ABC', status: 'Hoàn thành' },
-          { date: '2023-11-10', volume: 450, location: 'Trung tâm hiến máu XYZ', status: 'Hoàn thành' },
-          { date: '2023-08-05', volume: 450, location: 'Bệnh viện DEF', status: 'Hoàn thành' }
-        ]
+        closestFacilityID: 1,
+        currentMedications: 'Không có thuốc đang sử dụng'
       };
     }
 
@@ -255,7 +240,9 @@ const Profile = () => {
     // Set initial values cho form, đặc biệt là DatePicker
     const formValues = {
       ...userInfo,
-      dateOfBirth: userInfo.dateOfBirth ? dayjs(userInfo.dateOfBirth) : null
+      dateOfBirth: userInfo.dateOfBirth ? dayjs(userInfo.dateOfBirth) : null,
+      lastDonationDate: userInfo.lastDonationDate ? dayjs(userInfo.lastDonationDate) : null,
+      nextEligibleDate: userInfo.nextEligibleDate ? dayjs(userInfo.nextEligibleDate) : null
     };
     form.setFieldsValue(formValues);
     setEditModalVisible(true);
@@ -270,11 +257,20 @@ const Profile = () => {
     try {
       setLoading(true);
       
-      // Convert dayjs object to string for dateOfBirth
+      // Convert dayjs object to string for dates
       const processedValues = {
         ...values,
-        dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : userInfo.dateOfBirth
+        dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : userInfo.dateOfBirth,
+        lastDonationDate: values.lastDonationDate ? values.lastDonationDate.format('YYYY-MM-DD') : userInfo.lastDonationDate,
+        nextEligibleDate: values.nextEligibleDate ? values.nextEligibleDate.format('YYYY-MM-DD') : userInfo.nextEligibleDate
       };
+      
+      // Tính toán nextEligibleDate tự động nếu có lastDonationDate mới (chỉ khi nextEligibleDate không được set thủ công)
+      if (processedValues.lastDonationDate && userInfo.role === 'Member' && !values.nextEligibleDate) {
+        const lastDate = dayjs(processedValues.lastDonationDate);
+        const nextDate = lastDate.add(12, 'week'); // 12 tuần sau lần hiến cuối
+        processedValues.nextEligibleDate = nextDate.format('YYYY-MM-DD');
+      }
       
       // Call API to update user
       await UserAPI.updateUser(userInfo.userID, processedValues);
@@ -317,7 +313,7 @@ const Profile = () => {
           }
         >
           <Descriptions column={2} className="profile-descriptions">
-            <Descriptions.Item label="Mã nhân viên">
+            <Descriptions.Item label="Mã người dùng">
               <Space>
                 <SafetyCertificateOutlined style={{ color: '#1976D2' }} />
                 {userInfo?.userID || 'N/A'}
@@ -349,26 +345,6 @@ const Profile = () => {
                 {userInfo?.dateOfBirth ? dayjs(userInfo.dateOfBirth).format('DD/MM/YYYY') : 'N/A'}
               </Space>
             </Descriptions.Item>
-            
-            {/* Hiển thị địa chỉ chỉ cho Member */}
-            {userInfo?.role === 'Member' && userInfo?.address && (
-              <Descriptions.Item label="Địa chỉ" span={2}>
-                <Space>
-                  <EnvironmentOutlined style={{ color: '#1976D2' }} />
-                  {userInfo.address}
-                </Space>
-              </Descriptions.Item>
-            )}
-            
-            {/* Hiển thị liên hệ khẩn cấp chỉ cho Member */}
-            {userInfo?.role === 'Member' && userInfo?.emergencyContact && (
-              <Descriptions.Item label="Liên hệ khẩn cấp" span={2}>
-                <Space>
-                  <PhoneOutlined style={{ color: '#1976D2' }} />
-                  {userInfo.emergencyContact}
-                </Space>
-              </Descriptions.Item>
-            )}
           </Descriptions>
         </Card>
       );
@@ -385,151 +361,198 @@ const Profile = () => {
   const renderMemberSpecificInfo = () => {
     if (userInfo.role !== 'Member') return null;
 
-    return (
-      <>        <Card 
+    // Nếu chưa có mã hồ sơ hiến máu, hiển thị nút đăng ký
+    if (!userInfo.donorID) {
+      return (
+        <Card 
           className="profile-card"
           title={
             <Space>
               <HeartOutlined style={{ color: '#E91E63' }} />
-              <span>Thông tin hiến máu</span>
+              <span>Hồ sơ hiến máu</span>
             </Space>
           }
         >
-          <Row gutter={[24, 24]} className="blood-info-cards">
-            <Col xs={24} sm={12} md={6}>
-              <Card 
-                size="small" 
-                className="blood-info-card blood-type-card"
-              >
-                <HeartOutlined className="blood-info-icon" style={{ color: '#E91E63' }} />
-                <div className="blood-info-value" style={{ color: '#E91E63' }}>
-                  {userInfo.bloodType}
-                </div>
-                <div className="blood-info-label">Nhóm máu</div>
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card 
-                size="small" 
-                className="blood-info-card donation-count-card"
-              >
-                <GiftOutlined className="blood-info-icon" style={{ color: '#52c41a' }} />
-                <div className="blood-info-value" style={{ color: '#52c41a' }}>
-                  {userInfo.donationCount || 0}
-                </div>
-                <div className="blood-info-label">Lần hiến máu</div>
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card 
-                size="small" 
-                className="blood-info-card total-volume-card"
-              >
-                <MedicineBoxOutlined className="blood-info-icon" style={{ color: '#1976D2' }} />
-                <div className="blood-info-value" style={{ color: '#1976D2' }}>
-                  {userInfo.totalVolume || 0}ml
-                </div>
-                <div className="blood-info-label">Tổng lượng máu</div>
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card 
-                size="small" 
-                className="blood-info-card next-eligible-card"
-              >
-                <CalendarOutlined className="blood-info-icon" style={{ color: '#fa8c16' }} />
-                <div className="blood-info-value" style={{ color: '#fa8c16', fontSize: '16px' }}>
-                  {userInfo.nextEligibleDate ? dayjs(userInfo.nextEligibleDate).format('DD/MM/YYYY') : 'N/A'}
-                </div>
-                <div className="blood-info-label">Lần tiếp theo</div>
-              </Card>
-            </Col>
-          </Row>
-
-          <Divider />
-
-          <Descriptions column={2} labelStyle={{ fontWeight: 'bold', color: '#666' }}>
-            <Descriptions.Item label="Cân nặng">{userInfo.weight || 'N/A'} kg</Descriptions.Item>
-            <Descriptions.Item label="Chiều cao">{userInfo.height || 'N/A'} cm</Descriptions.Item>
-            <Descriptions.Item label="Tình trạng sức khỏe">
-              <Tag color="green">{userInfo.healthStatus || 'N/A'}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Lần hiến máu cuối">
-              {userInfo.lastDonation ? dayjs(userInfo.lastDonation).format('DD/MM/YYYY') : 'Chưa hiến máu'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tiền sử bệnh lý" span={2}>
-              {userInfo.medicalHistory || 'Không có thông tin'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Liên hệ khẩn cấp" span={2}>
-              {userInfo.emergencyContact || 'Chưa cập nhật'}
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-
-        <Row gutter={[24, 24]}>          <Col xs={24} lg={12}>
-            <Card 
-              className="profile-card achievement-card"
-              title={
-                <Space>
-                  <TrophyOutlined style={{ color: '#faad14' }} />
-                  <span>Thành tích</span>
-                </Space>
-              }
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <HeartOutlined style={{ fontSize: '48px', color: '#E91E63', marginBottom: '16px' }} />
+            <Title level={4}>Bạn chưa đăng ký hiến máu</Title>
+            <Text type="secondary" style={{ display: 'block', marginBottom: '24px' }}>
+              Đăng ký để trở thành người hiến máu và cứu sống nhiều người
+            </Text>
+            <Button 
+              type="primary" 
+              size="large" 
+              icon={<HeartOutlined />}
+              style={{ backgroundColor: '#E91E63', borderColor: '#E91E63' }}
+              onClick={() => {
+                // Navigate to blood donation registration page
+                navigate('/member/blood-donation-register');
+              }}
             >
-              <List
-                dataSource={userInfo.achievements || []}
-                locale={{ emptyText: 'Chưa có thành tích nào' }}
-                renderItem={(item) => (
-                  <List.Item className="achievement-item">
-                    <List.Item.Meta
-                      avatar={
-                        <div className={`achievement-icon ${item.type}`}>
-                          <TrophyOutlined />
-                        </div>
-                      }
-                      title={item.title}
-                      description={`Đạt được ngày ${dayjs(item.date).format('DD/MM/YYYY')}`}
-                    />
-                  </List.Item>
-                )}
-              />
-            </Card>
-          </Col>
+              Đăng ký hiến máu
+            </Button>
+          </div>
+        </Card>
+      );
+    }
+
+    // Tính toán trạng thái hiến máu
+    const getAvailabilityStatus = () => {
+      if (!userInfo.isAvailable) {
+        return { status: 'Không khả dụng', color: 'red', icon: <CloseCircleOutlined /> };
+      }
+      
+      if (userInfo.nextEligibleDate) {
+        const nextDate = dayjs(userInfo.nextEligibleDate);
+        const today = dayjs();
+        
+        if (nextDate.isAfter(today)) {
+          return { 
+            status: 'Chờ đến ngày có thể hiến tiếp', 
+            color: 'orange', 
+            icon: <WarningOutlined /> 
+          };
+        }
+      }
+      
+      return { status: 'Sẵn sàng hiến máu', color: 'green', icon: <CheckCircleOutlined /> };
+    };
+
+    const availabilityStatus = getAvailabilityStatus();
+
+    return (
+      <Card 
+        className="profile-card"
+        title={
+          <Space>
+            <HeartOutlined style={{ color: '#E91E63' }} />
+            <span>Hồ sơ hiến máu</span>
+            {userInfo.donorID && (
+              <Tag color="blue" style={{ marginLeft: '8px' }}>
+                ID: {userInfo.donorID}
+              </Tag>
+            )}
+          </Space>
+        }
+        extra={
+          <Tag 
+            color={availabilityStatus.color}
+            icon={availabilityStatus.icon}
+            style={{ fontSize: '14px', padding: '4px 12px' }}
+          >
+            {availabilityStatus.status}
+          </Tag>
+        }
+      >
+        <Row gutter={[24, 24]}>
+          {/* Thông tin cơ bản hiến máu */}
           <Col xs={24} lg={12}>
             <Card 
-              className="profile-card donation-history-card"
-              title={
-                <Space>
-                  <HistoryOutlined style={{ color: '#1976D2' }} />
-                  <span>Lịch sử hiến máu</span>
-                </Space>
-              }
+              size="small" 
+              title="Thông tin cơ bản"
+              className="blood-info-sub-card"
             >
-              <Timeline
-                className="donation-timeline"
-                items={(userInfo.donationHistory || []).length > 0 ? 
-                  userInfo.donationHistory.map(donation => ({
-                    color: 'green',
-                    children: (
-                      <div>
-                        <div className="donation-date">
-                          {dayjs(donation.date).format('DD/MM/YYYY')}
-                        </div>
-                        <div className="donation-details">{donation.volume}ml - {donation.location}</div>
-                        <Tag color="green" className="donation-status-tag">{donation.status}</Tag>
-                      </div>
-                    )
-                  })) : 
-                  [{
-                    color: 'gray',
-                    children: <div>Chưa có lịch sử hiến máu</div>
-                  }]
-                }
-              />
+              <Descriptions column={1} size="small">
+                <Descriptions.Item label="Mã hồ sơ hiến máu">
+                  <Space>
+                    <SafetyCertificateOutlined style={{ color: '#E91E63' }} />
+                    <Tag color="blue" style={{ fontSize: '12px', fontWeight: 'bold' }}>
+                      {userInfo.donorID || 'Chưa có mã'}
+                    </Tag>
+                  </Space>
+                </Descriptions.Item>
+                
+                <Descriptions.Item label="Nhóm máu">
+                  <Space>
+                    <HeartOutlined style={{ color: '#E91E63' }} />
+                    <Tag color="red" style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                      {userInfo.bloodType || 'Chưa xác định'}
+                    </Tag>
+                  </Space>
+                </Descriptions.Item>
+                
+                <Descriptions.Item label="Trạng thái sẵn sàng">
+                  <Switch 
+                    checked={userInfo.isAvailable}
+                    disabled
+                    checkedChildren="Có thể hiến"
+                    unCheckedChildren="Không thể hiến"
+                  />
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+          </Col>
+
+          {/* Lịch trình hiến máu */}
+          <Col xs={24} lg={12}>
+            <Card 
+              size="small" 
+              title="Lịch trình hiến máu"
+              className="blood-schedule-sub-card"
+            >
+              <Descriptions column={1} size="small">
+                <Descriptions.Item label="Lần hiến máu cuối">
+                  <Space>
+                    <CalendarOutlined style={{ color: '#1976D2' }} />
+                    {userInfo.lastDonationDate ? 
+                      dayjs(userInfo.lastDonationDate).format('DD/MM/YYYY') : 
+                      'Chưa hiến máu lần nào'
+                    }
+                  </Space>
+                </Descriptions.Item>
+                
+                <Descriptions.Item label="Có thể hiến tiếp theo">
+                  <Space>
+                    <CalendarOutlined style={{ color: '#52c41a' }} />
+                    {userInfo.nextEligibleDate ? 
+                      dayjs(userInfo.nextEligibleDate).format('DD/MM/YYYY') : 
+                      'Có thể hiến ngay'
+                    }
+                  </Space>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+          </Col>
+
+          {/* Địa chỉ từ hồ sơ hiến máu */}
+          <Col xs={24}>
+            <Card 
+              size="small" 
+              title="Địa chỉ liên hệ"
+              className="address-sub-card"
+            >
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Space>
+                  <EnvironmentOutlined style={{ color: '#1976D2' }} />
+                  <Text strong>Địa chỉ:</Text>
+                </Space>
+                <Paragraph style={{ margin: 0, padding: '8px 12px', backgroundColor: '#f6f6f6', borderRadius: '6px' }}>
+                  {userInfo.address || 'Chưa cập nhật địa chỉ'}
+                </Paragraph>
+              </Space>
+            </Card>
+          </Col>
+
+          {/* Thuốc đang sử dụng */}
+          <Col xs={24}>
+            <Card 
+              size="small" 
+              title="Thuốc đang sử dụng"
+              className="medication-sub-card"
+            >
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Space>
+                  <MedicineBoxOutlined style={{ color: '#fa8c16' }} />
+                  <Text strong>Thuốc hiện tại:</Text>
+                </Space>
+                <Paragraph style={{ margin: 0, padding: '8px 12px', backgroundColor: '#f6f6f6', borderRadius: '6px' }}>
+                  {userInfo.currentMedications || 'Không có thuốc đang sử dụng'}
+                </Paragraph>
+              </Space>
             </Card>
           </Col>
         </Row>
-      </>
+      </Card>
     );
   };
 
@@ -673,30 +696,23 @@ const Profile = () => {
                 </Form.Item>
               </Col>
 
-              {/* Hiển thị trường địa chỉ chỉ cho Member */}
-              {userInfo.role === 'Member' && (
-                <Col xs={24}>
-                  <Form.Item 
-                    label="Địa chỉ" 
-                    name="address"
-                    rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
-                  >
-                    <Input.TextArea rows={3} />
-                  </Form.Item>
-                </Col>
-              )}
-
-              {/* Hiển thị trường liên hệ khẩn cấp chỉ cho Member */}
-              {userInfo.role === 'Member' && (
-                <Col xs={24}>
-                  <Form.Item 
-                    label="Liên hệ khẩn cấp" 
-                    name="emergencyContact"
-                    rules={[{ required: true, message: 'Vui lòng nhập thông tin liên hệ khẩn cấp!' }]}
-                  >
-                    <Input placeholder="Ví dụ: Nguyễn Văn A - 0987654321" />
-                  </Form.Item>
-                </Col>
+              {/* Chỉ hiển thị địa chỉ cho Member có mã hiến máu */}
+              {userInfo.role === 'Member' && userInfo.donorID && (
+                <>
+                  <Col xs={24}>
+                    <Divider orientation="left">Thông tin liên hệ</Divider>
+                  </Col>
+                  
+                  <Col xs={24}>
+                    <Form.Item 
+                      label="Địa chỉ" 
+                      name="address"
+                      rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
+                    >
+                      <Input.TextArea rows={3} placeholder="Nhập địa chỉ liên hệ" />
+                    </Form.Item>
+                  </Col>
+                </>
               )}
             </Row>            
             <div className="profile-form-actions">

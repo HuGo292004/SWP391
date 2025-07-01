@@ -1304,9 +1304,7 @@ const HomePage = () => {
                 </Card.Body>
               </Card>
             </Col>
-          </Row>          {/* Enhanced Call to Action */}
-          {/* ĐÃ XÓA PHẦN CTA 'Bạn đã sẵn sàng trở thành người hùng?' */}
-        </Container>
+
       </section>
     </div>
   );
