@@ -1,5 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+// Import polyfills first
+import './polyfills.js'
 import App from './App.jsx'
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css'
