@@ -330,6 +330,33 @@
   color: #1976D2 !important;
 }
 
+/* Confirmation step styles */
+.confirmation-content {
+  padding: 20px;
+}
+
+.confirm-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 4px solid #1976D2;
+}
+
+.confirm-item .ant-typography {
+  margin-bottom: 4px;
+}
+
+.confirmation-content .ant-divider-horizontal.ant-divider-with-text::before,
+.confirmation-content .ant-divider-horizontal.ant-divider-with-text::after {
+  border-top: 1px solid #1976D2;
+}
+
+.confirmation-content .ant-divider-horizontal.ant-divider-with-text.ant-divider-with-text-left .ant-divider-inner-text {
+  color: #1976D2;
+  font-weight: 600;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .blood-donation-registration-container {
@@ -443,4 +470,4 @@
 .ant-tag {
   border-radius: 4px;
   font-weight: 500;
-} 
+}

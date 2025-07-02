@@ -40,8 +40,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { UserAPI } from '../../services/userApi';
+import { donorApi } from '../../services/donorApi';
 import { 
-  getDonorProfileByUserId, 
   generateDonorID,
   createDonorProfile,
   updateDonorProfile 
@@ -64,6 +64,7 @@ const getBloodTypeName = (bloodTypeID) => {
   }
   
   const bloodTypeMap = {
+    // Standard UUIDs from your system
     '44C1A0F7-92B9-4E1B-A628-03447F5B86D7': 'O+ (O Rh dương)',
     '5BB618E3-25CE-45D8-B980-03D532EC2293': 'B- (B Rh âm)',
     '11111111-1111-1111-1111-111111111111': 'A+ (A Rh dương)',
@@ -79,20 +80,49 @@ const getBloodTypeName = (bloodTypeID) => {
     'C070228E-DA24-4CD8-8286-84C2226674A3': 'B+ (B Rh dương)',
     '5D60875F-D7DE-4DFE-A057-F8F433A7A932': 'AB- (AB Rh âm)',
     'A12373C7-3BFC-496E-8021-C0031B9BCDD8': 'A- (A Rh âm)',
-    '5AE0C996-2594-48D2-8023-FD80676E4BCC': 'AB+ (AB Rh dương)'
+    '5AE0C996-2594-48D2-8023-FD80676E4BCC': 'AB+ (AB Rh dương)',
+    
+    // Add lowercase versions for safety
+    '44c1a0f7-92b9-4e1b-a628-03447f5b86d7': 'O+ (O Rh dương)',
+    '5bb618e3-25ce-45d8-b980-03d532ec2293': 'B- (B Rh âm)',
+    'fe6b963d-65ed-4681-96ff-213e2b9d7e9b': 'O- (O Rh âm)',
+    'b0b93608-6ea7-4f3e-8b24-37b66bf00c82': 'A+ (A Rh dương)',
+    'c070228e-da24-4cd8-8286-84c2226674a3': 'B+ (B Rh dương)',
+    '5d60875f-d7de-4dfe-a057-f8f433a7a932': 'AB- (AB Rh âm)',
+    'a12373c7-3bfc-496e-8021-c0031b9bcdd8': 'A- (A Rh âm)',
+    '5ae0c996-2594-48d2-8023-fd80676e4bcc': 'AB+ (AB Rh dương)'
   };
   
-  // Chuẩn hóa bloodTypeID (uppercase)
-  const normalizedID = String(bloodTypeID).toUpperCase();
-  console.log('Normalized bloodTypeID:', normalizedID);
-  console.log('Available keys in bloodTypeMap:', Object.keys(bloodTypeMap));
-  console.log('Is key found in map?', normalizedID in bloodTypeMap);
+  // Try direct lookup first
+  let result = bloodTypeMap[bloodTypeID];
+  if (result) {
+    console.log('Direct lookup found:', result);
+    console.log('==== END getBloodTypeName DEBUG ====');
+    return result;
+  }
   
-  const result = bloodTypeMap[normalizedID] || 'Chưa xác định';
-  console.log('Blood type mapping result:', result);
+  // Try normalized versions
+  const normalizedID = String(bloodTypeID).toUpperCase();
+  result = bloodTypeMap[normalizedID];
+  if (result) {
+    console.log('Normalized lookup found:', result);
+    console.log('==== END getBloodTypeName DEBUG ====');
+    return result;
+  }
+  
+  const lowerID = String(bloodTypeID).toLowerCase();
+  result = bloodTypeMap[lowerID];
+  if (result) {
+    console.log('Lowercase lookup found:', result);
+    console.log('==== END getBloodTypeName DEBUG ====');
+    return result;
+  }
+  
+  console.log('Available keys in bloodTypeMap:', Object.keys(bloodTypeMap));
+  console.log('No match found for bloodTypeID:', bloodTypeID);
   console.log('==== END getBloodTypeName DEBUG ====');
   
-  return result;
+  return 'Chưa xác định';
 };
 
 const Profile = () => {
@@ -158,10 +188,49 @@ const Profile = () => {
         console.log('User is Member, fetching donor profile from API...');
         
         try {
-          // Lấy thông tin donor profile từ API
-          const donorProfile = await getDonorProfileByUserId(userData.userId || userData.userID || userData.id);
-          console.log('Donor profile from API:', donorProfile);
-          console.log('Donor profile keys:', donorProfile ? Object.keys(donorProfile) : 'null');
+          // Lấy thông tin donor profile từ donorApi thay vì userManagementApi
+          console.log('Fetching donor profile using donorApi...');
+          
+          let donorProfile = null;
+          
+          try {
+            // Sử dụng checkDonorProfile từ donorApi với forceRefresh khi cần
+            const forceRefresh = true; // Always force refresh to get latest data
+            const donorCheckResult = await donorApi.checkDonorProfile(forceRefresh);
+            console.log('Donor check result from donorApi (forceRefresh =', forceRefresh, '):', donorCheckResult);
+            
+            if (donorCheckResult.exists && donorCheckResult.donorID) {
+              // Lấy thông tin chi tiết donor profile
+              try {
+                donorProfile = await donorApi.getDonorProfileById(donorCheckResult.donorID);
+                console.log('=== DONOR PROFILE FROM donorApi ===');
+                console.log('Donor profile details:', donorProfile);
+                console.log('Donor profile keys:', donorProfile ? Object.keys(donorProfile) : 'null');
+                console.log('Raw donor profile JSON:', JSON.stringify(donorProfile, null, 2));
+                console.log('=== END DONOR PROFILE FROM donorApi ===');
+              } catch (detailError) {
+                console.warn('Could not get donor profile details:', detailError.message);
+                // Tạo mock donor profile từ check result
+                donorProfile = {
+                  donorId: donorCheckResult.donorID,
+                  userId: userData.userId || userData.userID,
+                  bloodTypeId: null, // Will be null if not set
+                  isAvailable: true
+                };
+              }
+            }
+          } catch (donorApiError) {
+            console.warn('donorApi failed, falling back to userManagementApi:', donorApiError.message);
+            
+            // Fallback: sử dụng getDonorProfileByUserId từ userManagementApi  
+            const { getDonorProfileByUserId } = await import('../../services/userManagementApi');
+            donorProfile = await getDonorProfileByUserId(userData.userId || userData.userID || userData.id);
+            console.log('=== DONOR PROFILE FROM userManagementApi FALLBACK ===');
+            console.log('Donor profile details:', donorProfile);
+            console.log('=== END FALLBACK ===');
+          }
+          
+          console.log('Final donor profile to process:', donorProfile);
           
           if (donorProfile && (donorProfile.donorID || donorProfile.donorId)) {
             // Đã có hồ sơ hiến máu - sử dụng thông tin thực tế từ database
@@ -320,6 +389,31 @@ const Profile = () => {
     fetchUserData();
     console.log('=== Profile useEffect END ===');
   }, [navigate]);
+
+  // Listen for profile data change events (e.g., after blood donation registration)
+  useEffect(() => {
+    const handleProfileDataChanged = (event) => {
+      console.log('Profile data changed event received:', event.detail);
+      console.log('Reason:', event.detail?.reason);
+      
+      if (event.detail?.reason === 'blood_donation_registration') {
+        console.log('Blood donation registration completed, refreshing profile data...');
+        
+        // Wait a moment for backend to process, then refresh
+        setTimeout(() => {
+          fetchUserData();
+        }, 1000);
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('profileDataChanged', handleProfileDataChanged);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('profileDataChanged', handleProfileDataChanged);
+    };
+  }, []);  // Empty dependency array since we want this to run only once
 
   // Add error boundary
   if (error) {
@@ -745,19 +839,36 @@ const Profile = () => {
               />
             </Col>
             <Col xs={24} sm={18}>
-              <Title level={2} className="profile-header-title">
-                {userInfo?.fullName || 'Không có tên'}
-              </Title>
-              <Text type="secondary" className="profile-username">
-                @{userInfo?.username || 'unknown'}
-              </Text>
-              <div style={{ marginTop: '12px' }}>
-                <Tag 
-                  color={userInfo?.role === 'Admin' ? 'red' : userInfo?.role === 'Staff' ? 'blue' : 'green'}
-                  className="profile-role-tag"
-                >
-                  {userInfo?.role || 'Unknown'}
-                </Tag>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                <div>
+                  <Title level={2} className="profile-header-title">
+                    {userInfo?.fullName || 'Không có tên'}
+                  </Title>
+                  <Text type="secondary" className="profile-username">
+                    @{userInfo?.username || 'unknown'}
+                  </Text>
+                  <div style={{ marginTop: '12px' }}>
+                    <Tag 
+                      color={userInfo?.role === 'Admin' ? 'red' : userInfo?.role === 'Staff' ? 'blue' : 'green'}
+                      className="profile-role-tag"
+                    >
+                      {userInfo?.role || 'Unknown'}
+                    </Tag>
+                  </div>
+                </div>
+                <div>
+                  <Button
+                    type="default"
+                    loading={loading}
+                    onClick={() => {
+                      console.log('Manual refresh requested');
+                      fetchUserData();
+                    }}
+                    style={{ marginBottom: '8px' }}
+                  >
+                    🔄 Làm mới
+                  </Button>
+                </div>
               </div>
             </Col>
           </Row>
