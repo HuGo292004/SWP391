@@ -1,18 +1,25 @@
 /*
  * Blood Donation Registration Page
  * 
+ * RECENT FIX: Updated bloodTypeID values to match actual database (July 3, 2025)
+ * - Fixed bloodTypeID mismatch that was causing 500 errors during donor profile creation
+ * - Updated IDs like 44C1ADF7 -> 44C1A0F7, 55B618E3-250E -> 55B618E3-25CE, etc.
+ * 
  * Data Architecture:
  * - User personal information (name, email, phone, DOB, address) is stored in the User table
  * - Donor profile (donorId, userId, bloodTypeId, isAvailable) is stored in the Donor table  
- * - Blood donation records are stored in the BloodDonation table linked to the donor profile
+ * - Blood donation records (donationDate, notes, status) are stored in the BloodDonation table linked to the donor profile
+ * - Medical history ("Tiền sử bệnh lý và thuốc đang sử dụng") is stored in BloodDonation.notes
  * 
  * Process:
  * 1. Fetch user info from User API for display in confirmation step
- * 2. Check if donor profile exists, create if needed (with bloodTypeId)
- * 3. Submit blood donation registration linked to donor profile
+ * 2. Submit blood donation registration to BloodDonation table (donationDate, notes, status)
+ * 3. After successful registration, create/update Donor profile with bloodTypeId only
+ * 4. Medical history is stored in BloodDonation.notes, not in Donor table
  * 
- * Note: Personal info is NOT stored in Donor table due to backend schema limitations.
- * It's fetched from User table for display purposes during registration preview.
+ * Important: "Tiền sử bệnh lý và thuốc đang sử dụng" field maps to BloodDonation.notes
+ * Note: Personal info stays in User table (optimal design - no duplication needed).
+ * Frontend fetches personal info via User API and donor-specific info via Donor API.
  */
 
 import React, { useState } from 'react';
@@ -68,11 +75,10 @@ const BloodDonationRegistration = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  // Blood types from database
+  // Blood types from database - updated with correct IDs from actual database
   const bloodTypes = [
-    { bloodTypeID: 'unknown', aboType: 'Không biết', rhFactor: '', description: 'Chưa biết nhóm máu' },
-    { bloodTypeID: '44C1ADF7-92B9-4E1B-A628-03447F5B86D7', aboType: 'O', rhFactor: '+', description: 'Nhóm máu O Rh dương' },
-    { bloodTypeID: '55B618E3-250E-4590-8980-03D532E02293', aboType: 'B', rhFactor: '-', description: 'Nhóm máu B Rh âm' },
+    { bloodTypeID: '44C1A0F7-92B9-4E1B-A628-03447F5B86D7', aboType: 'O', rhFactor: '+', description: 'Nhóm máu O Rh dương' },
+    { bloodTypeID: '55B618E3-25CE-45D8-B980-03D532EC2293', aboType: 'B', rhFactor: '-', description: 'Nhóm máu B Rh âm' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111001', aboType: 'A', rhFactor: '+', description: 'Nhóm máu A Rh dương' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111002', aboType: 'A', rhFactor: '-', description: 'Nhóm máu A Rh âm' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111003', aboType: 'B', rhFactor: '+', description: 'Nhóm máu B Rh dương' },
@@ -82,10 +88,10 @@ const BloodDonationRegistration = () => {
     { bloodTypeID: '11111111-1111-1111-1111-111111111007', aboType: 'O', rhFactor: '+', description: 'Nhóm máu O Rh dương' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111008', aboType: 'O', rhFactor: '-', description: 'Nhóm máu O Rh âm' },
     { bloodTypeID: 'FE6B963D-65ED-4681-96FF-213E2B9D7E9B', aboType: 'O', rhFactor: '-', description: 'Nhóm máu O Rh âm' },
-    { bloodTypeID: 'B0B93608-6EA7-4F3E-8B2A-37B66BF0C682', aboType: 'A', rhFactor: '+', description: 'Nhóm máu A Rh dương' },
-    { bloodTypeID: 'CC7C228E-DA21-4DB8-BD5B-BFE622B67A31', aboType: 'B', rhFactor: '+', description: 'Nhóm máu B Rh dương' },
+    { bloodTypeID: 'B0B93608-6EA7-4F3E-8B2A-37B66BF0CC82', aboType: 'A', rhFactor: '+', description: 'Nhóm máu A Rh dương' },
+    { bloodTypeID: 'C07C228E-DA24-4DD8-B2B5-64CE22B674A3', aboType: 'B', rhFactor: '+', description: 'Nhóm máu B Rh dương' },
     { bloodTypeID: '5060875F-D7D5-40FD-8FCD-75F843A71A32', aboType: 'AB', rhFactor: '-', description: 'Nhóm máu AB Rh âm' },
-    { bloodTypeID: 'A12373C7-38FC-496E-8021-C0031B9BC0D8', aboType: 'A', rhFactor: '-', description: 'Nhóm máu A Rh âm' },
+    { bloodTypeID: 'A12373C7-3BFC-496E-8021-C0031B9BC0D8', aboType: 'A', rhFactor: '-', description: 'Nhóm máu A Rh âm' },
     { bloodTypeID: '5AE0C996-2594-48D2-8023-FD80676E4BCC', aboType: 'AB', rhFactor: '+', description: 'Nhóm máu AB Rh dương' }
   ];
 
@@ -95,18 +101,21 @@ const BloodDonationRegistration = () => {
     try {
       const userResponse = await UserAPI.getCurrentUser();
       setUserInfo(userResponse.data || userResponse);
-      console.log('User info loaded:', userResponse);
-      
-      // Temporarily skip donor profile check to avoid API errors
-      // TODO: Re-enable when backend endpoints are ready
-      console.log('Skipping donor profile check for now');
       
     } catch (error) {
-      console.error('Error fetching user info:', error);
       setError('Không thể tải thông tin người dùng. Vui lòng thử lại.');
     } finally {
       setLoadingUserInfo(false);
     }
+  };
+
+  // Helper function to validate blood type ID
+  const isValidBloodTypeID = (bloodTypeID) => {
+    if (!bloodTypeID || bloodTypeID === 'unknown' || bloodTypeID === 'undefined') {
+      return false;
+    }
+    // Check if the bloodTypeID exists in our bloodTypes array
+    return bloodTypes.some(type => type.bloodTypeID === bloodTypeID);
   };
 
   const onFinish = async (values) => {
@@ -126,18 +135,9 @@ const BloodDonationRegistration = () => {
     setSuccess('');
     
     try {
-      // Use stored form data instead of the values parameter
-      const formValues = { ...formData };
-      
-      console.log('Submitting blood donation registration...');
-      console.log('Form values received:', values);
-      console.log('Stored form data:', formValues);
-      
-      // Debug: Log individual form fields
-      console.log('Form field - donationDate:', formValues.donationDate);
-      console.log('Form field - bloodTypeID:', formValues.bloodTypeID);
-      console.log('Form field - requestID:', formValues.requestID);
-      console.log('Form field - notes:', formValues.notes);
+      // Get current form values first, then merge with stored data
+      const currentFormValues = form.getFieldsValue();
+      const formValues = { ...formData, ...currentFormValues };
       
       // Validate required fields
       if (!formValues.donationDate) {
@@ -145,8 +145,13 @@ const BloodDonationRegistration = () => {
         return;
       }
       
-      if (!formValues.bloodTypeID) {
-        setError('Vui lòng chọn nhóm máu!');
+      if (!isValidBloodTypeID(formValues.bloodTypeID)) {
+        setError('Vui lòng chọn nhóm máu hợp lệ!');
+        return;
+      }
+
+      if (!formValues.notes) {
+        setError('Vui lòng điền thông tin tiền sử bệnh lý và thuốc đang sử dụng!');
         return;
       }
       
@@ -160,39 +165,16 @@ const BloodDonationRegistration = () => {
         certificateID: null
       };
       
-      console.log('Final donation data to send:', donationData);
-      console.log('Donation data JSON:', JSON.stringify(donationData, null, 2));
+      // Separate data for updating donor profile (only bloodTypeID, no medications in Donor table)
+      const donorUpdateData = {
+        bloodTypeID: formValues.bloodTypeID || null,
+        isAvailable: true
+      };
       
-      // Call API through donorApi service
+      // Step 1: Call API to register blood donation
       const result = await donorApi.registerBloodDonation(donationData);
       
-      console.log('Registration successful:', result);
-      
-      // If we have a donorId in the result, verify the donor profile
-      if (result && result.donorId) {
-        try {
-          console.log('Verifying donor profile...');
-          const userId = localStorage.getItem('userId');
-          const verification = await donorApi.verifyDonorProfile(userId, formValues.bloodTypeID);
-          
-          if (verification.success) {
-            if (verification.bloodTypeIDCorrect) {
-              console.log('✅ Donor profile created/updated successfully with correct bloodTypeID!');
-            } else {
-              console.warn('⚠️ BloodTypeID mismatch in donor profile');
-            }
-            
-            console.log('ℹ️ Personal information is managed via User table and displayed during registration');
-          } else {
-            console.warn('Could not verify donor profile:', verification.message);
-          }
-          
-        } catch (verifyError) {
-          console.warn('Could not verify donor profile:', verifyError.message);
-        }
-      }
-      
-      // Show success message with more details
+      // Show success message
       let successMessage = 'Đăng ký hiến máu thành công! Chúng tôi sẽ liên hệ với bạn để xác nhận lịch hẹn.';
       
       // Check if we have additional info about donor profile
@@ -203,11 +185,9 @@ const BloodDonationRegistration = () => {
         } else if (action === 'updated') {
           successMessage += ' Hồ sơ hiến máu của bạn đã được cập nhật với nhóm máu mới.';
         } else if (action === 'failed_creation') {
-          console.warn('Donor profile creation failed:', error);
-          console.warn('Error details:', errorDetails);
           successMessage += ' Tuy nhiên, có lỗi khi tạo hồ sơ hiến máu. Vui lòng liên hệ hỗ trợ để cập nhật thông tin nhóm máu.';
           
-          // Also show a separate warning alert
+          // Show a separate warning alert
           setTimeout(() => {
             setError(`Cảnh báo: Không thể tạo hồ sơ hiến máu. Chi tiết lỗi: ${errorDetails || error}`);
           }, 3000);
@@ -217,9 +197,6 @@ const BloodDonationRegistration = () => {
       setSuccess(successMessage);
       
       // Clear any cached profile data to force refresh
-      console.log('Clearing profile cache after successful registration...');
-      
-      // Option 1: Clear specific localStorage keys that might cache profile data
       const keysToRemove = [
         'cachedUserProfile',
         'cachedDonorProfile', 
@@ -232,7 +209,7 @@ const BloodDonationRegistration = () => {
         localStorage.removeItem(key);
       });
       
-      // Option 2: Dispatch a custom event to notify Profile component to refresh
+      // Dispatch a custom event to notify Profile component to refresh
       const profileRefreshEvent = new CustomEvent('profileDataChanged', {
         detail: { 
           reason: 'blood_donation_registration',
@@ -241,8 +218,6 @@ const BloodDonationRegistration = () => {
         }
       });
       window.dispatchEvent(profileRefreshEvent);
-      
-      console.log('Profile refresh event dispatched');
       
       // Reset form after success
       setTimeout(() => {
@@ -254,7 +229,6 @@ const BloodDonationRegistration = () => {
       }, 4000);
       
     } catch (err) {
-      console.error('Blood donation registration error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -262,7 +236,6 @@ const BloodDonationRegistration = () => {
   };
 
   const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
     setError('Vui lòng kiểm tra lại thông tin đăng ký.');
   };
 
@@ -279,14 +252,28 @@ const BloodDonationRegistration = () => {
 
   const nextStep = () => {
     const fieldsToValidate = currentStep === 0 
-      ? ['donationDate', 'bloodTypeID'] 
+      ? ['donationDate', 'bloodTypeID', 'notes'] 
       : [];
       
     form.validateFields(fieldsToValidate).then((values) => {
-      console.log('Form values before next step:', values);
+      // Get all form values, including optional ones like notes and requestID
+      const allFormValues = form.getFieldsValue();
       
-      // Store form data
-      setFormData(prevData => ({ ...prevData, ...values }));
+      // Additional validation for bloodTypeID
+      const bloodTypeIDToValidate = values.bloodTypeID || allFormValues.bloodTypeID;
+      if (currentStep === 0 && !isValidBloodTypeID(bloodTypeIDToValidate)) {
+        setError('Vui lòng chọn nhóm máu hợp lệ!');
+        return;
+      }
+      
+      // Store form data - merge with existing data
+      const newFormData = { 
+        ...formData, 
+        ...values,
+        ...allFormValues // This ensures we capture all fields including optional ones
+      };
+      
+      setFormData(newFormData);
       
       if (currentStep === 0) {
         // When moving to confirmation step, fetch user info
@@ -294,7 +281,7 @@ const BloodDonationRegistration = () => {
       }
       setCurrentStep(currentStep + 1);
       setError('');
-    }).catch(() => {
+    }).catch((error) => {
       setError('Vui lòng điền đầy đủ thông tin bắt buộc.');
     });
   };
@@ -315,12 +302,12 @@ const BloodDonationRegistration = () => {
         return (
           <Card title="Thông tin hiến máu" className="step-card">
             <Form.Item
-              label="Ngày hiến máu"
+              label="Ngày hiến máu mong muốn"
               name="donationDate"
-              rules={[{ required: true, message: 'Vui lòng chọn ngày hiến máu!' }]}
+              rules={[{ required: true, message: 'Vui lòng chọn ngày hiến máu mong muốn!' }]}
             >
               <DatePicker
-                placeholder="Chọn ngày hiến máu"
+                placeholder="Chọn ngày hiến máu mong muốn"
                 className="modern-input"
                 style={{ width: '100%' }}
                 format="DD/MM/YYYY"
@@ -335,7 +322,15 @@ const BloodDonationRegistration = () => {
                   label="Nhóm máu"
                   name="bloodTypeID"
                   rules={[
-                    { required: true, message: 'Vui lòng chọn nhóm máu!' }
+                    { required: true, message: 'Vui lòng chọn nhóm máu!' },
+                    { 
+                      validator: (_, value) => {
+                        if (!isValidBloodTypeID(value)) {
+                          return Promise.reject(new Error('Vui lòng chọn nhóm máu hợp lệ!'));
+                        }
+                        return Promise.resolve();
+                      }
+                    }
                   ]}
                 >
                   <Select
@@ -348,7 +343,7 @@ const BloodDonationRegistration = () => {
                     options={bloodTypes.map(type => ({
                       label: (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Tag color={type.bloodTypeID === 'unknown' ? 'gray' : 'red'} style={{ margin: 0 }}>
+                          <Tag color="red" style={{ margin: 0 }}>
                             {type.aboType}{type.rhFactor}
                           </Tag>
                           <span style={{ fontSize: '12px', color: '#666' }}>
@@ -364,12 +359,12 @@ const BloodDonationRegistration = () => {
               </Col>
               <Col span={12}>
                 <Form.Item
-                  label="Mã yêu cầu khẩn cấp (nếu có)"
+                  label="Mã hỗ trợ khẩn cấp (nếu có)"
                   name="requestID"
                   tooltip="Nếu bạn hiến máu để đáp ứng yêu cầu khẩn cấp, hãy nhập mã yêu cầu"
                 >
                   <Input
-                    placeholder="Nhập mã yêu cầu (tùy chọn)"
+                    placeholder="Nhập mã hỗ trợ khẩn cấp (tùy chọn)"
                     className="modern-input"
                   />
                 </Form.Item>
@@ -377,12 +372,13 @@ const BloodDonationRegistration = () => {
             </Row>
 
             <Form.Item
-              label="Ghi chú"
+              label="Tiền sử bệnh lý và thuốc đang sử dụng"
               name="notes"
+              rules={[{ required: true, message: 'Vui lòng điền thông tin tiền sử bệnh lý và thuốc đang sử dụng!' }]}
             >
               <TextArea
-                placeholder="Ghi chú hoặc yêu cầu đặc biệt (nếu có)"
-                rows={3}
+                placeholder="Vui lòng mô tả tiền sử bệnh lý (nếu có) và các loại thuốc đang sử dụng. Nếu không có, hãy ghi 'Không có'."
+                rows={4}
                 className="modern-input"
               />
             </Form.Item>
@@ -486,7 +482,7 @@ const BloodDonationRegistration = () => {
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
                       <div className="confirm-item">
-                        <Text strong>Ngày hiến máu:</Text>
+                        <Text strong>Ngày hiến máu mong muốn:</Text>
                         <br />
                         <Text>
                           {formData.donationDate 
@@ -505,7 +501,7 @@ const BloodDonationRegistration = () => {
                             const selectedBloodTypeID = formData.bloodTypeID;
                             const selectedBloodType = bloodTypes.find(type => type.bloodTypeID === selectedBloodTypeID);
                             return selectedBloodType ? (
-                              <Tag color={selectedBloodType.bloodTypeID === 'unknown' ? 'gray' : 'red'}>
+                              <Tag color="red">
                                 {selectedBloodType.aboType}{selectedBloodType.rhFactor}
                               </Tag>
                             ) : 'Chưa chọn';
@@ -515,25 +511,23 @@ const BloodDonationRegistration = () => {
                     </Col>
                   </Row>
 
+                  <Row gutter={[16, 16]}>
+                    <Col span={24}>
+                      <div className="confirm-item">
+                        <Text strong>Tiền sử bệnh lý và thuốc đang sử dụng:</Text>
+                        <br />
+                        <Text>{formData.notes || 'Chưa điền'}</Text>
+                      </div>
+                    </Col>
+                  </Row>
+
                   {formData.requestID && (
                     <Row gutter={[16, 16]}>
                       <Col span={24}>
                         <div className="confirm-item">
-                          <Text strong>Mã yêu cầu khẩn cấp:</Text>
+                          <Text strong>Mã hỗ trợ khẩn cấp:</Text>
                           <br />
                           <Text>{formData.requestID}</Text>
-                        </div>
-                      </Col>
-                    </Row>
-                  )}
-
-                  {formData.notes && (
-                    <Row gutter={[16, 16]}>
-                      <Col span={24}>
-                        <div className="confirm-item">
-                          <Text strong>Ghi chú:</Text>
-                          <br />
-                          <Text>{formData.notes}</Text>
                         </div>
                       </Col>
                     </Row>
@@ -662,7 +656,6 @@ const BloodDonationRegistration = () => {
                   }
                   
                   // Use stored form data for submission
-                  console.log('Submit button clicked, stored form data:', formData);
                   
                   // Call onFinish directly with stored form data
                   onFinish(formData);
