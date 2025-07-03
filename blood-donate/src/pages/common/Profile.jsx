@@ -53,21 +53,15 @@ const { Title, Text, Paragraph } = Typography;
 
 // Hàm lấy tên nhóm máu từ bloodTypeID
 const getBloodTypeName = (bloodTypeID) => {
-  console.log('==== getBloodTypeName DEBUG ====');
-  console.log('Input bloodTypeID:', bloodTypeID);
-  console.log('Type of bloodTypeID:', typeof bloodTypeID);
-  console.log('Is null/undefined?', bloodTypeID == null);
-  
   if (!bloodTypeID) {
-    console.log('No bloodTypeID provided, returning "Chưa xác định"');
     return 'Chưa xác định';
   }
   
   const bloodTypeMap = {
-    // Standard UUIDs from your system
+    // Complete mapping from your database BloodType table (uppercase) - Updated to match exact database
     '44C1A0F7-92B9-4E1B-A628-03447F5B86D7': 'O+ (O Rh dương)',
-    '5BB618E3-25CE-45D8-B980-03D532EC2293': 'B- (B Rh âm)',
-    '11111111-1111-1111-1111-111111111111': 'A+ (A Rh dương)',
+    '55B618E3-25CE-45D8-B980-03D532EC2293': 'B- (B Rh âm)',
+    '11111111-1111-1111-1111-111111111001': 'A+ (A Rh dương)',
     '11111111-1111-1111-1111-111111111002': 'A- (A Rh âm)',
     '11111111-1111-1111-1111-111111111003': 'B+ (B Rh dương)',
     '11111111-1111-1111-1111-111111111004': 'B- (B Rh âm)',
@@ -76,28 +70,34 @@ const getBloodTypeName = (bloodTypeID) => {
     '11111111-1111-1111-1111-111111111007': 'O+ (O Rh dương)',
     '11111111-1111-1111-1111-111111111008': 'O- (O Rh âm)',
     'FE6B963D-65ED-4681-96FF-213E2B9D7E9B': 'O- (O Rh âm)',
-    'B0B93608-6EA7-4F3E-8B24-37B66BF00C82': 'A+ (A Rh dương)',
-    'C070228E-DA24-4CD8-8286-84C2226674A3': 'B+ (B Rh dương)',
-    '5D60875F-D7DE-4DFE-A057-F8F433A7A932': 'AB- (AB Rh âm)',
-    'A12373C7-3BFC-496E-8021-C0031B9BCDD8': 'A- (A Rh âm)',
+    'B0B93608-6EA7-4F3E-8B2A-37B66BF0CC82': 'A+ (A Rh dương)',
+    'C07C228E-DA24-4DD8-B2B5-64CE22B674A3': 'B+ (B Rh dương)',
+    '5060875F-D7D5-40FD-8FCD-75F843A71A32': 'AB- (AB Rh âm)',
+    'A12373C7-3BFC-496E-8021-C0031B9BC0D8': 'A- (A Rh âm)',
     '5AE0C996-2594-48D2-8023-FD80676E4BCC': 'AB+ (AB Rh dương)',
     
-    // Add lowercase versions for safety
+    // Add lowercase versions for case-insensitive matching
     '44c1a0f7-92b9-4e1b-a628-03447f5b86d7': 'O+ (O Rh dương)',
-    '5bb618e3-25ce-45d8-b980-03d532ec2293': 'B- (B Rh âm)',
+    '55b618e3-25ce-45d8-b980-03d532ec2293': 'B- (B Rh âm)',
+    '11111111-1111-1111-1111-111111111001': 'A+ (A Rh dương)',
+    '11111111-1111-1111-1111-111111111002': 'A- (A Rh âm)',
+    '11111111-1111-1111-1111-111111111003': 'B+ (B Rh dương)',
+    '11111111-1111-1111-1111-111111111004': 'B- (B Rh âm)',
+    '11111111-1111-1111-1111-111111111005': 'AB+ (AB Rh dương)',
+    '11111111-1111-1111-1111-111111111006': 'AB- (AB Rh âm)',
+    '11111111-1111-1111-1111-111111111007': 'O+ (O Rh dương)',
+    '11111111-1111-1111-1111-111111111008': 'O- (O Rh âm)',
     'fe6b963d-65ed-4681-96ff-213e2b9d7e9b': 'O- (O Rh âm)',
-    'b0b93608-6ea7-4f3e-8b24-37b66bf00c82': 'A+ (A Rh dương)',
-    'c070228e-da24-4cd8-8286-84c2226674a3': 'B+ (B Rh dương)',
-    '5d60875f-d7de-4dfe-a057-f8f433a7a932': 'AB- (AB Rh âm)',
-    'a12373c7-3bfc-496e-8021-c0031b9bcdd8': 'A- (A Rh âm)',
+    'b0b93608-6ea7-4f3e-8b2a-37b66bf0cc82': 'A+ (A Rh dương)',
+    'c07c228e-da24-4dd8-b2b5-64ce22b674a3': 'B+ (B Rh dương)',
+    '5060875f-d7d5-40fd-8fcd-75f843a71a32': 'AB- (AB Rh âm)',
+    'a12373c7-3bfc-496e-8021-c0031b9bc0d8': 'A- (A Rh âm)',
     '5ae0c996-2594-48d2-8023-fd80676e4bcc': 'AB+ (AB Rh dương)'
   };
   
   // Try direct lookup first
   let result = bloodTypeMap[bloodTypeID];
   if (result) {
-    console.log('Direct lookup found:', result);
-    console.log('==== END getBloodTypeName DEBUG ====');
     return result;
   }
   
@@ -105,28 +105,19 @@ const getBloodTypeName = (bloodTypeID) => {
   const normalizedID = String(bloodTypeID).toUpperCase();
   result = bloodTypeMap[normalizedID];
   if (result) {
-    console.log('Normalized lookup found:', result);
-    console.log('==== END getBloodTypeName DEBUG ====');
     return result;
   }
   
   const lowerID = String(bloodTypeID).toLowerCase();
   result = bloodTypeMap[lowerID];
   if (result) {
-    console.log('Lowercase lookup found:', result);
-    console.log('==== END getBloodTypeName DEBUG ====');
     return result;
   }
-  
-  console.log('Available keys in bloodTypeMap:', Object.keys(bloodTypeMap));
-  console.log('No match found for bloodTypeID:', bloodTypeID);
-  console.log('==== END getBloodTypeName DEBUG ====');
   
   return 'Chưa xác định';
 };
 
 const Profile = () => {
-  console.log('Profile component mounting...');
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
@@ -136,7 +127,6 @@ const Profile = () => {
 
   // Fetch user data from API
   const fetchUserData = async () => {
-    console.log('fetchUserData called...');
     try {
       setLoading(true);
       
@@ -146,9 +136,7 @@ const Profile = () => {
       
       // Only use demo data for Member (not Staff or Admin)
       if (token === 'demo-token' && userEmail === 'member@example.com') {
-        console.log('Demo Member account detected, using mock data...');
         const mockData = getMockUserData();
-        console.log('Using mock data for demo account:', mockData);
         setUserInfo(mockData);
         
         const formValues = {
@@ -159,11 +147,8 @@ const Profile = () => {
         return;
       }
       
-      console.log('Calling UserAPI.getCurrentUser...');
-      
       // Get current user data from API
       const userData = await UserAPI.getCurrentUser();
-      console.log('UserAPI response:', userData);
       
       // Check if userData is valid
       if (!userData) {
@@ -185,11 +170,8 @@ const Profile = () => {
       
       // Nếu là Member, thêm các field mặc định và lấy thông tin donor profile từ API
       if (userData.role === 'Member') {
-        console.log('User is Member, fetching donor profile from API...');
-        
         try {
           // Lấy thông tin donor profile từ donorApi thay vì userManagementApi
-          console.log('Fetching donor profile using donorApi...');
           
           let donorProfile = null;
           
@@ -197,19 +179,12 @@ const Profile = () => {
             // Sử dụng checkDonorProfile từ donorApi với forceRefresh khi cần
             const forceRefresh = true; // Always force refresh to get latest data
             const donorCheckResult = await donorApi.checkDonorProfile(forceRefresh);
-            console.log('Donor check result from donorApi (forceRefresh =', forceRefresh, '):', donorCheckResult);
             
             if (donorCheckResult.exists && donorCheckResult.donorID) {
               // Lấy thông tin chi tiết donor profile
               try {
                 donorProfile = await donorApi.getDonorProfileById(donorCheckResult.donorID);
-                console.log('=== DONOR PROFILE FROM donorApi ===');
-                console.log('Donor profile details:', donorProfile);
-                console.log('Donor profile keys:', donorProfile ? Object.keys(donorProfile) : 'null');
-                console.log('Raw donor profile JSON:', JSON.stringify(donorProfile, null, 2));
-                console.log('=== END DONOR PROFILE FROM donorApi ===');
               } catch (detailError) {
-                console.warn('Could not get donor profile details:', detailError.message);
                 // Tạo mock donor profile từ check result
                 donorProfile = {
                   donorId: donorCheckResult.donorID,
@@ -220,29 +195,16 @@ const Profile = () => {
               }
             }
           } catch (donorApiError) {
-            console.warn('donorApi failed, falling back to userManagementApi:', donorApiError.message);
-            
             // Fallback: sử dụng getDonorProfileByUserId từ userManagementApi  
             const { getDonorProfileByUserId } = await import('../../services/userManagementApi');
             donorProfile = await getDonorProfileByUserId(userData.userId || userData.userID || userData.id);
-            console.log('=== DONOR PROFILE FROM userManagementApi FALLBACK ===');
-            console.log('Donor profile details:', donorProfile);
-            console.log('=== END FALLBACK ===');
           }
-          
-          console.log('Final donor profile to process:', donorProfile);
           
           if (donorProfile && (donorProfile.donorID || donorProfile.donorId)) {
             // Đã có hồ sơ hiến máu - sử dụng thông tin thực tế từ database
             const bloodTypeID = donorProfile.bloodTypeId || donorProfile.bloodTypeID || donorProfile.BloodTypeId || donorProfile.BloodTypeID;
             const userId = donorProfile.userId || donorProfile.userID || donorProfile.UserId || donorProfile.UserID;
             const address = donorProfile.Address || donorProfile.address || userData.address || ''; // Ưu tiên Address (viết hoa) từ database
-            
-            console.log('Donor profile bloodTypeID from database:', bloodTypeID);
-            console.log('Donor profile userID from database:', userId);
-            console.log('Donor profile Address from database:', address);
-            console.log('Raw donor profile from API:', donorProfile);
-            console.log('All donor profile fields:', Object.keys(donorProfile));
             
             processedUserData = {
               ...processedUserData,
@@ -257,11 +219,6 @@ const Profile = () => {
               hasDonorProfile: true,
               donorUserId: userId // Lưu userID từ donor profile để debug
             };
-            console.log('User has donor profile from API:', processedUserData);
-            console.log('Blood type mapped to:', processedUserData.bloodType);
-            console.log('Final bloodTypeID value:', processedUserData.bloodTypeID);
-            console.log('Final address value:', processedUserData.address);
-            console.log('Donor userID value:', processedUserData.donorUserId);
           } else {
             // Chưa có hồ sơ hiến máu - hiển thị thông tin mặc định
             processedUserData = {
@@ -276,10 +233,8 @@ const Profile = () => {
               address: userData.address || '',
               hasDonorProfile: false
             };
-            console.log('User has NO donor profile, using defaults:', processedUserData);
           }
         } catch (donorError) {
-          console.log('Error fetching donor profile from API:', donorError.message);
           // Không có hồ sơ hiến máu hoặc lỗi API - sử dụng thông tin mặc định
           processedUserData = {
             ...processedUserData,
@@ -293,12 +248,10 @@ const Profile = () => {
             address: userData.address || '',
             hasDonorProfile: false
           };
-          console.log('Using default values due to API error:', processedUserData);
         }
       }
       
       setUserInfo(processedUserData);
-      console.log('User info set:', processedUserData);
       
       // Set form values, ensuring dateOfBirth is properly handled
       const formValues = {
@@ -308,16 +261,13 @@ const Profile = () => {
       form.setFieldsValue(formValues);
       
     } catch (error) {
-      console.error('Error fetching user data:', error);
       message.error('Không thể tải thông tin người dùng. Sử dụng dữ liệu mẫu.');
       
       // Fallback to mock data if API fails
       const mockData = getMockUserData();
-      console.log('Using mock data:', mockData);
       setUserInfo(mockData);
       form.setFieldsValue(mockData);
     } finally {
-      console.log('fetchUserData finished, setting loading to false');
       setLoading(false);
     }
   };
@@ -359,46 +309,22 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    console.log('=== Profile useEffect START ===');
-    console.log('Current location:', window.location.href);
-    console.log('Profile useEffect triggered');
-    
-    // Debug localStorage
-    console.log('=== DEBUG localStorage ===');
-    console.log('userToken:', localStorage.getItem('userToken'));
-    console.log('userId:', localStorage.getItem('userId'));
-    console.log('username:', localStorage.getItem('username'));
-    console.log('userRole:', localStorage.getItem('userRole'));
-    console.log('userEmail:', localStorage.getItem('userEmail'));
-    console.log('===========================');
-    
     // Check if user is logged in
     const token = localStorage.getItem('userToken');
-    console.log('Token found:', !!token);
-    console.log('Token value:', token);
     
     if (!token) {
-      console.log('No token, redirecting to login');
-      console.log('Current path:', window.location.pathname);
       navigate('/login');
       return;
     }
 
     // Fetch user data from API
-    console.log('Token found, fetching user data...');
     fetchUserData();
-    console.log('=== Profile useEffect END ===');
   }, [navigate]);
 
   // Listen for profile data change events (e.g., after blood donation registration)
   useEffect(() => {
     const handleProfileDataChanged = (event) => {
-      console.log('Profile data changed event received:', event.detail);
-      console.log('Reason:', event.detail?.reason);
-      
       if (event.detail?.reason === 'blood_donation_registration') {
-        console.log('Blood donation registration completed, refreshing profile data...');
-        
         // Wait a moment for backend to process, then refresh
         setTimeout(() => {
           fetchUserData();
@@ -490,18 +416,8 @@ const Profile = () => {
             address: processedValues.address // Cập nhật địa chỉ từ form
           };
           
-          console.log('=== DONOR PROFILE UPDATE DEBUG ===');
-          console.log('Updating donor profile with data:', donorData);
-          console.log('userInfo.userID:', userInfo.userID);
-          console.log('userInfo.donorID:', userInfo.donorID);
-          console.log('processedValues.address:', processedValues.address);
-          console.log('Request will send Address (capital A) to API');
-          console.log('===================================');
-          
           await updateDonorProfile(userInfo.donorID, donorData);
-          console.log('Donor profile updated successfully');
         } catch (donorError) {
-          console.error('Error updating donor profile:', donorError);
           message.warning('Cập nhật thông tin cá nhân thành công, nhưng không thể cập nhật hồ sơ hiến máu');
         }
       }
@@ -702,7 +618,7 @@ const Profile = () => {
                   <Space>
                     <HeartOutlined style={{ color: '#E91E63' }} />
                     <Tag color="red" style={{ fontSize: '14px', fontWeight: 'bold' }}>
-                      {userInfo.bloodType || 'Chưa xác định'}
+                      {getBloodTypeName(userInfo.bloodTypeID)}
                     </Tag>
                   </Space>
                 </Descriptions.Item>
@@ -750,8 +666,8 @@ const Profile = () => {
             </Card>
           </Col>
 
-          {/* Địa chỉ từ hồ sơ hiến máu */}
-          <Col xs={24}>
+          {/* Địa chỉ từ hồ sơ hiến máu - Đã ẩn theo yêu cầu */}
+          {/* <Col xs={24}>
             <Card 
               size="small" 
               title="Địa chỉ liên hệ"
@@ -767,10 +683,10 @@ const Profile = () => {
                 </Paragraph>
               </Space>
             </Card>
-          </Col>
+          </Col> */}
 
-          {/* Thuốc đang sử dụng */}
-          <Col xs={24}>
+          {/* Thuốc đang sử dụng - Đã ẩn theo yêu cầu */}
+          {/* <Col xs={24}>
             <Card 
               size="small" 
               title="Thuốc đang sử dụng"
@@ -786,7 +702,7 @@ const Profile = () => {
                 </Paragraph>
               </Space>
             </Card>
-          </Col>
+          </Col> */}
         </Row>
       </Card>
     );
@@ -799,7 +715,6 @@ const Profile = () => {
     return null;
   };
   if (loading) {
-    console.log('Profile component: showing loading...');
     return (
       <div className="profile-loading" style={{ padding: '50px', textAlign: 'center' }}>
         <Spin size="large" />
@@ -809,7 +724,6 @@ const Profile = () => {
   }
 
   if (!userInfo) {
-    console.log('Profile component: no user info...');
     return (
       <div className="profile-error" style={{ padding: '50px', textAlign: 'center' }}>
         <Title level={4}>Không thể tải thông tin người dùng</Title>
@@ -855,19 +769,6 @@ const Profile = () => {
                       {userInfo?.role || 'Unknown'}
                     </Tag>
                   </div>
-                </div>
-                <div>
-                  <Button
-                    type="default"
-                    loading={loading}
-                    onClick={() => {
-                      console.log('Manual refresh requested');
-                      fetchUserData();
-                    }}
-                    style={{ marginBottom: '8px' }}
-                  >
-                    🔄 Làm mới
-                  </Button>
                 </div>
               </div>
             </Col>
@@ -949,41 +850,11 @@ const Profile = () => {
                 </Form.Item>
               </Col>
 
-              {/* Chỉ hiển thị địa chỉ và thông tin hiến máu cho Member có mã hiến máu */}
-              {userInfo.role === 'Member' && userInfo.hasDonorProfile && userInfo.donorID && (
-                <>
-                  <Col xs={24}>
-                    <Divider orientation="left">Thông tin liên hệ và hiến máu</Divider>
-                  </Col>
-                  
-                  <Col xs={24}>
-                    <Form.Item 
-                      label="Địa chỉ" 
-                      name="address"
-                      rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
-                    >
-                      <Input.TextArea rows={3} placeholder="Nhập địa chỉ liên hệ" />
-                    </Form.Item>
-                  </Col>
-                  
-
-                  
-                  <Col xs={24}>
-                    <Form.Item 
-                      label="Thuốc đang sử dụng" 
-                      name="currentMedications"
-                    >
-                      <Input.TextArea 
-                        rows={2} 
-                        placeholder="Nhập thông tin về thuốc đang sử dụng (nếu có)" 
-                      />
-                    </Form.Item>
-                  </Col>
-                </>
-              )}
+              {/* Đã ẩn toàn bộ phần "Thông tin hiến máu" trong edit modal theo yêu cầu */}
             </Row>            
             <div className="profile-form-actions">
-              <Space>                <Button 
+              <Space>
+                <Button 
                   onClick={handleCancelEdit}
                   icon={<CloseOutlined />}
                   className="profile-cancel-btn"

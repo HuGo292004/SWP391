@@ -144,10 +144,15 @@ export const donorApi = {
       console.log('=== BLOOD DONATION REGISTRATION ===');
       console.log('Original donation data:', donationData);
       
+      // Validate bloodTypeID before processing
+      if (!donationData.bloodTypeID || donationData.bloodTypeID === 'unknown' || donationData.bloodTypeID === 'undefined') {
+        throw new Error(`Invalid bloodTypeID: ${donationData.bloodTypeID}. Please select a valid blood type.`);
+      }
+      
       // Step 1: Check if donor profile exists and create/update if needed
       let donorProfileResult = null;
       try {
-        console.log('Step 1: Checking/creating donor profile with bloodTypeID...');
+        console.log('Step 1: Checking/creating donor profile with bloodTypeID:', donationData.bloodTypeID);
         donorProfileResult = await donorApi.ensureDonorProfileWithBloodType(donationData.bloodTypeID);
         console.log('Donor profile result:', donorProfileResult);
         
@@ -385,6 +390,13 @@ export const donorApi = {
   // Ensure donor profile exists with bloodTypeID (for blood donation registration)
   ensureDonorProfileWithBloodType: async (bloodTypeID) => {
     try {
+      // Validate bloodTypeID first
+      if (!bloodTypeID || bloodTypeID === 'unknown' || bloodTypeID === 'undefined') {
+        throw new Error(`Invalid bloodTypeID: ${bloodTypeID}. Please select a valid blood type.`);
+      }
+      
+      console.log('Ensuring donor profile with bloodTypeID:', bloodTypeID);
+      
       const currentToken = localStorage.getItem('userToken');
       const isDemo = currentToken === 'demo-token';
       
@@ -456,7 +468,14 @@ export const donorApi = {
             lastDonationDate: existingDonor.lastDonationDate,
             nextEligibleDate: existingDonor.nextEligibleDate,
             currentMedications: existingDonor.currentMedications,
-            Address: userDetails?.address || existingDonor.Address || existingDonor.address
+            Address: userDetails?.address || existingDonor.Address || existingDonor.address,
+            
+            // Update personal information fields if backend supports them
+            FullName: userDetails?.fullName || userDetails?.FullName || existingDonor.FullName || existingDonor.fullName,
+            Email: userDetails?.email || userDetails?.Email || existingDonor.Email || existingDonor.email,
+            PhoneNumber: userDetails?.phone || userDetails?.PhoneNumber || userDetails?.phoneNumber || existingDonor.PhoneNumber || existingDonor.phoneNumber,
+            DateOfBirth: userDetails?.dateOfBirth || userDetails?.DateOfBirth || existingDonor.DateOfBirth || existingDonor.dateOfBirth,
+            Gender: userDetails?.gender || userDetails?.Gender || existingDonor.Gender || existingDonor.gender
           };
           
           console.log('Updating donor profile with basic data (avoiding 500 error):', updateData);
@@ -513,12 +532,20 @@ export const donorApi = {
           isAvailable: true,
           lastDonationDate: null,
           nextEligibleDate: null,
-          currentMedications: null,
-          Address: userDetails?.address || null // Use user's address if available, note capital A
+          currentMedications: null, // Will be updated later via updateDonorMedications
+          Address: userDetails?.address || null, // Use user's address if available
+          
+          // Personal information fields (require backend DTO support)
+          FullName: userDetails?.fullName || userDetails?.FullName || null,
+          Email: userDetails?.email || userDetails?.Email || null,
+          PhoneNumber: userDetails?.phone || userDetails?.PhoneNumber || userDetails?.phoneNumber || null,
+          DateOfBirth: userDetails?.dateOfBirth || userDetails?.DateOfBirth || null,
+          Gender: userDetails?.gender || userDetails?.Gender || null
         };
         
-        console.log('Creating basic donor profile with minimal data (avoiding 500 error):', createData);
+        console.log('Creating basic donor profile with complete personal data:', createData);
         console.log('User info for donor profile:', userInfo);
+        console.log('Expected fields to be saved:', Object.keys(createData));
         
         try {
           const createResult = await apiRequest('/Donor', {
@@ -526,20 +553,31 @@ export const donorApi = {
             body: JSON.stringify(createData),
           });
           
-          console.log('Basic donor profile created successfully:', createResult);
+          console.log('Donor profile creation API response:', createResult);
+          console.log('Fields returned by API:', Object.keys(createResult));
           const donorID = createResult.donorId || createResult.donorID;
           
-          // Note: Personal information is managed via User table and fetched via UserAPI
-          // The Donor table only supports: donorId, userId, bloodTypeId, isAvailable
-          console.log('✅ Donor profile created with bloodTypeID:', bloodTypeID);
-          console.log('ℹ️ Personal info is available via User table and will be displayed in registration preview');
+          // Verify that personal information fields were saved and returned
+          const expectedFields = ['FullName', 'Email', 'PhoneNumber', 'Address', 'DateOfBirth', 'Gender'];
+          const returnedFields = Object.keys(createResult);
+          const missingFields = expectedFields.filter(field => 
+            !returnedFields.includes(field) && !returnedFields.includes(field.toLowerCase())
+          );
+          
+          if (missingFields.length > 0) {
+            console.warn('⚠️ Backend may not support these personal info fields yet:', missingFields);
+            console.warn('ℹ️ Check BACKEND_FIXES_REQUIRED.md for required backend updates');
+          } else {
+            console.log('✅ Backend supports personal information fields in donor profile');
+          }
           
           return {
             success: true,
             action: 'created',
             donorID: donorID,
             bloodTypeID: bloodTypeID,
-            result: createResult
+            result: createResult,
+            missingFields: missingFields
           };
         } catch (createError) {
           console.error('Error creating donor profile:', createError);
@@ -635,6 +673,173 @@ export const donorApi = {
     } catch (error) {
       console.error('Error verifying donor profile:', error);
       return { success: false, message: error.message };
+    }
+  },
+
+  // Update donor medications (currentMedications field)
+  updateDonorMedications: async (donorID, currentMedications) => {
+    try {
+      const currentToken = localStorage.getItem('userToken');
+      const isDemo = currentToken === 'demo-token';
+      
+      if (isDemo) {
+        console.log('Demo mode: Updating donor medications');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return {
+          success: true,
+          message: 'Cập nhật tiền sử bệnh lý thành công (Demo mode)',
+          data: {
+            donorID: donorID,
+            currentMedications: currentMedications
+          }
+        };
+      }
+      
+      console.log(`Updating medications for donor ID: ${donorID}`);
+      console.log('Current medications:', currentMedications);
+      
+      // First, get current donor data to preserve other fields
+      const currentDonor = await apiRequest(`/Donor/${donorID}`, {
+        method: 'GET'
+      });
+      
+      console.log('Current donor data:', currentDonor);
+      console.log('Current donor data keys:', Object.keys(currentDonor));
+      
+      // Prepare update data with currentMedications
+      // Note: Only update the fields that are actually available in the API response
+      // Create update data with only necessary fields to avoid overwriting with undefined
+      const updateData = {
+        donorID: currentDonor.donorID || currentDonor.donorId || currentDonor.id,
+        userID: currentDonor.userID || currentDonor.userId,
+        currentMedications: currentMedications, // Update this field
+        isAvailable: true // Ensure donor is available
+      };
+      
+      // Only include optional fields if they exist
+      if (currentDonor.bloodTypeID || currentDonor.bloodTypeId) {
+        updateData.bloodTypeID = currentDonor.bloodTypeID || currentDonor.bloodTypeId;
+      }
+      
+      if (currentDonor.lastDonationDate) {
+        updateData.lastDonationDate = currentDonor.lastDonationDate;
+      }
+      
+      if (currentDonor.nextEligibleDate) {
+        updateData.nextEligibleDate = currentDonor.nextEligibleDate;
+      }
+      
+      if (currentDonor.Address || currentDonor.address) {
+        updateData.Address = currentDonor.Address || currentDonor.address;
+      }
+      
+      console.log('Updating donor with medications (only necessary fields):', updateData);
+      
+      const result = await apiRequest(`/Donor/${donorID}`, {
+        method: 'PUT',
+        body: JSON.stringify(updateData),
+      });
+      
+      console.log('Donor medications updated successfully:', result);
+      
+      return {
+        success: true,
+        message: 'Cập nhật tiền sử bệnh lý thành công',
+        data: result
+      };
+      
+    } catch (error) {
+      console.error('Error updating donor medications:', error);
+      throw new Error(`Cập nhật tiền sử bệnh lý thất bại: ${error.message}`);
+    }
+  },
+
+  // Test function to check backend donor schema expectations
+  testDonorSchema: async () => {
+    try {
+      const testData = {
+        userID: "test-user-id",
+        bloodTypeID: "44C1A0F7-92B9-4E1B-A628-03447F5B86D7",
+        isAvailable: true,
+        currentMedications: "Test medications",
+        FullName: "Test Name",
+        Email: "test@email.com",
+        PhoneNumber: "0123456789",
+        Address: "Test Address",
+        DateOfBirth: "1990-01-01",
+        Gender: "Nam"
+      };
+      
+      console.log('Testing donor schema with data:', testData);
+      
+      // Don't actually create, just test validation
+      // const result = await apiRequest('/Donor', {
+      //   method: 'POST',
+      //   body: JSON.stringify(testData),
+      // });
+      
+      return { success: true, testData };
+    } catch (error) {
+      console.error('Donor schema test failed:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Get donor profile by user ID (for staff to view member profiles)
+  getDonorProfileByUserId: async (userId) => {
+    try {
+      const currentToken = localStorage.getItem('userToken');
+      const isDemo = currentToken === 'demo-token';
+      
+      if (isDemo) {
+        // Demo mode - return mock donor profile
+        console.log('Demo mode: Getting donor profile for user ID:', userId);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Simulate having a donor profile 70% of the time
+        const hasProfile = Math.random() > 0.3;
+        
+        if (hasProfile) {
+          return {
+            donorID: generateUUID(),
+            userID: userId,
+            bloodTypeID: '44C1A0F7-92B9-4E1B-A628-03447F5B86D7',
+            isAvailable: true,
+            lastDonationDate: '2024-01-15',
+            nextEligibleDate: '2024-07-15',
+            currentMedications: 'Không có thuốc đang sử dụng',
+            address: '123 Demo Street, Demo City',
+            registrationDate: new Date().toISOString()
+          };
+        } else {
+          return null;
+        }
+      }
+      
+      console.log(`Getting donor profile for userId: ${userId}`);
+      
+      try {
+        // Get all donors and find the one with matching userID
+        const allDonors = await apiRequest('/Donor');
+        const donorProfile = allDonors.find(donor => 
+          donor.userID === userId || donor.userId === userId || 
+          donor.UserID === userId || donor.UserId === userId
+        );
+        
+        if (donorProfile) {
+          console.log('Found donor profile for user:', userId, donorProfile);
+          return donorProfile;
+        } else {
+          console.log('No donor profile found for user:', userId);
+          return null;
+        }
+      } catch (error) {
+        console.log('Error fetching donor profile for user:', userId, error.message);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error getting donor profile by user ID:', error);
+      return null;
     }
   },
 
