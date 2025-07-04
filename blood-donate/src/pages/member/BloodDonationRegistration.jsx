@@ -1,28 +1,34 @@
 /*
  * Blood Donation Registration Page
  * 
- * RECENT FIX: Updated bloodTypeID values to match actual database (July 3, 2025)
- * - Fixed bloodTypeID mismatch that was causing 500 errors during donor profile creation
- * - Updated IDs like 44C1ADF7 -> 44C1A0F7, 55B618E3-250E -> 55B618E3-25CE, etc.
+ * RECENT UPDATES: Integrated BloodManagement API and Enhanced Donor API (July 4, 2025)
+ * - Integrated BloodManagement API for dynamic blood types loading
+ * - Created enhancedDonorApi to save address and currentMedications to Donor table
+ * - Updated data flow to ensure address and medications are stored in Donor table, not BloodDonation table
+ * 
+ * API Integration:
+ * - BloodManagement API: /api/BloodManagement/Get-Blood-types (dynamic blood types)
+ * - Enhanced Donor API: Creates/updates donor profile with address and currentMedications
+ * - BloodDonation API: /api/BloodDonation (blood donation records with notes only)
  * 
  * Data Architecture:
- * - User personal information (name, email, phone, DOB, address) is stored in the User table
- * - Donor profile (donorId, userId, bloodTypeId, isAvailable) is stored in the Donor table  
- * - Blood donation records (donationDate, notes, status) are stored in the BloodDonation table linked to the donor profile
- * - Medical history ("Tiền sử bệnh lý và thuốc đang sử dụng") is stored in BloodDonation.notes
+ * - User personal information (name, email, phone, DOB) is stored in the User table
+ * - Donor profile (donorId, userId, bloodTypeId, address, currentMedications, isAvailable) is stored in the Donor table  
+ * - Blood donation records (donationDate, notes, status) are stored in the BloodDonation table
+ * - Address and currentMedications are now stored in Donor table (as requested)
+ * - Notes field is for additional comments only
  * 
  * Process:
- * 1. Fetch user info from User API for display in confirmation step
- * 2. Submit blood donation registration to BloodDonation table (donationDate, notes, status)
- * 3. After successful registration, create/update Donor profile with bloodTypeId only
- * 4. Medical history is stored in BloodDonation.notes, not in Donor table
+ * 1. Load blood types dynamically from BloodManagement API
+ * 2. Fetch user info from User API for display in confirmation step
+ * 3. Submit blood donation registration and update Donor profile with address/medications
+ * 4. Blood donation record stores donationDate, notes, status in BloodDonation table
+ * 5. Donor profile stores address, currentMedications, bloodTypeId in Donor table
  * 
- * Important: "Tiền sử bệnh lý và thuốc đang sử dụng" field maps to BloodDonation.notes
- * Note: Personal info stays in User table (optimal design - no duplication needed).
- * Frontend fetches personal info via User API and donor-specific info via Donor API.
+ * Important: Address and CurrentMedications are now saved to Donor table, Notes is for additional comments
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Form, 
   Input, 
@@ -56,12 +62,15 @@ import {
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { donorApi } from '../../services/donorApi';
+import { enhancedDonorApi } from '../../services/enhancedDonorApi';
+import { bloodManagementApi } from '../../services/bloodManagementApi';
 import { UserAPI } from '../../services/userApi';
 import '../../styles/BloodDonationRegistration.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 const { TextArea } = Input;
+const { Option } = Select;
 
 const BloodDonationRegistration = () => {
   const [loading, setLoading] = useState(false);
@@ -72,11 +81,55 @@ const BloodDonationRegistration = () => {
   const [loadingUserInfo, setLoadingUserInfo] = useState(false);
   const [agreement, setAgreement] = useState(false);
   const [formData, setFormData] = useState({}); // Store form data between steps
+  const [bloodTypes, setBloodTypes] = useState([]); // Dynamic blood types from API
+  const [loadingBloodTypes, setLoadingBloodTypes] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  // Blood types from database - updated with correct IDs from actual database
-  const bloodTypes = [
+  // Load blood types from API on component mount
+  useEffect(() => {
+    // Initialize with static blood types first
+    setBloodTypes(getStaticBloodTypes());
+    // Then try to load from API
+    loadBloodTypes();
+  }, []);
+
+  const loadBloodTypes = async () => {
+    setLoadingBloodTypes(true);
+    try {
+      const response = await bloodManagementApi.getBloodTypes();
+      
+      // Format blood types data - handle multiple possible response formats
+      let formattedBloodTypes = [];
+      
+      if (Array.isArray(response)) {
+        formattedBloodTypes = response;
+      } else if (response && Array.isArray(response.data)) {
+        formattedBloodTypes = response.data;
+      } else if (response && Array.isArray(response.bloodTypes)) {
+        formattedBloodTypes = response.bloodTypes;
+      } else if (response && typeof response === 'object') {
+        // Try to find any array property
+        const arrayKeys = Object.keys(response).filter(key => Array.isArray(response[key]));
+        if (arrayKeys.length > 0) {
+          formattedBloodTypes = response[arrayKeys[0]];
+        }
+      }
+      
+      if (formattedBloodTypes.length > 0) {
+        setBloodTypes(formattedBloodTypes);
+      }
+      
+    } catch (error) {
+      console.error('Error loading blood types from API:', error);
+      // Keep static blood types if API fails
+    } finally {
+      setLoadingBloodTypes(false);
+    }
+  };
+
+  // Static blood types as fallback
+  const getStaticBloodTypes = () => [
     { bloodTypeID: '44C1A0F7-92B9-4E1B-A628-03447F5B86D7', aboType: 'O', rhFactor: '+', description: 'Nhóm máu O Rh dương' },
     { bloodTypeID: '55B618E3-25CE-45D8-B980-03D532EC2293', aboType: 'B', rhFactor: '-', description: 'Nhóm máu B Rh âm' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111001', aboType: 'A', rhFactor: '+', description: 'Nhóm máu A Rh dương' },
@@ -114,8 +167,33 @@ const BloodDonationRegistration = () => {
     if (!bloodTypeID || bloodTypeID === 'unknown' || bloodTypeID === 'undefined') {
       return false;
     }
-    // Check if the bloodTypeID exists in our bloodTypes array
-    return bloodTypes.some(type => type.bloodTypeID === bloodTypeID);
+    // Check if the bloodTypeID exists in our bloodTypes array (supports multiple field name formats)
+    return bloodTypes.some(type => 
+      (type.bloodTypeId === bloodTypeID) || // API uses lowercase 'd'
+      (type.bloodTypeID === bloodTypeID) || 
+      (type.BloodTypeID === bloodTypeID) || 
+      (type.id === bloodTypeID)
+    );
+  };
+
+  // Helper function to convert bloodTypeID to bloodType string for API
+  const convertBloodTypeIDToString = (bloodTypeID) => {
+    if (!bloodTypeID) return null;
+    
+    const selectedBloodType = bloodTypes.find(type => 
+      (type.bloodTypeId === bloodTypeID) || // API uses lowercase 'd'
+      (type.bloodTypeID === bloodTypeID) || 
+      (type.BloodTypeID === bloodTypeID) || 
+      (type.id === bloodTypeID)
+    );
+    
+    if (selectedBloodType) {
+      const aboType = selectedBloodType.aboType || selectedBloodType.AboType || '';
+      const rhFactor = selectedBloodType.rhFactor || selectedBloodType.RhFactor || '';
+      return `${aboType}${rhFactor}`; // e.g., "A+", "B-", "AB+", "O-"
+    }
+    
+    return null;
   };
 
   const onFinish = async (values) => {
@@ -150,8 +228,20 @@ const BloodDonationRegistration = () => {
         return;
       }
 
-      if (!formValues.notes) {
-        setError('Vui lòng điền thông tin tiền sử bệnh lý và thuốc đang sử dụng!');
+      if (!formValues.address || !formValues.address.trim()) {
+        setError('Vui lòng nhập địa chỉ!');
+        return;
+      }
+
+      if (!formValues.currentMedications || !formValues.currentMedications.trim()) {
+        setError('Vui lòng điền thông tin thuốc đang sử dụng!');
+        return;
+      }
+      
+      // Convert bloodTypeID to bloodType string for API
+      const bloodTypeString = convertBloodTypeIDToString(formValues.bloodTypeID);
+      if (!bloodTypeString) {
+        setError('Không thể xác định nhóm máu. Vui lòng chọn lại!');
         return;
       }
       
@@ -159,20 +249,17 @@ const BloodDonationRegistration = () => {
         donorID: null, // Let backend set this based on authenticated user
         requestID: formValues.requestID || null,
         donationDate: formValues.donationDate ? formValues.donationDate.format('YYYY-MM-DD') : null,
-        bloodTypeID: formValues.bloodTypeID || null, // Ensure this is not undefined
+        bloodTypeID: formValues.bloodTypeID || null, // Keep for internal tracking
+        bloodType: bloodTypeString, // Send this to API (e.g., "A+", "B-")
         status: 'Pending',
+        address: formValues.address || '',
+        currentMedications: formValues.currentMedications || '',
         notes: formValues.notes || '',
         certificateID: null
       };
       
-      // Separate data for updating donor profile (only bloodTypeID, no medications in Donor table)
-      const donorUpdateData = {
-        bloodTypeID: formValues.bloodTypeID || null,
-        isAvailable: true
-      };
-      
-      // Step 1: Call API to register blood donation
-      const result = await donorApi.registerBloodDonation(donationData);
+      // Use enhanced API that saves address and currentMedications to donor table
+      const result = await enhancedDonorApi.registerBloodDonationWithDonor(donationData);
       
       // Show success message
       let successMessage = 'Đăng ký hiến máu thành công! Chúng tôi sẽ liên hệ với bạn để xác nhận lịch hẹn.';
@@ -181,15 +268,15 @@ const BloodDonationRegistration = () => {
       if (result && result.donorProfileInfo) {
         const { action, error, errorDetails } = result.donorProfileInfo;
         if (action === 'created') {
-          successMessage += ' Hồ sơ hiến máu của bạn đã được tạo mới.';
+          successMessage += ' Hồ sơ hiến máu của bạn đã được tạo mới với thông tin địa chỉ và thuốc đang sử dụng.';
         } else if (action === 'updated') {
-          successMessage += ' Hồ sơ hiến máu của bạn đã được cập nhật với nhóm máu mới.';
-        } else if (action === 'failed_creation') {
-          successMessage += ' Tuy nhiên, có lỗi khi tạo hồ sơ hiến máu. Vui lòng liên hệ hỗ trợ để cập nhật thông tin nhóm máu.';
+          successMessage += ' Hồ sơ hiến máu của bạn đã được cập nhật với thông tin địa chỉ và thuốc đang sử dụng.';
+        } else if (action === 'failed' || action === 'failed_creation') {
+          successMessage += ' Tuy nhiên, có lỗi khi cập nhật hồ sơ hiến máu. Vui lòng liên hệ hỗ trợ để cập nhật thông tin.';
           
           // Show a separate warning alert
           setTimeout(() => {
-            setError(`Cảnh báo: Không thể tạo hồ sơ hiến máu. Chi tiết lỗi: ${errorDetails || error}`);
+            setError(`Cảnh báo: Không thể cập nhật hồ sơ hiến máu. Chi tiết lỗi: ${errorDetails || error}`);
           }, 3000);
         }
       }
@@ -242,7 +329,7 @@ const BloodDonationRegistration = () => {
   const steps = [
     {
       title: 'Thông tin hiến máu',
-      description: 'Ngày hiến máu và nhóm máu'
+      description: 'Ngày hiến máu, nhóm máu và thông tin y tế'
     },
     {
       title: 'Xác nhận đăng ký',
@@ -252,18 +339,39 @@ const BloodDonationRegistration = () => {
 
   const nextStep = () => {
     const fieldsToValidate = currentStep === 0 
-      ? ['donationDate', 'bloodTypeID', 'notes'] 
+      ? ['donationDate', 'bloodTypeID', 'address', 'currentMedications'] 
       : [];
       
     form.validateFields(fieldsToValidate).then((values) => {
       // Get all form values, including optional ones like notes and requestID
       const allFormValues = form.getFieldsValue();
       
-      // Additional validation for bloodTypeID
+      // Additional validation for bloodTypeID and conversion
       const bloodTypeIDToValidate = values.bloodTypeID || allFormValues.bloodTypeID;
       if (currentStep === 0 && !isValidBloodTypeID(bloodTypeIDToValidate)) {
         setError('Vui lòng chọn nhóm máu hợp lệ!');
         return;
+      }
+      
+      // Additional validation: check if we can convert bloodTypeID to string
+      if (currentStep === 0) {
+        const bloodTypeString = convertBloodTypeIDToString(bloodTypeIDToValidate);
+        if (!bloodTypeString) {
+          setError('Không thể xác định nhóm máu. Vui lòng chọn lại!');
+          return;
+        }
+      }
+      
+      // Validate required fields for step 0
+      if (currentStep === 0) {
+        if (!allFormValues.address || !allFormValues.address.trim()) {
+          setError('Vui lòng nhập địa chỉ!');
+          return;
+        }
+        if (!allFormValues.currentMedications || !allFormValues.currentMedications.trim()) {
+          setError('Vui lòng điền thông tin thuốc đang sử dụng!');
+          return;
+        }
       }
       
       // Store form data - merge with existing data
@@ -334,27 +442,64 @@ const BloodDonationRegistration = () => {
                   ]}
                 >
                   <Select
-                    placeholder="Chọn nhóm máu của bạn"
+                    placeholder={loadingBloodTypes ? "Đang tải nhóm máu..." : "Chọn nhóm máu của bạn"}
                     className="modern-input"
                     showSearch
-                    filterOption={(input, option) =>
-                      option?.label?.toLowerCase().includes(input.toLowerCase())
-                    }
-                    options={bloodTypes.map(type => ({
-                      label: (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Tag color="red" style={{ margin: 0 }}>
-                            {type.aboType}{type.rhFactor}
-                          </Tag>
-                          <span style={{ fontSize: '12px', color: '#666' }}>
-                            {type.description}
-                          </span>
-                        </div>
-                      ),
-                      value: type.bloodTypeID,
-                      searchText: `${type.aboType}${type.rhFactor} ${type.description}`
-                    }))}
-                  />
+                    loading={loadingBloodTypes}
+                    disabled={loadingBloodTypes || bloodTypes.length === 0}
+                    filterOption={(input, option) => {
+                      const searchText = option?.searchText || '';
+                      return searchText.toLowerCase().includes(input.toLowerCase());
+                    }}
+                    notFoundContent={loadingBloodTypes ? "Đang tải..." : "Không tìm thấy nhóm máu"}
+                    onChange={(value) => {
+                      const selectedType = bloodTypes.find(type => 
+                        (type.bloodTypeId === value) ||  // API uses lowercase 'd' - check first
+                        (type.bloodTypeID === value) || 
+                        (type.BloodTypeID === value) || 
+                        (type.id === value)
+                      );
+                      
+                      // Update both the form value and the formData state
+                      setFormData(prev => ({
+                        ...prev,
+                        bloodTypeID: value
+                      }));
+                      
+                      // Also update the Ant Design form field
+                      form.setFieldsValue({
+                        bloodTypeID: value
+                      });
+                    }}
+                    onOpenChange={(open) => {
+                      // Optional: Trigger reload when dropdown opens
+                    }}
+                  >
+                    {bloodTypes.map((type, index) => {
+                      // Use consistent field order - prioritize API field name (bloodTypeId with lowercase 'd')
+                      const key = type.bloodTypeId || type.bloodTypeID || type.BloodTypeID || type.id || `type-${index}`;
+                      const aboType = type.aboType || type.AboType || '';
+                      const rhFactor = type.rhFactor || type.RhFactor || '';
+                      const description = type.description || type.Description || `Nhóm máu ${aboType} Rh ${rhFactor === '+' ? 'dương' : 'âm'}`;
+                      
+                      return (
+                        <Option 
+                          key={key} 
+                          value={key}
+                          searchText={`${aboType}${rhFactor} ${description}`}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Tag color="red" style={{ margin: 0 }}>
+                              {aboType}{rhFactor}
+                            </Tag>
+                            <span style={{ fontSize: '12px', color: '#666' }}>
+                              {description}
+                            </span>
+                          </div>
+                        </Option>
+                      );
+                    })}
+                  </Select>
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -372,13 +517,36 @@ const BloodDonationRegistration = () => {
             </Row>
 
             <Form.Item
-              label="Tiền sử bệnh lý và thuốc đang sử dụng"
-              name="notes"
-              rules={[{ required: true, message: 'Vui lòng điền thông tin tiền sử bệnh lý và thuốc đang sử dụng!' }]}
+              label="Địa chỉ"
+              name="address"
+              rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
             >
               <TextArea
-                placeholder="Vui lòng mô tả tiền sử bệnh lý (nếu có) và các loại thuốc đang sử dụng. Nếu không có, hãy ghi 'Không có'."
-                rows={4}
+                placeholder="Nhập địa chỉ hiện tại của bạn"
+                rows={2}
+                className="modern-input"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Thuốc đang sử dụng"
+              name="currentMedications"
+              rules={[{ required: true, message: 'Vui lòng điền thông tin thuốc đang sử dụng!' }]}
+            >
+              <TextArea
+                placeholder="Vui lòng mô tả các loại thuốc đang sử dụng. Nếu không có, hãy ghi 'Không có'."
+                rows={3}
+                className="modern-input"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Ghi chú"
+              name="notes"
+            >
+              <TextArea
+                placeholder="Ghi chú thêm (tùy chọn)"
+                rows={2}
                 className="modern-input"
               />
             </Form.Item>
@@ -499,10 +667,17 @@ const BloodDonationRegistration = () => {
                         <Text>
                           {(() => {
                             const selectedBloodTypeID = formData.bloodTypeID;
-                            const selectedBloodType = bloodTypes.find(type => type.bloodTypeID === selectedBloodTypeID);
+                            const selectedBloodType = bloodTypes.find(type => 
+                              (type.bloodTypeId === selectedBloodTypeID) || // API uses lowercase 'd' - check first
+                              (type.bloodTypeID === selectedBloodTypeID) || 
+                              (type.BloodTypeID === selectedBloodTypeID) || 
+                              (type.id === selectedBloodTypeID)
+                            );
+                            
                             return selectedBloodType ? (
                               <Tag color="red">
-                                {selectedBloodType.aboType}{selectedBloodType.rhFactor}
+                                {selectedBloodType.aboType || selectedBloodType.AboType}
+                                {selectedBloodType.rhFactor || selectedBloodType.RhFactor}
                               </Tag>
                             ) : 'Chưa chọn';
                           })()}
@@ -514,12 +689,34 @@ const BloodDonationRegistration = () => {
                   <Row gutter={[16, 16]}>
                     <Col span={24}>
                       <div className="confirm-item">
-                        <Text strong>Tiền sử bệnh lý và thuốc đang sử dụng:</Text>
+                        <Text strong>Địa chỉ:</Text>
                         <br />
-                        <Text>{formData.notes || 'Chưa điền'}</Text>
+                        <Text>{formData.address || 'Chưa điền'}</Text>
                       </div>
                     </Col>
                   </Row>
+
+                  <Row gutter={[16, 16]}>
+                    <Col span={24}>
+                      <div className="confirm-item">
+                        <Text strong>Thuốc đang sử dụng:</Text>
+                        <br />
+                        <Text>{formData.currentMedications || 'Chưa điền'}</Text>
+                      </div>
+                    </Col>
+                  </Row>
+
+                  {formData.notes && (
+                    <Row gutter={[16, 16]}>
+                      <Col span={24}>
+                        <div className="confirm-item">
+                          <Text strong>Ghi chú:</Text>
+                          <br />
+                          <Text>{formData.notes}</Text>
+                        </div>
+                      </Col>
+                    </Row>
+                  )}
 
                   {formData.requestID && (
                     <Row gutter={[16, 16]}>
