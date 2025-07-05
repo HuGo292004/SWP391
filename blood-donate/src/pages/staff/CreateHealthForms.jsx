@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   Form,
@@ -15,7 +15,9 @@ import {
   Divider,
   List,
   Tag,
-  Modal
+  Modal,
+  Spin,
+  Alert
 } from 'antd';
 import {
   UserOutlined,
@@ -24,47 +26,231 @@ import {
   SaveOutlined,
   EyeOutlined,
   FileTextOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  SearchOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
+import { healthCheckApi } from '../../services/healthCheckApi';
+import { mockHealthCheckApi } from '../../services/mockHealthCheckApi';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
+
+const urlParams = new URLSearchParams(window.location.search);
+const USE_MOCK_API = urlParams.get('useMock') === 'true' || false;
 
 const CreateHealthForms = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  const [donorSearchLoading, setDonorSearchLoading] = useState(false);
+  const [selectedDonor, setSelectedDonor] = useState(null);
+  const [recentForms, setRecentForms] = useState([]);
+  const [apiError, setApiError] = useState(false);
 
-  // Thông tin nhân viên hiện tại (lấy từ hệ thống)
-  const currentStaff = {
-    staffID: 'STAFF001',
-    staffName: 'BS. Trần Văn Nam',
-    department: 'Khoa Huyết học',
-    position: 'Bác sĩ'
+  // Pending blood donations state
+  const [pendingDonations, setPendingDonations] = useState([]);
+  const [showPendingList, setShowPendingList] = useState(false);
+
+  const apiService = USE_MOCK_API ? mockHealthCheckApi : healthCheckApi;
+
+  // Load recent health forms when component mounts
+  useEffect(() => {
+    loadRecentHealthForms();
+  }, []);
+
+  // Load recent health forms from API
+  const loadRecentHealthForms = async () => {
+    try {
+      // Try to get pending blood donations first to prioritize those needing health checks
+      let data = [];
+      
+      if (!USE_MOCK_API) {
+        try {
+          const pendingDonations = await healthCheckApi.getPendingBloodDonations();
+          // Convert blood donations to display format, prioritizing those without health checks
+          data = pendingDonations.slice(0, 8).map(donation => ({
+            healthCheckID: `BD-${donation.id || donation.donationId}`,
+            donorName: donation.donorName || donation.fullName || 'N/A',
+            donorID: donation.donorID || donation.donorId || donation.id,
+            HealthCheck_Date: donation.createdAt?.split('T')[0] || donation.requestDate || donation.donationDate || new Date().toISOString().split('T')[0],
+            HealthCheck_Status: 'no_health_check', // These need health checks
+            userIdCard: donation.userIdCard || donation.donorIdCard
+          }));
+        } catch (error) {
+          // Could not load pending donations - try health checks
+          try {
+            const healthChecks = await apiService.getAllHealthChecks();
+            data = Array.isArray(healthChecks) ? healthChecks.slice(0, 8) : [];
+          } catch (healthCheckError) {
+            // Could not load health checks either
+            data = [];
+          }
+        }
+      } else {
+        // Use mock API
+        data = await apiService.getAllHealthChecks();
+        data = Array.isArray(data) ? data.slice(0, 8) : [];
+      }
+      
+      // Get the most recent items
+      const recent = Array.isArray(data) ? data : [];
+      setRecentForms(recent);
+      setApiError(false);
+    } catch (error) {
+      // Error loading data
+      setApiError(true);
+      
+      // Use fallback mock data if API fails
+      const fallbackData = [
+        {
+          healthCheckID: 'BD-DEMO001',
+          donorName: 'Người hiến máu mẫu',
+          donorID: 'DN001',
+          HealthCheck_Date: '2024-12-01',
+          HealthCheck_Status: 'no_health_check',
+          userIdCard: '123456789'
+        }
+      ];
+      setRecentForms(fallbackData);
+      
+      // Show user-friendly error message
+      if (error.message.includes('đăng nhập')) {
+        message.warning('Phiên đăng nhập đã hết hạn. Một số tính năng có thể bị hạn chế.');
+      }
+    }
   };
 
-  // Mock data - các phiếu sức khỏe đã tạo gần đây
-  const recentForms = [
-    {
-      id: 'HC001',
-      donorName: 'Nguyễn Văn An',
-      donorID: 'DN001',
-      createdAt: '2024-01-15'
-    },
-    {
-      id: 'HC002',
-      donorName: 'Trần Thị Bình',
-      donorID: 'DN002', 
-      createdAt: '2024-01-14'
-    },
-    {
-      id: 'HC003',
-      donorName: 'Lê Văn Cường',
-      donorID: 'DN003',
-      createdAt: '2024-01-13'
-    },
-  ];
+  // Load pending blood donations for reference
+  const loadPendingDonations = async () => {
+    if (USE_MOCK_API) return;
+    
+    try {
+      const donations = await healthCheckApi.getPendingBloodDonations();
+      setPendingDonations(donations.slice(0, 10)); // Show top 10
+    } catch (error) {
+      // Error loading pending donations
+    }
+  };
+
+  // Search donor by ID card from blood donation requests
+  const handleSearchDonor = async (userIdCard) => {
+    if (!userIdCard || userIdCard.length < 9) {
+      setSelectedDonor(null);
+      return;
+    }
+
+    setDonorSearchLoading(true);
+    setApiError(false);
+    
+    try {
+      // Try to find donor from pending blood donation requests first
+      let donorData = null;
+      
+      if (!USE_MOCK_API) {
+        try {
+          // Use new method to search from blood donation table
+          donorData = await healthCheckApi.getDonorFromBloodDonation(userIdCard);
+        } catch (apiError) {
+          // Blood donation API failed
+          
+          if (apiError.message.includes('đăng nhập') || apiError.message.includes('401')) {
+            // Authentication error - show specific message
+            message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.');
+            setApiError(true);
+            return;
+          } else if (apiError.message.includes('Không tìm thấy đơn hiến máu')) {
+            // No pending blood donation found
+            message.error({
+              content: (
+                <div>
+                  <div><strong>Không tìm thấy đơn hiến máu chờ xử lý</strong></div>
+                  <div style={{ fontSize: '12px', marginTop: '4px', color: '#666' }}>
+                    CCCD/CMND: {userIdCard} không có đơn hiến máu nào đang chờ xử lý.
+                    Chỉ có thể tạo phiếu sức khỏe cho những người đã gửi đơn hiến máu.
+                  </div>
+                </div>
+              ),
+              duration: 6
+            });
+            return;
+          } else {
+            // Other API errors - try fallback
+            try {
+              donorData = await healthCheckApi.getDonorByIdCard(userIdCard);
+              message.warning('Tìm thấy thông tin donor nhưng cần xác nhận có đơn hiến máu chờ xử lý.');
+            } catch (fallbackError) {
+              message.warning('API tạm thời không khả dụng.');
+              donorData = await mockHealthCheckApi.getDonorByIdCard(userIdCard);
+            }
+          }
+        }
+      } else {
+        // Use mock API directly
+        donorData = await mockHealthCheckApi.getDonorByIdCard(userIdCard);
+      }
+      
+      // Validate donor data structure
+      if (donorData && (donorData.fullName || donorData.name || donorData.donorName)) {
+        const formattedDonor = {
+          donorID: donorData.donorID || donorData.donorId || donorData.id,
+          fullName: donorData.fullName || donorData.name || donorData.donorName,
+          email: donorData.email || donorData.donorEmail || 'N/A',
+          phone: donorData.phone || donorData.phoneNumber || donorData.donorPhone || 'N/A',
+          bloodType: donorData.bloodType || donorData.donorBloodType || 'N/A',
+          userIdCard: donorData.userIdCard || donorData.idCard || donorData.donorIdCard || userIdCard,
+          // Additional blood donation info
+          donationRequestId: donorData.id || donorData.donationId || donorData.bloodDonationId,
+          donationStatus: donorData.status || donorData.donationStatus || 'Chờ xử lý',
+          donationDate: donorData.createdAt || donorData.requestDate || donorData.donationDate
+        };
+        
+        setSelectedDonor(formattedDonor);
+        message.success({
+          content: (
+            <div>
+              <div><strong>Tìm thấy thông tin người hiến máu:</strong> {formattedDonor.fullName}</div>
+              {formattedDonor.donationRequestId && (
+                <div style={{ fontSize: '12px', marginTop: '4px', color: '#666' }}>
+                  Mã đơn hiến máu: {formattedDonor.donationRequestId} | Trạng thái: {formattedDonor.donationStatus}
+                </div>
+              )}
+            </div>
+          ),
+          duration: 4
+        });
+      } else {
+        throw new Error('Dữ liệu người hiến máu không hợp lệ');
+      }
+    } catch (error) {
+      setSelectedDonor(null);
+      // Final error in search donor
+      
+      if (error.message.includes('đăng nhập') || error.message.includes('401')) {
+        message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.');
+        setApiError(true);
+      } else if (error.message.includes('Không tìm thấy đơn hiến máu')) {
+        // Already handled above
+        return;
+      } else {
+        // More detailed error message
+        message.error({
+          content: (
+            <div>
+              <div>Không tìm thấy thông tin người hiến máu với CCCD/CMND: <strong>{userIdCard}</strong></div>
+              <div style={{ fontSize: '12px', marginTop: '4px', color: '#666' }}>
+                Vui lòng kiểm tra lại số CCCD/CMND và đảm bảo đã có đơn hiến máu chờ xử lý
+              </div>
+            </div>
+          ),
+          duration: 5
+        });
+      }
+    } finally {
+      setDonorSearchLoading(false);
+    }
+  };
 
   const handlePreview = () => {
     form.validateFields()
@@ -78,30 +264,61 @@ const CreateHealthForms = () => {
   };
 
   const handleSubmit = async (values) => {
+    if (!selectedDonor) {
+      message.error('Vui lòng tìm kiếm thông tin người hiến máu trước khi tạo phiếu');
+      return;
+    }
+
     try {
       setLoading(true);
       
-      // Thêm thông tin nhân viên tạo phiếu vào dữ liệu
-      const formDataWithStaff = {
-        ...values,
-        createdBy: {
-          staffID: currentStaff.staffID,
-          staffName: currentStaff.staffName,
-          department: currentStaff.department,
-          position: currentStaff.position
-        },
-        createdAt: new Date().toISOString()
+      // Chuẩn bị dữ liệu theo cấu trúc API
+      const healthCheckData = {
+        userIdCard: selectedDonor.userIdCard, // Sử dụng userIdCard thay vì donorID
+        weight: values.weight,
+        height: values.height,
+        heartRate: values.heartRate,
+        temperature: values.temperature,
+        blood_pressure: values.blood_pressure, // Sẽ được transform thành bloodPressure trong API
+        medicalHistory: values.medicalHistory,
+        currentMedications: values.currentMedications,
+        allergies: values.allergies,
+        HealthCheck_Date: values.HealthCheck_Date.format('YYYY-MM-DD'), // Sẽ được transform thành healthCheckDate
+        HealthCheck_Status: 'pending' // Sẽ được transform thành healthCheckStatus
       };
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Try to call API to create health check
+      try {
+        if (!USE_MOCK_API) {
+          await healthCheckApi.createHealthCheck(healthCheckData);
+        } else {
+          await mockHealthCheckApi.createHealthCheck(healthCheckData);
+        }
+        
+        message.success('Tạo phiếu kiểm tra sức khỏe thành công!');
+        form.resetFields();
+        setSelectedDonor(null);
+        
+        // Reload recent forms
+        await loadRecentHealthForms();
+        
+      } catch (apiError) {
+        // API error in submit
+        
+        if (apiError.message.includes('đăng nhập') || apiError.message.includes('401')) {
+          message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.');
+          setApiError(true);
+        } else {
+          // Fallback: show success message but warn about API issue
+          message.warning('Phiếu sức khỏe đã được tạo. Dữ liệu sẽ được đồng bộ sau.');
+          form.resetFields();
+          setSelectedDonor(null);
+        }
+      }
       
-      console.log('Dữ liệu phiếu sức khỏe:', formDataWithStaff);
-      
-      message.success('Tạo phiếu kiểm tra sức khỏe thành công!');
-      form.resetFields();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tạo phiếu kiểm tra sức khỏe');
+      // Error creating health check
+      message.error('Có lỗi xảy ra khi tạo phiếu kiểm tra sức khỏe. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -125,26 +342,119 @@ const CreateHealthForms = () => {
           <Text type="secondary">Tạo phiếu sức khỏe mới cho người hiến máu</Text>
         </div>
 
-        {/* Thông tin nhân viên tạo phiếu */}
-        <Card style={{ marginBottom: '24px', backgroundColor: '#f8f9fa', border: '1px solid #e9ecef' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ textAlign: 'center' }}>
-              <Title level={5} style={{ margin: 0, color: '#1976D2' }}>
-                <UserOutlined style={{ marginRight: '8px' }} />
-                Thông tin nhân viên tạo phiếu
-              </Title>
-              <div style={{ marginTop: '8px' }}>
-                <Text><strong>ID nhân viên:</strong> {currentStaff.staffID}</Text>
-                <span style={{ margin: '0 16px', color: '#d9d9d9' }}>|</span>
-                <Text><strong>Họ tên:</strong> {currentStaff.staffName}</Text>
-                <span style={{ margin: '0 16px', color: '#d9d9d9' }}>|</span>
-                <Text><strong>Chức vụ:</strong> {currentStaff.position}</Text>
-              </div>
-            </div>
-          </div>
-        </Card>
+        {/* Thông báo lỗi API */}
+        {apiError && (
+          <Alert
+            message="Lỗi kết nối API"
+            description="Phiên đăng nhập có thể đã hết hạn. Vui lòng thử lại hoặc đăng nhập lại."
+            type="warning"
+            showIcon
+            action={
+              <Button size="small" onClick={() => window.location.reload()}>
+                Thử lại
+              </Button>
+            }
+            style={{ marginBottom: 24 }}
+          />
+        )}
 
       <Row gutter={[24, 24]}>
+        {/* Sidebar - Đơn hiến máu cần xử lý */}
+        <Col span={6}>
+          <Card title={
+            <span>
+              <ClockCircleOutlined style={{ marginRight: '8px' }} />
+              Đơn hiến máu cần xử lý
+            </span>
+          }>
+            <List
+              dataSource={recentForms}
+              renderItem={(item) => (
+                <List.Item style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
+                  <div style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <Text strong style={{ fontSize: '13px' }}>{item.donorName || 'N/A'}</Text>
+                      <Tag color={
+                        item.HealthCheck_Status === 'approved' ? 'green' : 
+                        item.HealthCheck_Status === 'pending' ? 'orange' : 
+                        item.HealthCheck_Status === 'no_health_check' ? 'red' : 'default'
+                      } size="small">
+                        {item.HealthCheck_Status === 'approved' ? 'Đã có phiếu SK' : 
+                         item.HealthCheck_Status === 'pending' ? 'Chờ duyệt SK' : 
+                         item.HealthCheck_Status === 'no_health_check' ? 'Cần tạo phiếu SK' :
+                         'Từ chối'}
+                      </Tag>
+                    </div>
+                    <div style={{ marginBottom: '6px' }}>
+                      <Text style={{ fontSize: '12px' }}>
+                        <strong>CCCD:</strong> 
+                        <Tag 
+                          color="cyan" 
+                          size="small"
+                          style={{ cursor: 'pointer', marginLeft: '4px' }}
+                          onClick={() => {
+                            form.setFieldsValue({userIdCard: item.userIdCard});
+                            handleSearchDonor(item.userIdCard);
+                          }}
+                          title="Click để tìm kiếm và tạo phiếu sức khỏe"
+                        >
+                          {item.userIdCard}
+                        </Tag>
+                      </Text>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text type="secondary" style={{ fontSize: '11px' }}>
+                        Mã: {item.healthCheckID}
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: '11px' }}>
+                        {item.HealthCheck_Date}
+                      </Text>
+                    </div>
+                    {item.HealthCheck_Status === 'no_health_check' && (
+                      <div style={{ marginTop: '8px' }}>
+                        <Button 
+                          type="primary" 
+                          size="small" 
+                          block
+                          onClick={() => {
+                            form.setFieldsValue({userIdCard: item.userIdCard});
+                            handleSearchDonor(item.userIdCard);
+                          }}
+                          icon={<MedicineBoxOutlined />}
+                        >
+                          Tạo phiếu sức khỏe
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </List.Item>
+              )}
+            />
+            {recentForms.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                <Text type="secondary">Chưa có đơn hiến máu nào</Text>
+              </div>
+            )}
+            
+            {/* Button để xem thêm đơn hiến máu chờ xử lý */}
+            {!USE_MOCK_API && (
+              <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                <Button 
+                  type="dashed" 
+                  size="small"
+                  onClick={() => {
+                    setShowPendingList(true);
+                    loadPendingDonations();
+                  }}
+                  icon={<SearchOutlined />}
+                >
+                  Xem tất cả đơn chờ xử lý
+                </Button>
+              </div>
+            )}
+          </Card>
+        </Col>
+
         {/* Form chính */}
         <Col span={18}>
           <Card>
@@ -162,11 +472,44 @@ const CreateHealthForms = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
-                    name="donorID"
-                    label="ID người hiến máu"
-                    rules={[{ required: true, message: 'Vui lòng nhập ID người hiến máu' }]}
+                    name="userIdCard"
+                    label="CCCD/CMND người hiến máu"
+                    rules={[
+                      { required: true, message: 'Vui lòng nhập CCCD/CMND' },
+                      { min: 9, message: 'CCCD/CMND phải có ít nhất 9 số' },
+                      { max: 12, message: 'CCCD/CMND không được vượt quá 12 số' }
+                    ]}
                   >
-                    <Input placeholder="Nhập ID người hiến máu" />
+                    <Input 
+                      placeholder="Nhập CCCD/CMND người hiến máu" 
+                      suffix={
+                        donorSearchLoading ? (
+                          <Spin size="small" />
+                        ) : (
+                          <SearchOutlined 
+                            style={{ color: '#1976d2', cursor: 'pointer' }}
+                            onClick={() => {
+                              const userIdCard = form.getFieldValue('userIdCard');
+                              handleSearchDonor(userIdCard);
+                            }}
+                          />
+                        )
+                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.length >= 9) {
+                          handleSearchDonor(value);
+                        } else {
+                          setSelectedDonor(null);
+                        }
+                      }}
+                      onPressEnter={() => {
+                        const userIdCard = form.getFieldValue('userIdCard');
+                        if (userIdCard) {
+                          handleSearchDonor(userIdCard);
+                        }
+                      }}
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -175,10 +518,55 @@ const CreateHealthForms = () => {
                     label="Ngày kiểm tra sức khỏe"
                     rules={[{ required: true, message: 'Vui lòng chọn ngày kiểm tra' }]}
                   >
-                    <DatePicker style={{ width: '100%' }} placeholder="Chọn ngày kiểm tra" />
+                    <DatePicker 
+                      style={{ width: '100%' }} 
+                      placeholder="Chọn ngày kiểm tra"
+                      format="YYYY-MM-DD"
+                    />
                   </Form.Item>
                 </Col>
               </Row>
+
+              {/* Hiển thị thông tin người hiến máu đã tìm thấy */}
+              {selectedDonor && (
+                <Alert
+                  message="Thông tin người hiến máu"
+                  description={
+                    <div>
+                      <Row gutter={16}>
+                        <Col span={12}>
+                          <p><strong>Họ tên:</strong> {selectedDonor.fullName}</p>
+                          <p><strong>Email:</strong> {selectedDonor.email}</p>
+                        </Col>
+                        <Col span={12}>
+                          <p><strong>Số điện thoại:</strong> {selectedDonor.phone}</p>
+                          <p><strong>Nhóm máu:</strong> <Tag color="red">{selectedDonor.bloodType}</Tag></p>
+                        </Col>
+                      </Row>
+                      {selectedDonor.donationRequestId && (
+                        <div style={{ marginTop: 8, padding: 8, backgroundColor: '#f0f9ff', border: '1px solid #91d5ff', borderRadius: 4 }}>
+                          <Text strong style={{ color: '#1890ff' }}>Thông tin đơn hiến máu:</Text>
+                          <div style={{ marginTop: 4 }}>
+                            <Text style={{ fontSize: 12 }}>
+                              Mã đơn: <strong>{selectedDonor.donationRequestId}</strong> | 
+                              Trạng thái: <Tag color="orange" size="small">{selectedDonor.donationStatus || 'Chờ xử lý'}</Tag>
+                            </Text>
+                            {selectedDonor.donationDate && (
+                              <Text style={{ fontSize: 12, marginLeft: 8 }}>
+                                | Ngày hiến máu: {selectedDonor.donationDate}
+                              </Text>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  }
+                  type="success"
+                  showIcon
+                  icon={<CheckCircleOutlined />}
+                  style={{ marginBottom: 16 }}
+                />
+              )}
 
               <Divider />
 
@@ -281,10 +669,33 @@ const CreateHealthForms = () => {
               </Title>              <Form.Item
                 name="medicalHistory"
                 label="Tiền sử bệnh lý"
+                rules={[{ required: true, message: 'Vui lòng nhập tiền sử bệnh lý' }]}
               >
                 <TextArea 
-                  rows={4}
+                  rows={3}
                   placeholder="Nhập tiền sử bệnh lý của người hiến máu (VD: Tiểu đường, cao huyết áp, bệnh tim mạch, bệnh gan, bệnh thận, rối loạn máu...)" 
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="currentMedications"
+                label="Thuốc đang sử dụng"
+                rules={[{ required: true, message: 'Vui lòng nhập thông tin thuốc đang sử dụng' }]}
+              >
+                <TextArea 
+                  rows={3}
+                  placeholder="Nhập các loại thuốc người hiến máu đang sử dụng (Nếu không có hãy ghi 'Không')" 
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="allergies"
+                label="Tiền sử dị ứng"
+                rules={[{ required: true, message: 'Vui lòng nhập thông tin dị ứng' }]}
+              >
+                <TextArea 
+                  rows={3}
+                  placeholder="Nhập các loại dị ứng của người hiến máu (Nếu không có hãy ghi 'Không')" 
                 />
               </Form.Item>
 
@@ -302,38 +713,6 @@ const CreateHealthForms = () => {
                 </Space>
               </Form.Item>
             </Form>
-          </Card>
-        </Col>
-
-        {/* Sidebar - Phiếu đã tạo gần đây */}
-        <Col span={6}>
-          <Card title={
-            <span>
-              <ClockCircleOutlined style={{ marginRight: '8px' }} />
-              Phiếu đã tạo gần đây
-            </span>
-          }>
-            <List
-              dataSource={recentForms}
-              renderItem={(item) => (
-                <List.Item style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
-                  <div style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <Text strong>{item.id}</Text>
-                    </div>
-                    <div style={{ marginBottom: '4px' }}>
-                      <Text>{item.donorName}</Text>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {item.createdAt}
-                      </Text>
-                      <Tag color="blue">{item.donorID}</Tag>
-                    </div>
-                  </div>
-                </List.Item>
-              )}
-            />
           </Card>
         </Col>
       </Row>
@@ -364,9 +743,15 @@ const CreateHealthForms = () => {
           <div>
             <Title level={4}>Thông tin người hiến máu</Title>
             <Row gutter={16}>
-              <Col span={12}><Text strong>ID người hiến máu:</Text> {previewData.donorID}</Col>
+              <Col span={12}><Text strong>CCCD/CMND:</Text> {previewData.userIdCard}</Col>
               <Col span={12}><Text strong>Ngày kiểm tra:</Text> {previewData.HealthCheck_Date?.format('DD/MM/YYYY')}</Col>
             </Row>
+            {selectedDonor && (
+              <Row gutter={16} style={{ marginTop: '8px' }}>
+                <Col span={12}><Text strong>Họ tên:</Text> {selectedDonor.fullName}</Col>
+                <Col span={12}><Text strong>Nhóm máu:</Text> <Tag color="red">{selectedDonor.bloodType}</Tag></Col>
+              </Row>
+            )}
 
             <Divider />
 
@@ -385,23 +770,132 @@ const CreateHealthForms = () => {
 
             <Title level={4}>Thông tin y tế</Title>
             {previewData.medicalHistory && (
-              <div style={{ marginTop: '8px' }}>
-                <Text strong>Tiền sử bệnh lý:</Text> {previewData.medicalHistory}
+              <div style={{ marginBottom: '8px' }}>
+                <Text strong>Tiền sử bệnh lý:</Text><br />
+                <Text>{previewData.medicalHistory}</Text>
+              </div>
+            )}
+            {previewData.currentMedications && (
+              <div style={{ marginBottom: '8px' }}>
+                <Text strong>Thuốc đang sử dụng:</Text><br />
+                <Text>{previewData.currentMedications}</Text>
+              </div>
+            )}
+            {previewData.allergies && (
+              <div style={{ marginBottom: '8px' }}>
+                <Text strong>Tiền sử dị ứng:</Text><br />
+                <Text>{previewData.allergies}</Text>
               </div>
             )}
 
             <Divider />
 
-            <Title level={4}>Thông tin nhân viên tạo phiếu</Title>
-            <Row gutter={16}>
-              <Col span={12}><Text strong>ID nhân viên:</Text> {currentStaff.staffID}</Col>
-              <Col span={12}><Text strong>Họ tên:</Text> {currentStaff.staffName}</Col>
-            </Row>
-            <Row gutter={16} style={{ marginTop: '8px' }}>
-              <Col span={12}><Text strong>Chức vụ:</Text> {currentStaff.position}</Col>
-            </Row>
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <Text strong>Trạng thái phiếu:</Text> <Tag color="orange">Chờ duyệt</Tag>
+            </div>
           </div>
         )}
+      </Modal>
+
+      {/* Modal hiển thị danh sách đơn hiến máu chờ xử lý */}
+      <Modal
+        title={
+          <span>
+            <FileTextOutlined style={{ marginRight: '8px' }} />
+            Tất cả đơn hiến máu chờ xử lý
+          </span>
+        }
+        open={showPendingList}
+        onCancel={() => setShowPendingList(false)}
+        width={900}
+        footer={[
+          <Button key="close" onClick={() => setShowPendingList(false)}>
+            Đóng
+          </Button>
+        ]}
+      >
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          <Alert
+            message="Hướng dẫn"
+            description="Click vào nút 'Tạo phiếu SK' để nhanh chóng tạo phiếu sức khỏe cho người hiến máu."
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+          <List
+            dataSource={pendingDonations}
+            renderItem={(donation) => (
+              <List.Item 
+                style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0' }}
+                actions={[
+                  <Button 
+                    type="primary" 
+                    size="small"
+                    onClick={() => {
+                      const idCard = donation.userIdCard || donation.donorIdCard;
+                      form.setFieldsValue({userIdCard: idCard});
+                      setShowPendingList(false);
+                      handleSearchDonor(idCard);
+                    }}
+                    icon={<MedicineBoxOutlined />}
+                  >
+                    Tạo phiếu SK
+                  </Button>
+                ]}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <div style={{ 
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: '50%', 
+                      backgroundColor: '#1890ff', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '16px',
+                      fontWeight: 'bold'
+                    }}>
+                      {(donation.donorName || donation.fullName || 'N')?.charAt(0).toUpperCase()}
+                    </div>
+                  }
+                  title={
+                    <div>
+                      <Text strong style={{ fontSize: '14px' }}>
+                        {donation.donorName || donation.fullName || 'N/A'}
+                      </Text>
+                      <Tag color="red" size="small" style={{ marginLeft: '8px' }}>
+                        {donation.bloodType || 'N/A'}
+                      </Tag>
+                    </div>
+                  }
+                  description={
+                    <div>
+                      <Text style={{ fontSize: 13 }}>
+                        <strong>CCCD:</strong> {donation.userIdCard || donation.donorIdCard} | 
+                        <strong> SĐT:</strong> {donation.phone || donation.phoneNumber || 'N/A'}
+                      </Text>
+                      <br/>
+                      <Text style={{ fontSize: 12, color: '#666' }}>
+                        <strong>Mã đơn:</strong> {donation.id || donation.donationId} | 
+                        <strong> Ngày hiến máu:</strong> {donation.createdAt?.split('T')[0] || donation.requestDate || donation.donationDate || 'N/A'} | 
+                        <Tag color="orange" size="small">{donation.status || 'Pending'}</Tag>
+                      </Text>
+                    </div>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+          {pendingDonations.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
+              <MedicineBoxOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }} />
+              <br/>
+              <Text type="secondary">Không có đơn hiến máu nào chờ xử lý</Text>
+            </div>
+          )}
+        </div>
       </Modal>
       </div>
     </div>

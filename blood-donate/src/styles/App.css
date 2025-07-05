@@ -382,3 +382,44 @@ a:hover {
 .ant-menu-item-selected {
   color: var(--color-primary) !important;
 }
+
+/* Tab styles for integrated approval page */
+.nav-tabs-white .nav-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid transparent !important;
+  border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+  background: transparent !important;
+}
+
+.nav-tabs-white .nav-link:hover {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.nav-tabs-white .nav-link.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  border-bottom-color: transparent !important;
+}
+
+/* Health form status badges styling */
+.health-form-status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Blood type badge styling */
+.blood-type-badge {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* Warning alert for health form requirement */
+.health-form-warning {
+  background-color: #fff3cd;
+  border-color: #ffecb5;
+  color: #856404;
+}
