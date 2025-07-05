@@ -1567,3 +1567,34 @@
 .ant-picker-calendar .ant-picker-calendar-header .ant-radio-group {
   margin-top: -4px;
 }
+
+/* ========================================
+   HEALTH FORM MODAL STYLES
+   ======================================== */
+
+.vital-signs .vital-item {
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+}
+
+.vital-signs .vital-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.medical-info .info-item {
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 0.75rem;
+}
+
+.medical-info .info-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.health-form-header {
+  border-left: 4px solid #0d6efd;
+  padding-left: 1rem;
+}
+
+/* ======================================== */

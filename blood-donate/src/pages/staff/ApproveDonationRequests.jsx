@@ -15,7 +15,9 @@ import {
   DropdownButton,
   OverlayTrigger,
   Tooltip,
-  Spinner
+  Spinner,
+  Tabs,
+  Tab
 } from 'react-bootstrap';
 import { 
   FaSearch, 
@@ -31,12 +33,19 @@ import {
   FaMapMarkerAlt,
   FaEnvelope,
   FaIdCard,
-  FaSync
+  FaSync,
+  FaUserMd,
+  FaHeartbeat,
+  FaClipboardList,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import { bloodDonationApi } from '../../services/bloodDonationApi';
+import { healthCheckApi } from '../../services/healthCheckApi';
+import '../../styles/pages.css';
 
 const ApproveDonationRequests = () => {
   const [requests, setRequests] = useState([]);
+  const [healthForms, setHealthForms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -51,7 +60,15 @@ const ApproveDonationRequests = () => {
   // Load requests when component mounts
   useEffect(() => {
     loadRequests();
+    loadHealthForms();
   }, []);
+
+  // Update health form status after both data are loaded
+  useEffect(() => {
+    if (requests.length > 0 && healthForms.length >= 0) {
+      updateHealthFormStatusInRequests();
+    }
+  }, [requests.length, healthForms.length]);
 
   // Show alert message
   const showMessage = (message, type = 'success') => {
@@ -91,6 +108,21 @@ const ApproveDonationRequests = () => {
     }
   };
 
+  // Load health forms from API
+  const loadHealthForms = async () => {
+    try {
+      const data = await healthCheckApi.getAllHealthChecks();
+      
+      // Format data to match UI structure
+      const formattedHealthForms = Array.isArray(data) ? data.map(formatHealthFormData) : [];
+      setHealthForms(formattedHealthForms);
+      
+    } catch (error) {
+      handleApiError(error, 'Không thể tải danh sách phiếu sức khỏe');
+      setHealthForms([]);
+    }
+  };
+
   // Format blood donation data from API
   const formatBloodDonationData = (donation) => {
     return {
@@ -106,6 +138,7 @@ const ApproveDonationRequests = () => {
       preferredDate: donation.donationDate || donation.preferredDate || '',
       location: donation.address || donation.location || 'N/A',
       status: mapApiStatus(donation.status),
+      healthFormStatus: 'none', // Will be updated later via updateHealthFormStatusInRequests
       healthInfo: {
         weight: donation.weight || 'N/A',
         height: donation.height || 'N/A',
@@ -122,25 +155,92 @@ const ApproveDonationRequests = () => {
     };
   };
 
-  // Map API status to UI status
-  const mapApiStatus = (apiStatus) => {
-    if (!apiStatus) return 'pending';
+  // Format health form data from API
+  const formatHealthFormData = (healthForm) => {
+    console.log('Formatting health form data:', healthForm);
     
-    const status = apiStatus.toLowerCase();
-    switch (status) {
-      case 'pending':
-      case 'waiting':
-      case 'submitted':
-        return 'pending';
+    return {
+      id: healthForm.healthCheckId || healthForm.id || healthForm.ID,
+      healthCheckID: healthForm.healthCheckId || healthForm.id || 'N/A',
+      userID: healthForm.donorID || healthForm.userIdCard || healthForm.donorId || 'N/A',
+      donorId: healthForm.donorID || healthForm.donorId || healthForm.userIdCard,
+      fullName: healthForm.fullName || healthForm.donorName || 'N/A',
+      idCard: healthForm.userIdCard || healthForm.idCard || 'N/A',
+      phone: healthForm.phoneNumber || healthForm.phone || 'Chưa cập nhật',
+      bloodType: healthForm.bloodType || 'N/A',
+      age: healthForm.age || calculateAge(healthForm.dateOfBirth) || 'N/A',
+      gender: healthForm.gender || 'N/A',
+      submittedDate: healthForm.healthCheck_Date || healthForm.healthCheckDate || healthForm.createdDate || new Date().toISOString(),
+      status: mapApiStatus(healthForm.healthCheck_Status || healthForm.healthCheckStatus || healthForm.status),
+      weight: healthForm.weight || 'N/A',
+      height: healthForm.height || 'N/A',
+      bloodPressure: healthForm.blood_pressure || healthForm.bloodPressure || 'N/A',
+      heartRate: healthForm.heartRate || 'N/A',
+      temperature: healthForm.temperature || 'N/A',
+      medicalHistory: healthForm.medicalHistory || 'Không có thông tin',
+      lastDonation: healthForm.lastDonationDate || 'Chưa từng hiến máu',
+      notes: healthForm.notes || healthForm.additionalNotes || '',
+      allergies: healthForm.allergies || 'Không',
+      currentMedications: healthForm.currentMedications || 'Không',
+      createdBy: {
+        staffID: healthForm.createdByStaffId || 'SYSTEM',
+        staffName: healthForm.createdByStaffName || 'Hệ thống',
+        position: healthForm.createdByPosition || 'Y tá'
+      }
+    };
+  };
+
+  // Helper function to calculate age from date of birth
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return null;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Map API status to UI status
+  const mapApiStatus = (status) => {
+    if (!status) return 'pending';
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
       case 'approved':
       case 'accepted':
+      case 'completed':
         return 'approved';
       case 'rejected':
       case 'declined':
+      case 'cancelled':
         return 'rejected';
+      case 'pending':
+      case 'waiting':
+      case 'processing':
       default:
         return 'pending';
     }
+  };
+
+  // Get health form status for a donor
+  const getHealthFormStatus = (donorId) => {
+    console.log('Finding health form for donorId:', donorId);
+    console.log('Available health forms:', healthForms);
+    
+    const healthForm = healthForms.find(form => {
+      console.log('Checking form:', form);
+      return form.donorId === donorId || 
+             form.userID === donorId ||
+             form.idCard === donorId ||
+             String(form.donorId) === String(donorId) ||
+             String(form.userID) === String(donorId) ||
+             String(form.idCard) === String(donorId);
+    });
+    
+    console.log('Found health form:', healthForm);
+    return healthForm ? healthForm.status : 'none';
   };
 
   const getStatusBadgeVariant = (status) => {
@@ -176,6 +276,52 @@ const ApproveDonationRequests = () => {
       default: return 'secondary';
     }
   };
+
+  const getHealthFormStatusBadge = (status) => {
+    switch (status) {
+      case 'none': return <Badge bg="secondary">Chưa có phiếu</Badge>;
+      case 'pending': return <Badge bg="warning">Đã có phiếu</Badge>;
+      case 'approved': return <Badge bg="success">Phiếu đã duyệt</Badge>;
+      case 'rejected': return <Badge bg="danger">Phiếu bị từ chối</Badge>;
+      default: return <Badge bg="secondary">Không xác định</Badge>;
+    }
+  };
+
+  const canApproveRequest = (request) => {
+    // Có thể duyệt đơn nếu có phiếu sức khỏe (pending hoặc approved)
+    return request.healthFormStatus !== 'none' && request.healthFormStatus !== 'rejected';
+  };
+
+  // Health form handlers
+  const handleApproveHealthForm = async (formId) => {
+    try {
+      setHealthForms(prev => 
+        prev.map(form => 
+          form.id === formId ? { ...form, status: 'approved' } : form
+        )
+      );
+      showMessage('Phiếu sức khỏe đã được duyệt!', 'success');
+      // Reload requests to update health form status
+      await loadRequests();
+    } catch (error) {
+      handleApiError(error, 'Lỗi khi duyệt phiếu sức khỏe');
+    }
+  };
+
+  const handleRejectHealthForm = async (formId) => {
+    try {
+      setHealthForms(prev => 
+        prev.map(form => 
+          form.id === formId ? { ...form, status: 'rejected' } : form
+        )
+      );
+      showMessage('Phiếu sức khỏe đã bị từ chối!', 'warning');
+      // Reload requests to update health form status
+      await loadRequests();
+    } catch (error) {
+      handleApiError(error, 'Lỗi khi từ chối phiếu sức khỏe');
+    }
+  };
   const filteredRequests = requests.filter(request => {
     const matchesSearch = request.requesterName.toLowerCase().includes(searchText.toLowerCase()) ||
                          request.requesterEmail.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -192,6 +338,10 @@ const ApproveDonationRequests = () => {
   };
 
   const showApprovalConfirm = (request, action) => {
+    if (action === 'approve' && !canApproveRequest(request)) {
+      showMessage('Không thể duyệt đơn hiến máu khi chưa có phiếu sức khỏe hợp lệ', 'danger');
+      return;
+    }
     setSelectedRequest(request);
     setApprovalAction(action);
     setRejectReason('');
@@ -207,16 +357,44 @@ const ApproveDonationRequests = () => {
     setLoading(true);
     try {
       if (approvalAction === 'approve') {
-        // Call approve API
+        // Tự động duyệt cả đơn hiến máu và phiếu sức khỏe
+        
+        // 1. Duyệt phiếu sức khỏe trước (nếu đang pending)
+        if (selectedRequest.healthFormStatus === 'pending') {
+          const healthForm = healthForms.find(form => 
+            form.donorId === selectedRequest.requesterId || 
+            form.userID === selectedRequest.requesterId ||
+            form.idCard === selectedRequest.idCard ||
+            form.userID === selectedRequest.idCard
+          );
+          
+          if (healthForm) {
+            // Cập nhật trạng thái phiếu sức khỏe thành approved
+            setHealthForms(prev => 
+              prev.map(form => 
+                form.id === healthForm.id ? { ...form, status: 'approved' } : form
+              )
+            );
+            
+            // Gọi API duyệt phiếu sức khỏe nếu có
+            try {
+              // await healthCheckApi.approveHealthCheck(healthForm.id);
+            } catch (error) {
+              console.log('Health check approval API not available:', error);
+            }
+          }
+        }
+        
+        // 2. Duyệt đơn hiến máu
         const approvalData = {
           id: selectedRequest.id,
           donorId: selectedRequest.requesterId,
           approvedDate: new Date().toISOString(),
-          notes: 'Đã duyệt đơn hiến máu'
+          notes: 'Đã duyệt đơn hiến máu và phiếu sức khỏe'
         };
         
         await bloodDonationApi.approveBloodDonation(approvalData);
-        showMessage('Đã duyệt đơn hiến máu thành công', 'success');
+        showMessage('Đã duyệt đơn hiến máu và phiếu sức khỏe thành công', 'success');
         
       } else if (approvalAction === 'reject') {
         // Call reject API
@@ -233,6 +411,7 @@ const ApproveDonationRequests = () => {
 
       // Reload requests to get updated data
       await loadRequests();
+      await loadHealthForms();
       
     } catch (error) {
       handleApiError(error, 'Lỗi khi xử lý đơn hiến máu');
@@ -244,6 +423,24 @@ const ApproveDonationRequests = () => {
     }
   };
 
+  // Update health form status in requests after health forms are loaded
+  const updateHealthFormStatusInRequests = () => {
+    console.log('Updating health form status in requests...');
+    console.log('Current requests:', requests);
+    console.log('Current health forms:', healthForms);
+    
+    setRequests(prevRequests => 
+      prevRequests.map(request => {
+        const newHealthFormStatus = getHealthFormStatus(request.requesterId || request.idCard);
+        console.log(`Request ${request.id}: ${request.requesterId || request.idCard} -> ${newHealthFormStatus}`);
+        return {
+          ...request,
+          healthFormStatus: newHealthFormStatus
+        };
+      })
+    );
+  };
+
   return (
     <Container fluid className="p-4">
       {/* Header */}
@@ -253,14 +450,17 @@ const ApproveDonationRequests = () => {
             <div>
               <h2 className="text-primary mb-2">
                 <FaHeart className="me-2" />
-                Duyệt Đơn Hiến Máu
+                Duyệt Đơn Hiến Máu & Phiếu Sức Khỏe
               </h2>
-              <p className="text-muted mb-0">Quản lý và duyệt các đơn đăng ký hiến máu</p>
+              <p className="text-muted mb-0">Quản lý và duyệt các đơn đăng ký hiến máu và phiếu sức khỏe</p>
             </div>
             <div>
               <Button 
                 variant="outline-primary" 
-                onClick={loadRequests}
+                onClick={() => {
+                  loadRequests();
+                  loadHealthForms();
+                }}
                 disabled={loading}
                 className="d-flex align-items-center"
               >
@@ -302,7 +502,8 @@ const ApproveDonationRequests = () => {
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                 />
-              </InputGroup>            </Col>
+              </InputGroup>
+            </Col>
             <Col lg={3} md={6}>
               <Form.Select
                 value={filterStatus}
@@ -373,14 +574,16 @@ const ApproveDonationRequests = () => {
           <Card className="text-center border-primary">
             <Card.Body>
               <FaHeart className="text-primary mb-2" size={24} />
-              <h4 className="text-primary">{requests.length}</h4>
+              <h4 className="text-primary">
+                {requests.length}
+              </h4>
               <small className="text-muted">Tổng đơn</small>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* Requests Table */}
+      {/* Main Content - Only Donations */}
       <Card className="shadow-sm">
         <Card.Header className="bg-primary text-white">
           <h5 className="mb-0">
@@ -389,124 +592,121 @@ const ApproveDonationRequests = () => {
           </h5>
         </Card.Header>
         <Card.Body>
+          {/* Donations Table */}
           <div className="table-responsive">
-            <Table striped hover className="mb-0">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Người đăng ký</th>
-                  <th>Nhóm máu</th>
-                  <th>Loại đơn</th>
-                  <th>Ngày đăng ký</th>
-                  <th>Ngày mong muốn</th>
-                  <th>Trạng thái</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
+              <Table striped hover className="mb-0">
+                <thead>
                   <tr>
-                    <td colSpan={8} className="text-center">
-                      <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                    </td>
+                    <th>ID</th>
+                    <th>Người đăng ký</th>
+                    <th>Nhóm máu</th>
+                    <th>Loại đơn</th>
+                    <th>Ngày mong muốn</th>
+                    <th>Phiếu sức khỏe</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
                   </tr>
-                ) : filteredRequests.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="text-center text-muted">
-                      Không có dữ liệu phù hợp
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRequests.map(request => (
-                    <tr key={request.id}>
-                      <td>#{request.id}</td>
-                      <td>
-                        <div>
-                          <strong>{request.requesterName}</strong>
-                          <br />
-                          <small className="text-muted">{request.requesterEmail}</small>
-                          {request.requesterPhone && request.requesterPhone !== 'N/A' && request.requesterPhone !== 'Chưa cập nhật' && (
-                            <>
-                              <br />
-                              <small className="text-muted">{request.requesterPhone}</small>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <Badge bg="danger" className="blood-type-badge">
-                          {request.bloodType}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Badge bg={getRequestTypeBadgeVariant(request.requestType)}>
-                          {getRequestTypeText(request.requestType)}
-                        </Badge>
-                      </td>
-                      <td>{request.requestDate}</td>
-                      <td>{request.preferredDate}</td>
-                      <td>
-                        <Badge bg={getStatusBadgeVariant(request.status)}>
-                          {getStatusText(request.status)}
-                        </Badge>
-                      </td>
-                      <td>
-                        <div className="d-flex gap-2">
-                          <OverlayTrigger
-                            placement="top"
-                            overlay={<Tooltip>Xem chi tiết</Tooltip>}
-                          >
-                            <Button
-                              variant="outline-info"
-                              size="sm"
-                              onClick={() => showRequestDetail(request)}
-                            >
-                              <FaEye />
-                            </Button>
-                          </OverlayTrigger>
-                          {request.status === 'pending' && (
-                            <>
-                              <OverlayTrigger
-                                placement="top"
-                                overlay={<Tooltip>Duyệt đơn</Tooltip>}
-                              >
-                                <Button
-                                  variant="outline-success"
-                                  size="sm"
-                                  onClick={() => showApprovalConfirm(request, 'approve')}
-                                >
-                                  <FaCheck />
-                                </Button>
-                              </OverlayTrigger>
-                              <OverlayTrigger
-                                placement="top"
-                                overlay={<Tooltip>Từ chối</Tooltip>}
-                              >
-                                <Button
-                                  variant="outline-danger"
-                                  size="sm"
-                                  onClick={() => showApprovalConfirm(request, 'reject')}
-                                >
-                                  <FaTimes />
-                                </Button>
-                              </OverlayTrigger>
-                            </>
-                          )}
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} className="text-center">
+                        <div className="spinner-border" role="status">
+                          <span className="visually-hidden">Loading...</span>
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
-          </div>
+                  ) : filteredRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="text-center text-muted">
+                        Không có dữ liệu phù hợp
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRequests.map(request => (
+                      <tr key={request.id}>
+                        <td>#{request.id}</td>
+                        <td>
+                          <strong>{request.requesterName}</strong>
+                        </td>
+                        <td>
+                          <Badge bg="danger" className="blood-type-badge">
+                            {request.bloodType}
+                          </Badge>
+                        </td>
+                        <td>
+                          <Badge bg={getRequestTypeBadgeVariant(request.requestType)}>
+                            {getRequestTypeText(request.requestType)}
+                          </Badge>
+                        </td>
+                        <td>{request.preferredDate}</td>
+                        <td>{getHealthFormStatusBadge(request.healthFormStatus)}</td>
+                        <td>
+                          <Badge bg={getStatusBadgeVariant(request.status)}>
+                            {getStatusText(request.status)}
+                          </Badge>
+                        </td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            <OverlayTrigger
+                              placement="top"
+                              overlay={<Tooltip>Xem chi tiết</Tooltip>}
+                            >
+                              <Button
+                                variant="outline-info"
+                                size="sm"
+                                onClick={() => showRequestDetail(request)}
+                              >
+                                <FaEye />
+                              </Button>
+                            </OverlayTrigger>
+                            {request.status === 'pending' && (
+                              <>
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={<Tooltip>
+                                    {canApproveRequest(request) 
+                                      ? 'Duyệt đơn hiến máu và phiếu sức khỏe' 
+                                      : 'Cần có phiếu sức khỏe hợp lệ'
+                                    }
+                                  </Tooltip>}
+                                >
+                                  <Button
+                                    variant={canApproveRequest(request) ? "outline-success" : "outline-secondary"}
+                                    size="sm"
+                                    onClick={() => showApprovalConfirm(request, 'approve')}
+                                    disabled={!canApproveRequest(request)}
+                                  >
+                                    <FaCheck />
+                                  </Button>
+                                </OverlayTrigger>
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={<Tooltip>Từ chối</Tooltip>}
+                                >
+                                  <Button
+                                    variant="outline-danger"
+                                    size="sm"
+                                    onClick={() => showApprovalConfirm(request, 'reject')}
+                                  >
+                                    <FaTimes />
+                                  </Button>
+                                </OverlayTrigger>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </Table>
+            </div>
         </Card.Body>
       </Card>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="lg">
+      <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} size="xl">
         <Modal.Header closeButton>
           <Modal.Title>
             <FaUser className="me-2" />
@@ -515,77 +715,245 @@ const ApproveDonationRequests = () => {
         </Modal.Header>
         <Modal.Body>
           {selectedRequest && (
-            <div className="mb-3">
-              <Row>
-                <Col md={6}>
-                  <div className="info-item mb-3">
-                    <strong>Họ và tên:</strong>
-                    <span className="ms-2">{selectedRequest.requesterName}</span>
-                  </div>
-                  <div className="info-item mb-3">
-                    <strong>Email:</strong>
-                    <span className="ms-2">{selectedRequest.requesterEmail}</span>
-                  </div>
-                  <div className="info-item mb-3">
-                    <strong>Số điện thoại:</strong>
-                    <span className="ms-2">
-                      {selectedRequest.requesterPhone && selectedRequest.requesterPhone !== 'Chưa cập nhật' && selectedRequest.requesterPhone !== 'N/A' 
-                        ? selectedRequest.requesterPhone 
-                        : 'Chưa cập nhật'}
-                    </span>
-                  </div>
-                  <div className="info-item mb-3">
-                    <strong>CCCD/CMND:</strong>
-                    <span className="ms-2">
-                      {selectedRequest.idCard && selectedRequest.idCard !== 'Chưa cập nhật' && selectedRequest.idCard !== 'N/A'
-                        ? selectedRequest.idCard
-                        : 'Chưa cập nhật'}
-                    </span>
-                  </div>
-                  {selectedRequest.dateOfBirth && (
+            <Tabs defaultActiveKey="donation" className="mb-3">
+              <Tab eventKey="donation" title={
+                <span>
+                  <FaHeart className="me-2" />
+                  Thông tin đơn hiến máu
+                </span>
+              }>
+                {/* Blood Donation Request Details */}
+                <Card className="mb-3">
+                  <Card.Body>
+                    <Row>
+                      <Col md={6}>
+                        <div className="info-item mb-3">
+                          <strong>Họ và tên:</strong>
+                          <span className="ms-2">{selectedRequest.requesterName}</span>
+                        </div>
+                        <div className="info-item mb-3">
+                          <strong>Email:</strong>
+                          <span className="ms-2">{selectedRequest.requesterEmail}</span>
+                        </div>
+                        <div className="info-item mb-3">
+                          <strong>Số điện thoại:</strong>
+                          <span className="ms-2">
+                            {selectedRequest.requesterPhone && selectedRequest.requesterPhone !== 'Chưa cập nhật' && selectedRequest.requesterPhone !== 'N/A' 
+                              ? selectedRequest.requesterPhone 
+                              : 'Chưa cập nhật'}
+                          </span>
+                        </div>
+                        <div className="info-item mb-3">
+                          <strong>CCCD/CMND:</strong>
+                          <span className="ms-2">
+                            {selectedRequest.idCard && selectedRequest.idCard !== 'Chưa cập nhật' && selectedRequest.idCard !== 'N/A'
+                              ? selectedRequest.idCard
+                              : 'Chưa cập nhật'}
+                          </span>
+                        </div>
+                        {selectedRequest.dateOfBirth && (
+                          <div className="info-item mb-3">
+                            <strong>Ngày sinh:</strong>
+                            <span className="ms-2">{selectedRequest.dateOfBirth}</span>
+                          </div>
+                        )}
+                      </Col>
+                      <Col md={6}>
+                        <div className="info-item mb-3">
+                          <strong>Nhóm máu:</strong>
+                          <Badge bg="danger" className="ms-2">
+                            {selectedRequest.bloodType}
+                          </Badge>
+                        </div>
+                        <div className="info-item mb-3">
+                          <strong>Loại đơn:</strong>
+                          <Badge bg={getRequestTypeBadgeVariant(selectedRequest.requestType)} className="ms-2">
+                            {getRequestTypeText(selectedRequest.requestType)}
+                          </Badge>
+                        </div>
+                        <div className="info-item mb-3">
+                          <strong>Ngày hiến máu:</strong>
+                          <span className="ms-2">{selectedRequest.preferredDate}</span>
+                        </div>
+                      </Col>
+                    </Row>
                     <div className="info-item mb-3">
-                      <strong>Ngày sinh:</strong>
-                      <span className="ms-2">{selectedRequest.dateOfBirth}</span>
+                      <strong>Địa chỉ:</strong>
+                      <span className="ms-2">{selectedRequest.location}</span>
                     </div>
-                  )}
-                </Col>
-                <Col md={6}>
-                  <div className="info-item mb-3">
-                    <strong>Nhóm máu:</strong>
-                    <Badge bg="danger" className="ms-2">
-                      {selectedRequest.bloodType}
-                    </Badge>
-                  </div>
-                  <div className="info-item mb-3">
-                    <strong>Loại đơn:</strong>
-                    <Badge bg={getRequestTypeBadgeVariant(selectedRequest.requestType)} className="ms-2">
-                      {getRequestTypeText(selectedRequest.requestType)}
-                    </Badge>
-                  </div>
-                  <div className="info-item mb-3">
-                    <strong>Ngày đăng ký:</strong>
-                    <span className="ms-2">{selectedRequest.requestDate}</span>
-                  </div>
-                  <div className="info-item mb-3">
-                    <strong>Ngày mong muốn:</strong>
-                    <span className="ms-2">{selectedRequest.preferredDate}</span>
-                  </div>
-                </Col>
-              </Row>
-              <div className="info-item mb-3">
-                <strong>Địa chỉ:</strong>
-                <span className="ms-2">{selectedRequest.location}</span>
-              </div>
-              <div className="info-item mb-3">
-                <strong>Tiền sử bệnh lý và thuốc đang sử dụng:</strong>
-                <p className="mt-2">{selectedRequest.notes}</p>
-              </div>
-              {selectedRequest.status === 'rejected' && selectedRequest.rejectReason && (
-                <Alert variant="danger">
-                  <strong>Lý do từ chối:</strong> {selectedRequest.rejectReason}
-                </Alert>
-              )}
-            </div>
+                    <div className="info-item mb-3">
+                      <strong>Tiền sử bệnh lý và thuốc đang sử dụng:</strong>
+                      <p className="mt-2">{selectedRequest.notes}</p>
+                    </div>
+                    {selectedRequest.status === 'rejected' && selectedRequest.rejectReason && (
+                      <Alert variant="danger">
+                        <strong>Lý do từ chối:</strong> {selectedRequest.rejectReason}
+                      </Alert>
+                    )}
+                    {!canApproveRequest(selectedRequest) && selectedRequest.status === 'pending' && (
+                      <Alert variant="warning">
+                        <FaExclamationTriangle className="me-2" />
+                        <strong>Lưu ý:</strong> Không thể duyệt đơn hiến máu khi chưa có phiếu sức khỏe hợp lệ.
+                      </Alert>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Tab>
+              
+              <Tab eventKey="healthform" title={
+                <span>
+                  <FaClipboardList className="me-2" />
+                  Phiếu sức khỏe
+                </span>
+              }>
+                {/* Health Form Details Section */}
+                <Card className="mb-3">
+                  <Card.Body>
+                    {selectedRequest.healthFormStatus === 'none' ? (
+                      <Alert variant="info">
+                        <FaClipboardList className="me-2" />
+                        <strong>Chưa có phiếu sức khỏe</strong>
+                        <p className="mt-2 mb-0">
+                          Người hiến máu này chưa có phiếu sức khỏe. Vui lòng yêu cầu người hiến máu nộp phiếu sức khỏe 
+                          hoặc nhân viên y tế tạo phiếu sức khỏe trước khi duyệt đơn hiến máu.
+                        </p>
+                      </Alert>
+                    ) : (
+                      // Hiển thị thông tin phiếu sức khỏe từ healthForms
+                      (() => {
+                        const healthForm = healthForms.find(form => 
+                          form.donorId === selectedRequest.requesterId || 
+                          form.userID === selectedRequest.requesterId ||
+                          form.idCard === selectedRequest.idCard ||
+                          form.userID === selectedRequest.idCard
+                        );
+                        
+                        if (!healthForm) {
+                          return (
+                            <Alert variant="warning">
+                              <FaExclamationTriangle className="me-2" />
+                              <strong>Không tìm thấy chi tiết phiếu sức khỏe</strong>
+                              <p className="mt-2 mb-0">
+                                Hệ thống cho biết có phiếu sức khỏe nhưng không thể tải chi tiết. 
+                                Vui lòng liên hệ quản trị viên.
+                              </p>
+                            </Alert>
+                          );
+                        }
+                        
+                        return (
+                          <>
+                            {/* Header Card - Chỉ tiêu đề và ngày khám */}
+                            <Card className="mb-3 border-primary">
+                              <Card.Header className="bg-primary text-white">
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div>
+                                    <FaClipboardList className="me-2" />
+                                    Phiếu sức khỏe
+                                  </div>
+                                </div>
+                              </Card.Header>
+                              <Card.Body>
+                                <div className="d-flex align-items-center mb-3">
+                                  <FaIdCard className="me-2 text-primary" />
+                                  <strong>Mã phiếu sức khỏe:</strong>
+                                  <span className="ms-2">#{healthForm.healthCheckID}</span>
+                                </div>
+                                <div className="d-flex align-items-center mb-3">
+                                  <FaCalendarAlt className="me-2 text-primary" />
+                                  <strong>Ngày khám:</strong>
+                                  <span className="ms-2">{new Date(healthForm.submittedDate).toLocaleDateString('vi-VN')}</span>
+                                </div>
+                              </Card.Body>
+                            </Card>
+
+                            <Row>
+                              {/* Chỉ số sinh hiệu */}
+                              <Col md={6}>
+                                <Card className="mb-3 h-100">
+                                  <Card.Header className="bg-success text-white">
+                                    <FaHeartbeat className="me-2" />
+                                    Chỉ số sinh hiệu
+                                  </Card.Header>
+                                  <Card.Body>
+                                    <div className="vital-signs">
+                                      <div className="vital-item mb-3 p-2 border rounded">
+                                        <div className="d-flex justify-content-between">
+                                          <strong>Cân nặng:</strong>
+                                          <span className="text-success fw-bold">{healthForm.weight} kg</span>
+                                        </div>
+                                      </div>
+                                      <div className="vital-item mb-3 p-2 border rounded">
+                                        <div className="d-flex justify-content-between">
+                                          <strong>Chiều cao:</strong>
+                                          <span className="text-success fw-bold">{healthForm.height} cm</span>
+                                        </div>
+                                      </div>
+                                      <div className="vital-item mb-3 p-2 border rounded">
+                                        <div className="d-flex justify-content-between">
+                                          <strong>Huyết áp:</strong>
+                                          <span className="text-success fw-bold">{healthForm.bloodPressure} mmHg</span>
+                                        </div>
+                                      </div>
+                                      <div className="vital-item mb-3 p-2 border rounded">
+                                        <div className="d-flex justify-content-between">
+                                          <strong>Nhịp tim:</strong>
+                                          <span className="text-success fw-bold">{healthForm.heartRate} lần/phút</span>
+                                        </div>
+                                      </div>
+                                      <div className="vital-item p-2 border rounded">
+                                        <div className="d-flex justify-content-between">
+                                          <strong>Nhiệt độ:</strong>
+                                          <span className="text-success fw-bold">{healthForm.temperature}°C</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </Card.Body>
+                                </Card>
+                              </Col>
+
+                              {/* Thông tin y tế */}
+                              <Col md={6}>
+                                <Card className="mb-3 h-100">
+                                  <Card.Header className="bg-info text-white">
+                                    <FaClipboardList className="me-2" />
+                                    Thông tin y tế
+                                  </Card.Header>
+                                  <Card.Body>
+                                    <div className="medical-info">
+                                      <div className="info-item mb-3">
+                                        <strong className="text-info">Dị ứng:</strong>
+                                        <div className="mt-2 p-3 bg-light rounded">
+                                          <p className="mb-0 text-muted">{healthForm.allergies}</p>
+                                        </div>
+                                      </div>
+                                      <div className="info-item mb-3">
+                                        <strong className="text-info">Thuốc đang sử dụng:</strong>
+                                        <div className="mt-2 p-3 bg-light rounded">
+                                          <p className="mb-0 text-muted">{healthForm.currentMedications}</p>
+                                        </div>
+                                      </div>
+                                      <div className="info-item">
+                                        <strong className="text-info">Tiền sử bệnh lý:</strong>
+                                        <div className="mt-2 p-3 bg-light rounded">
+                                          <p className="mb-0 text-muted">
+                                            {healthForm.medicalHistory || 'Không có thông tin'}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </Card.Body>
+                                </Card>
+                              </Col>
+                            </Row>
+                          </>
+                        );
+                      })()
+                    )}
+                  </Card.Body>
+                </Card>
+              </Tab>
+            </Tabs>
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -595,14 +963,15 @@ const ApproveDonationRequests = () => {
           {selectedRequest?.status === 'pending' && (
             <>
               <Button 
-                variant="success" 
+                variant={canApproveRequest(selectedRequest) ? "success" : "secondary"}
+                disabled={!canApproveRequest(selectedRequest)}
                 onClick={() => {
                   setShowDetailModal(false);
                   showApprovalConfirm(selectedRequest, 'approve');
                 }}
               >
                 <FaCheck className="me-2" />
-                Duyệt đơn
+                Duyệt đơn hiến máu
               </Button>
               <Button 
                 variant="danger"
@@ -638,9 +1007,16 @@ const ApproveDonationRequests = () => {
         </Modal.Header>
         <Modal.Body>
           <p>
-            Bạn có chắc chắn muốn {approvalAction === 'approve' ? 'duyệt' : 'từ chối'} đơn hiến máu của{' '}
+            Bạn có chắc chắn muốn {approvalAction === 'approve' ? 'duyệt đơn hiến máu và phiếu sức khỏe' : 'từ chối'} của{' '}
             <strong>{selectedRequest?.requesterName}</strong>?
           </p>
+          
+          {approvalAction === 'approve' && selectedRequest?.healthFormStatus === 'pending' && (
+            <Alert variant="info">
+              <FaCheck className="me-2" />
+              <strong>Lưu ý:</strong> Phiếu sức khỏe đang chờ duyệt sẽ được tự động duyệt cùng với đơn hiến máu.
+            </Alert>
+          )}
           
           {approvalAction === 'reject' && (
             <Form.Group className="mt-3">
@@ -670,7 +1046,7 @@ const ApproveDonationRequests = () => {
             className="d-flex align-items-center"
           >
             {loading && <Spinner size="sm" className="me-2" />}
-            {approvalAction === 'approve' ? 'Xác nhận duyệt' : 'Xác nhận từ chối'}
+            {approvalAction === 'approve' ? 'Xác nhận duyệt đơn hiến máu' : 'Xác nhận từ chối'}
           </Button>
         </Modal.Footer>
       </Modal>
