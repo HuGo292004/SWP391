@@ -58,9 +58,6 @@ const getBloodTypeName = (bloodTypeID) => {
   }
   
   const bloodTypeMap = {
-    // Complete mapping from your database BloodType table (uppercase) - Updated to match exact database
-    '44C1A0F7-92B9-4E1B-A628-03447F5B86D7': 'O+ (O Rh dương)',
-    '55B618E3-25CE-45D8-B980-03D532EC2293': 'B- (B Rh âm)',
     '11111111-1111-1111-1111-111111111001': 'A+ (A Rh dương)',
     '11111111-1111-1111-1111-111111111002': 'A- (A Rh âm)',
     '11111111-1111-1111-1111-111111111003': 'B+ (B Rh dương)',
@@ -69,30 +66,6 @@ const getBloodTypeName = (bloodTypeID) => {
     '11111111-1111-1111-1111-111111111006': 'AB- (AB Rh âm)',
     '11111111-1111-1111-1111-111111111007': 'O+ (O Rh dương)',
     '11111111-1111-1111-1111-111111111008': 'O- (O Rh âm)',
-    'FE6B963D-65ED-4681-96FF-213E2B9D7E9B': 'O- (O Rh âm)',
-    'B0B93608-6EA7-4F3E-8B2A-37B66BF0CC82': 'A+ (A Rh dương)',
-    'C07C228E-DA24-4DD8-B2B5-64CE22B674A3': 'B+ (B Rh dương)',
-    '5060875F-D7D5-40FD-8FCD-75F843A71A32': 'AB- (AB Rh âm)',
-    'A12373C7-3BFC-496E-8021-C0031B9BC0D8': 'A- (A Rh âm)',
-    '5AE0C996-2594-48D2-8023-FD80676E4BCC': 'AB+ (AB Rh dương)',
-    
-    // Add lowercase versions for case-insensitive matching
-    '44c1a0f7-92b9-4e1b-a628-03447f5b86d7': 'O+ (O Rh dương)',
-    '55b618e3-25ce-45d8-b980-03d532ec2293': 'B- (B Rh âm)',
-    '11111111-1111-1111-1111-111111111001': 'A+ (A Rh dương)',
-    '11111111-1111-1111-1111-111111111002': 'A- (A Rh âm)',
-    '11111111-1111-1111-1111-111111111003': 'B+ (B Rh dương)',
-    '11111111-1111-1111-1111-111111111004': 'B- (B Rh âm)',
-    '11111111-1111-1111-1111-111111111005': 'AB+ (AB Rh dương)',
-    '11111111-1111-1111-1111-111111111006': 'AB- (AB Rh âm)',
-    '11111111-1111-1111-1111-111111111007': 'O+ (O Rh dương)',
-    '11111111-1111-1111-1111-111111111008': 'O- (O Rh âm)',
-    'fe6b963d-65ed-4681-96ff-213e2b9d7e9b': 'O- (O Rh âm)',
-    'b0b93608-6ea7-4f3e-8b2a-37b66bf0cc82': 'A+ (A Rh dương)',
-    'c07c228e-da24-4dd8-b2b5-64ce22b674a3': 'B+ (B Rh dương)',
-    '5060875f-d7d5-40fd-8fcd-75f843a71a32': 'AB- (AB Rh âm)',
-    'a12373c7-3bfc-496e-8021-c0031b9bc0d8': 'A- (A Rh âm)',
-    '5ae0c996-2594-48d2-8023-fd80676e4bcc': 'AB+ (AB Rh dương)'
   };
   
   // Try direct lookup first

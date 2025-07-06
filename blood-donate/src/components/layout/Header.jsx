@@ -746,14 +746,6 @@ import {
                         label: 'Phiếu sức khỏe',
                         children: [
                           {
-                            key: 'approve-health-forms',
-                            icon: <CheckCircleFilled style={{ color: healthThemeColors.success }} />,
-                            label: 'Duyệt phiếu',
-                            onClick: () => {
-                              navigate(createRoleBasedPath('/approve-health-forms', currentRole));
-                            }
-                          },
-                          {
                             key: 'create-health-forms',
                             icon: <MedicineBoxOutlined style={{ color: healthThemeColors.primary }} />,
                             label: 'Tạo phiếu',
