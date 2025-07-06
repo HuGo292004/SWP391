@@ -15,7 +15,7 @@ import { MainLayout } from "./components/layout";
 import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage, Profile, AppointmentPage } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
-import { UserManagement, ApproveDonationRequests, CreateEmergencyRequest, ApproveHealthForms, CreateHealthForms, BloodInventory, BloodDonorManagement } from "./pages/staff";
+import { UserManagement, ApproveDonationRequests, CreateEmergencyRequest, CreateHealthForms, BloodInventory, BloodDonorManagement } from "./pages/staff";
 import { MemberDashboard, BloodDonationRegistration } from "./pages/member";
 
 // Y tế theme colors
@@ -101,7 +101,6 @@ function App() {
                 <Route path="/admin/user-management" element={<UserManagement />} />
                 <Route path="/admin/approve-donation-requests" element={<ApproveDonationRequests />} />
                 <Route path="/admin/create-emergency-request" element={<CreateEmergencyRequest />} />
-                <Route path="/admin/approve-health-forms" element={<ApproveHealthForms />} />
                 <Route path="/admin/create-health-forms" element={<CreateHealthForms />} />
                 <Route path="/admin/blood-inventory" element={<BloodInventory />} />
 
@@ -116,7 +115,6 @@ function App() {
                 <Route path="/staff/donor-management" element={<BloodDonorManagement />} />
                 <Route path="/staff/approve-donation-requests" element={<ApproveDonationRequests />} />
                 <Route path="/staff/create-emergency-request" element={<CreateEmergencyRequest />} />
-                <Route path="/staff/approve-health-forms" element={<ApproveHealthForms />} />
                 <Route path="/staff/create-health-forms" element={<CreateHealthForms />} />
                 <Route path="/staff/blood-inventory" element={<BloodInventory />} />
 

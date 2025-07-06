@@ -283,6 +283,187 @@ class HealthCheckApi {
       throw error;
     }
   }
+
+  // Approve health check
+  async approveHealthCheck(healthCheckId, approvalData = {}) {
+    try {
+      console.log('Attempting to approve health check:', healthCheckId, approvalData);
+      
+      // Try multiple endpoint patterns
+      const endpoints = [
+        // Pattern 1: Similar to BloodDonation
+        { url: `${API_BASE_URL}/HealthCheck/${healthCheckId}/status/approved`, method: 'PATCH' },
+        { url: `${API_BASE_URL}/HealthCheck/${healthCheckId}/status/Approved`, method: 'PATCH' },
+        { url: `${API_BASE_URL}/HealthCheck/approve-health-check`, method: 'POST' },
+        { url: `${API_BASE_URL}/HealthCheck/${healthCheckId}/approve`, method: 'POST' },
+        { url: `${API_BASE_URL}/HealthCheck/${healthCheckId}/status`, method: 'PATCH' }
+      ];
+
+      let lastError = null;
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying ${endpoint.method} ${endpoint.url}`);
+          
+          let body;
+          if (endpoint.method === 'POST' && endpoint.url.includes('approve-health-check')) {
+            body = JSON.stringify({
+              healthCheckId: healthCheckId,
+              ...approvalData
+            });
+          } else if (endpoint.method === 'PATCH' && endpoint.url.includes('/status')) {
+            body = JSON.stringify({
+              status: 'approved',
+              healthCheckStatus: 'approved',
+              ...approvalData
+            });
+          } else {
+            body = JSON.stringify(approvalData);
+          }
+
+          const response = await fetch(endpoint.url, {
+            method: endpoint.method,
+            headers: getAuthHeaders(),
+            body: body,
+          });
+
+          if (response.ok) {
+            console.log('Health check approval successful with endpoint:', endpoint);
+            return await response.json();
+          } else if (response.status === 401) {
+            throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          } else if (response.status !== 404 && response.status !== 405) {
+            // If it's not 404 or 405, it might be a real error
+            const errorText = await response.text();
+            lastError = new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            throw lastError;
+          }
+        } catch (error) {
+          if (error.message.includes('đăng nhập')) {
+            throw error; // Re-throw auth errors immediately
+          }
+          lastError = error;
+          console.log(`Endpoint ${endpoint.url} failed:`, error.message);
+          continue; // Try next endpoint
+        }
+      }
+
+      // If all endpoints failed, try updating via PUT
+      console.log('All PATCH/POST endpoints failed, trying PUT update...');
+      return await this.updateHealthCheckStatus(healthCheckId, 'approved', approvalData);
+      
+    } catch (error) {
+      console.error('Error approving health check:', error);
+      throw error;
+    }
+  }
+
+  // Reject health check
+  async rejectHealthCheck(healthCheckId, rejectionData = {}) {
+    try {
+      console.log('Attempting to reject health check:', healthCheckId, rejectionData);
+      
+      // Try multiple endpoint patterns
+      const endpoints = [
+        // Pattern 1: Similar to BloodDonation
+        { url: `${API_BASE_URL}/HealthCheck/${healthCheckId}/status/rejected`, method: 'PATCH' },
+        { url: `${API_BASE_URL}/HealthCheck/${healthCheckId}/status/Rejected`, method: 'PATCH' },
+        { url: `${API_BASE_URL}/HealthCheck/reject-health-check`, method: 'POST' },
+        { url: `${API_BASE_URL}/HealthCheck/${healthCheckId}/reject`, method: 'POST' },
+        { url: `${API_BASE_URL}/HealthCheck/${healthCheckId}/status`, method: 'PATCH' }
+      ];
+
+      let lastError = null;
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying ${endpoint.method} ${endpoint.url}`);
+          
+          let body;
+          if (endpoint.method === 'POST' && endpoint.url.includes('reject-health-check')) {
+            body = JSON.stringify({
+              healthCheckId: healthCheckId,
+              ...rejectionData
+            });
+          } else if (endpoint.method === 'PATCH' && endpoint.url.includes('/status')) {
+            body = JSON.stringify({
+              status: 'rejected',
+              healthCheckStatus: 'rejected',
+              ...rejectionData
+            });
+          } else {
+            body = JSON.stringify(rejectionData);
+          }
+
+          const response = await fetch(endpoint.url, {
+            method: endpoint.method,
+            headers: getAuthHeaders(),
+            body: body,
+          });
+
+          if (response.ok) {
+            console.log('Health check rejection successful with endpoint:', endpoint);
+            return await response.json();
+          } else if (response.status === 401) {
+            throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          } else if (response.status !== 404 && response.status !== 405) {
+            // If it's not 404 or 405, it might be a real error
+            const errorText = await response.text();
+            lastError = new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            throw lastError;
+          }
+        } catch (error) {
+          if (error.message.includes('đăng nhập')) {
+            throw error; // Re-throw auth errors immediately
+          }
+          lastError = error;
+          console.log(`Endpoint ${endpoint.url} failed:`, error.message);
+          continue; // Try next endpoint
+        }
+      }
+
+      // If all endpoints failed, try updating via PUT
+      console.log('All PATCH/POST endpoints failed, trying PUT update...');
+      return await this.updateHealthCheckStatus(healthCheckId, 'rejected', rejectionData);
+      
+    } catch (error) {
+      console.error('Error rejecting health check:', error);
+      throw error;
+    }
+  }
+
+  // Fallback method to update health check status using PUT
+  async updateHealthCheckStatus(healthCheckId, status, additionalData = {}) {
+    try {
+      // First get the current health check data
+      const currentData = await this.getHealthCheckById(healthCheckId);
+      
+      // Update the status and merge with additional data
+      const updatedData = {
+        ...currentData,
+        healthCheckStatus: status,
+        ...additionalData
+      };
+
+      const response = await fetch(`${API_BASE_URL}/HealthCheck/${healthCheckId}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating health check status:', error);
+      throw error;
+    }
+  }
 }
 
 export const healthCheckApi = new HealthCheckApi();
