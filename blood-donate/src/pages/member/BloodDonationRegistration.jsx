@@ -152,11 +152,32 @@ const BloodDonationRegistration = () => {
   const fetchUserInfo = async () => {
     setLoadingUserInfo(true);
     try {
+      console.log('BloodDonationRegistration - Fetching user info...');
       const userResponse = await UserAPI.getCurrentUser();
-      setUserInfo(userResponse.data || userResponse);
+      console.log('BloodDonationRegistration - User response:', userResponse);
+      
+      const userData = userResponse.data || userResponse;
+      setUserInfo(userData);
+      console.log('BloodDonationRegistration - User info set:', userData);
       
     } catch (error) {
+      console.error('BloodDonationRegistration - Error fetching user info:', error);
       setError('Không thể tải thông tin người dùng. Vui lòng thử lại.');
+      
+      // Fallback to localStorage data for demo purposes
+      const fallbackUserInfo = {
+        fullName: localStorage.getItem('username') || 'Người dùng',
+        username: localStorage.getItem('username') || 'user',
+        email: 'member@example.com',
+        phone: 'Chưa cập nhật',
+        userIdCard: 'Chưa cập nhật',
+        dateOfBirth: null,
+        role: localStorage.getItem('userRole') || 'Member',
+        userId: localStorage.getItem('userId') || 'temp-user-id'
+      };
+      
+      console.log('BloodDonationRegistration - Using fallback user info:', fallbackUserInfo);
+      setUserInfo(fallbackUserInfo);
     } finally {
       setLoadingUserInfo(false);
     }

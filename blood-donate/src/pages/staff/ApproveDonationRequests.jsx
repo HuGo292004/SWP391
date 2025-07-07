@@ -43,9 +43,11 @@ import { bloodDonationApi } from '../../services/bloodDonationApi';
 import { healthCheckApi } from '../../services/healthCheckApi';
 import '../../styles/pages.css';
 
+
+
 const ApproveDonationRequests = () => {
   const [requests, setRequests] = useState([]);
-  const [healthForms, setHealthForms] = useState([]);
+  const [healthForms, setHealthForms] = useState(null); // null = not loaded yet, [] = loaded but empty
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -56,19 +58,84 @@ const ApproveDonationRequests = () => {
   const [approvalAction, setApprovalAction] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [showAlert, setShowAlert] = useState({ show: false, message: '', type: 'success' });
+  const [authStatus, setAuthStatus] = useState({ isValid: true, message: '' });
+
+  // Check authentication status
+  const checkAuthStatus = () => {
+    const userToken = localStorage.getItem('userToken');
+    const userRole = localStorage.getItem('userRole');
+    
+    if (!userToken) {
+      setAuthStatus({
+        isValid: false,
+        message: 'Không tìm thấy token đăng nhập. Vui lòng đăng nhập lại.'
+      });
+      return false;
+    }
+    
+    if (userToken === 'demo-token') {
+      setAuthStatus({
+        isValid: false,
+        message: 'Đang sử dụng demo token. Vui lòng đăng nhập với tài khoản thực để truy cập API.'
+      });
+      return false;
+    }
+    
+    if (!userRole) {
+      setAuthStatus({
+        isValid: false,
+        message: 'Không tìm thấy thông tin quyền người dùng. Vui lòng đăng nhập lại.'
+      });
+      return false;
+    }
+    
+    setAuthStatus({ isValid: true, message: '' });
+    return true;
+  };
 
   // Load requests when component mounts
   useEffect(() => {
-    loadRequests();
-    loadHealthForms();
+    // Check authentication status first
+    const isAuthValid = checkAuthStatus();
+    
+    if (isAuthValid) {
+      loadData();
+    }
   }, []);
+
+  // Load data in correct order to avoid race conditions
+  const loadData = async () => {
+    try {
+      console.log('🔄 Starting data load sequence...');
+      
+      // First load health forms, then requests
+      // This ensures health forms are available when we map them to requests
+      await loadHealthForms();
+      await loadRequests();
+      
+      console.log('✅ Data load sequence completed');
+    } catch (error) {
+      console.error('❌ Data load sequence failed:', error);
+      
+      // Ensure healthForms is not left as null if load fails
+      if (healthForms === null) {
+        console.warn('⚠️ Setting healthForms to empty array due to load failure');
+        setHealthForms([]);
+      }
+    }
+  };
 
   // Update health form status after both data are loaded
   useEffect(() => {
-    if (requests.length > 0 && healthForms.length >= 0) {
+    // Only update if we have requests AND health forms have been loaded (even if empty)
+    // We use a flag to distinguish between "not loaded yet" vs "loaded but empty"
+    if (requests.length > 0 && healthForms !== null) {
+      console.log('🔄 Triggering health form status update...');
+      console.log('📊 Requests count:', requests.length);
+      console.log('🏥 Health forms count:', healthForms.length);
       updateHealthFormStatusInRequests();
     }
-  }, [requests.length, healthForms.length]);
+  }, [requests.length, healthForms]);
 
   // Show alert message
   const showMessage = (message, type = 'success') => {
@@ -100,7 +167,19 @@ const ApproveDonationRequests = () => {
       const formattedRequests = Array.isArray(data) ? data.map(formatBloodDonationData) : [];
       setRequests(formattedRequests);
       
+      console.log('✅ Blood donation requests loaded successfully:', formattedRequests.length, 'items');
+      
     } catch (error) {
+      console.error('❌ Failed to load blood donation requests:', error);
+      
+      // Check if it's an auth error and update auth status
+      if (error.message.includes('đăng nhập') || error.message.includes('401')) {
+        setAuthStatus({
+          isValid: false,
+          message: 'Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.'
+        });
+      }
+      
       handleApiError(error, 'Không thể tải danh sách đơn hiến máu');
       setRequests([]);
     } finally {
@@ -111,14 +190,29 @@ const ApproveDonationRequests = () => {
   // Load health forms from API
   const loadHealthForms = async () => {
     try {
+      console.log('🔄 Loading health forms...');
       const data = await healthCheckApi.getAllHealthChecks();
       
       // Format data to match UI structure
       const formattedHealthForms = Array.isArray(data) ? data.map(formatHealthFormData) : [];
       setHealthForms(formattedHealthForms);
       
+      console.log('✅ Health forms loaded successfully:', formattedHealthForms.length, 'items');
+      
     } catch (error) {
+      console.error('❌ Failed to load health forms:', error);
+      
+      // Check if it's an auth error and update auth status
+      if (error.message.includes('đăng nhập') || error.message.includes('401')) {
+        setAuthStatus({
+          isValid: false,
+          message: 'Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.'
+        });
+      }
+      
       handleApiError(error, 'Không thể tải danh sách phiếu sức khỏe');
+      
+      // Set empty array instead of leaving null, so UI knows it's loaded but empty
       setHealthForms([]);
     }
   };
@@ -229,14 +323,29 @@ const ApproveDonationRequests = () => {
     console.log('Finding health form for donorId:', donorId);
     console.log('Available health forms:', healthForms);
     
+    // If health forms not loaded yet, return 'loading'
+    if (healthForms === null) {
+      console.log('Health forms not loaded yet');
+      return 'loading';
+    }
+    
+    // If no health forms available, return 'none'
+    if (!Array.isArray(healthForms) || healthForms.length === 0) {
+      console.log('No health forms available');
+      return 'none';
+    }
+    
     const healthForm = healthForms.find(form => {
       console.log('Checking form:', form);
-      return form.donorId === donorId || 
-             form.userID === donorId ||
-             form.idCard === donorId ||
-             String(form.donorId) === String(donorId) ||
-             String(form.userID) === String(donorId) ||
-             String(form.idCard) === String(donorId);
+      
+      // More robust matching logic
+      const formDonorId = form.donorId || form.userID || form.donorID;
+      const formIdCard = form.idCard || form.userIdCard;
+      
+      return formDonorId === donorId || 
+             formIdCard === donorId ||
+             String(formDonorId) === String(donorId) ||
+             String(formIdCard) === String(donorId);
     });
     
     console.log('Found health form:', healthForm);
@@ -277,11 +386,29 @@ const ApproveDonationRequests = () => {
     }
   };
 
-  const getHealthFormStatusBadge = (status) => {
+  const getHealthFormStatusBadge = (status, request = null) => {
+    // Check for inconsistency between blood donation and health form status
+    const hasInconsistency = request && 
+      request.status === 'rejected' && 
+      (status === 'pending' || status === 'approved');
+    
     switch (status) {
+      case 'loading': return <Badge bg="info">Đang tải...</Badge>;
       case 'none': return <Badge bg="secondary">Chưa có phiếu</Badge>;
-      case 'pending': return <Badge bg="warning">Đã có phiếu</Badge>;
-      case 'approved': return <Badge bg="success">Phiếu đã duyệt</Badge>;
+      case 'pending': 
+        return hasInconsistency ? 
+          <Badge bg="warning" className="d-flex align-items-center">
+            Đã có phiếu 
+            <small className="ms-1" title="Không đồng bộ với trạng thái đơn hiến máu">⚠️</small>
+          </Badge> : 
+          <Badge bg="warning">Đã có phiếu</Badge>;
+      case 'approved': 
+        return hasInconsistency ? 
+          <Badge bg="success" className="d-flex align-items-center">
+            Phiếu đã duyệt 
+            <small className="ms-1" title="Không đồng bộ với trạng thái đơn hiến máu">⚠️</small>
+          </Badge> : 
+          <Badge bg="success">Phiếu đã duyệt</Badge>;
       case 'rejected': return <Badge bg="danger">Phiếu bị từ chối</Badge>;
       default: return <Badge bg="secondary">Không xác định</Badge>;
     }
@@ -289,7 +416,70 @@ const ApproveDonationRequests = () => {
 
   const canApproveRequest = (request) => {
     // Có thể duyệt đơn nếu có phiếu sức khỏe (pending hoặc approved)
-    return request.healthFormStatus !== 'none' && request.healthFormStatus !== 'rejected';
+    return request.healthFormStatus !== 'none' && 
+           request.healthFormStatus !== 'rejected' && 
+           request.healthFormStatus !== 'loading';
+  };
+
+  // Check if there's inconsistency between blood donation and health form status
+  const hasStatusInconsistency = (request) => {
+    return request.status === 'rejected' && 
+           (request.healthFormStatus === 'pending' || request.healthFormStatus === 'approved');
+  };
+
+  // Sync health form status with blood donation status
+  const handleSyncHealthFormStatus = async (request) => {
+    if (!hasStatusInconsistency(request)) return;
+
+    try {
+      const healthForm = healthForms && Array.isArray(healthForms) ? healthForms.find(form => 
+        form.donorId === request.requesterId || 
+        form.userID === request.requesterId ||
+        form.idCard === request.idCard ||
+        form.userID === request.idCard
+      ) : null;
+
+      if (healthForm) {
+        console.log('Syncing health form status to rejected for:', healthForm.id);
+        
+        // Auto-reject health form to match blood donation status
+        await healthCheckApi.rejectHealthCheck(healthForm.id, {
+          rejectionReason: 'Tự động đồng bộ: đơn hiến máu đã bị từ chối',
+          rejectedDate: new Date().toISOString()
+        });
+
+        // Update local state
+        setHealthForms(prev => 
+          prev.map(form => 
+            form.id === healthForm.id ? { ...form, status: 'rejected' } : form
+          )
+        );
+
+        showMessage('Đã đồng bộ trạng thái phiếu sức khỏe với đơn hiến máu', 'success');
+        
+        // Reload data to ensure consistency
+        await loadData();
+      }
+    } catch (error) {
+      console.error('Error syncing health form status:', error);
+      
+      // Fallback: update locally
+      const healthForm = healthForms && Array.isArray(healthForms) ? healthForms.find(form => 
+        form.donorId === request.requesterId || 
+        form.userID === request.requesterId ||
+        form.idCard === request.idCard ||
+        form.userID === request.idCard
+      ) : null;
+
+      if (healthForm) {
+        setHealthForms(prev => 
+          prev.map(form => 
+            form.id === healthForm.id ? { ...form, status: 'rejected' } : form
+          )
+        );
+        showMessage('Đã đồng bộ trạng thái phiếu sức khỏe (cục bộ)', 'warning');
+      }
+    }
   };
 
   // Health form handlers
@@ -309,8 +499,8 @@ const ApproveDonationRequests = () => {
       );
       showMessage('Phiếu sức khỏe đã được duyệt!', 'success');
       
-      // Reload requests to update health form status
-      await loadRequests();
+      // Reload data to update health form status
+      await loadData();
     } catch (error) {
       console.error('Health form approval error:', error);
       
@@ -342,8 +532,8 @@ const ApproveDonationRequests = () => {
       );
       showMessage('Phiếu sức khỏe đã bị từ chối!', 'warning');
       
-      // Reload requests to update health form status
-      await loadRequests();
+      // Reload data to update health form status
+      await loadData();
     } catch (error) {
       console.error('Health form rejection error:', error);
       
@@ -404,12 +594,12 @@ const ApproveDonationRequests = () => {
         
         // 1. Duyệt phiếu sức khỏe trước (nếu đang pending)
         if (selectedRequest.healthFormStatus === 'pending') {
-          const healthForm = healthForms.find(form => 
+          const healthForm = healthForms && Array.isArray(healthForms) ? healthForms.find(form => 
             form.donorId === selectedRequest.requesterId || 
             form.userID === selectedRequest.requesterId ||
             form.idCard === selectedRequest.idCard ||
             form.userID === selectedRequest.idCard
-          );
+          ) : null;
           
           if (healthForm) {
             try {
@@ -472,12 +662,12 @@ const ApproveDonationRequests = () => {
         
         // Nếu có phiếu sức khỏe đang pending, cũng từ chối luôn
         if (selectedRequest.healthFormStatus === 'pending') {
-          const healthForm = healthForms.find(form => 
+          const healthForm = healthForms && Array.isArray(healthForms) ? healthForms.find(form => 
             form.donorId === selectedRequest.requesterId || 
             form.userID === selectedRequest.requesterId ||
             form.idCard === selectedRequest.idCard ||
             form.userID === selectedRequest.idCard
-          );
+          ) : null;
           
           if (healthForm) {
             try {
@@ -511,10 +701,9 @@ const ApproveDonationRequests = () => {
         showMessage('Đã từ chối đơn hiến máu', 'warning');
       }
 
-      // Reload requests to get updated data
+      // Reload data to get updated information
       console.log('Reloading data...');
-      await loadRequests();
-      await loadHealthForms();
+      await loadData();
       
     } catch (error) {
       console.error('Approval process error:', error);
@@ -562,8 +751,10 @@ const ApproveDonationRequests = () => {
               <Button 
                 variant="outline-primary" 
                 onClick={() => {
-                  loadRequests();
-                  loadHealthForms();
+                  const isAuthValid = checkAuthStatus();
+                  if (isAuthValid) {
+                    loadData();
+                  }
                 }}
                 disabled={loading}
                 className="d-flex align-items-center"
@@ -590,6 +781,67 @@ const ApproveDonationRequests = () => {
           </Col>
         </Row>
       )}
+
+      {/* Authentication Status Alert */}
+      {!authStatus.isValid && (
+        <Row className="mb-3">
+          <Col>
+            <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>⚠️ Vấn đề xác thực:</strong> {authStatus.message}
+              </div>
+              <div>
+                <Button 
+                  variant="outline-primary" 
+                  size="sm" 
+                  onClick={() => window.location.href = '/login'}
+                  className="me-2"
+                >
+                  Đăng nhập lại
+                </Button>
+                <Button 
+                  variant="outline-secondary" 
+                  size="sm" 
+                  onClick={checkAuthStatus}
+                >
+                  Kiểm tra lại
+                </Button>
+              </div>
+            </Alert>
+          </Col>
+        </Row>
+      )}
+
+      {/* Data Inconsistency Alert */}
+      {(() => {
+        const inconsistentRequests = requests.filter(hasStatusInconsistency);
+        return inconsistentRequests.length > 0 && (
+          <Row className="mb-3">
+            <Col>
+              <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>⚠️ Phát hiện dữ liệu không đồng bộ:</strong> Có {inconsistentRequests.length} đơn hiến máu có 
+                  trạng thái không nhất quán với phiếu sức khỏe. Hãy sử dụng nút đồng bộ để khắc phục.
+                </div>
+                <div>
+                  <Button 
+                    variant="outline-warning" 
+                    size="sm" 
+                    onClick={async () => {
+                      for (const request of inconsistentRequests) {
+                        await handleSyncHealthFormStatus(request);
+                      }
+                    }}
+                  >
+                    <FaSync className="me-2" />
+                    Đồng bộ tất cả
+                  </Button>
+                </div>
+              </Alert>
+            </Col>
+          </Row>
+        );
+      })()}
 
       {/* Filters and Search */}
       <Card className="mb-4 shadow-sm">
@@ -744,7 +996,7 @@ const ApproveDonationRequests = () => {
                           </Badge>
                         </td>
                         <td>{request.preferredDate}</td>
-                        <td>{getHealthFormStatusBadge(request.healthFormStatus)}</td>
+                        <td>{getHealthFormStatusBadge(request.healthFormStatus, request)}</td>
                         <td>
                           <Badge bg={getStatusBadgeVariant(request.status)}>
                             {getStatusText(request.status)}
@@ -769,9 +1021,11 @@ const ApproveDonationRequests = () => {
                                 <OverlayTrigger
                                   placement="top"
                                   overlay={<Tooltip>
-                                    {canApproveRequest(request) 
-                                      ? 'Duyệt đơn hiến máu và phiếu sức khỏe' 
-                                      : 'Cần có phiếu sức khỏe hợp lệ'
+                                    {request.healthFormStatus === 'loading' 
+                                      ? 'Đang tải thông tin phiếu sức khỏe...'
+                                      : canApproveRequest(request) 
+                                        ? 'Duyệt đơn hiến máu và phiếu sức khỏe' 
+                                        : 'Cần có phiếu sức khỏe hợp lệ'
                                     }
                                   </Tooltip>}
                                 >
@@ -797,6 +1051,21 @@ const ApproveDonationRequests = () => {
                                   </Button>
                                 </OverlayTrigger>
                               </>
+                            )}
+                            {hasStatusInconsistency(request) && (
+                              <OverlayTrigger
+                                placement="top"
+                                overlay={<Tooltip>Đồng bộ trạng thái phiếu sức khỏe với đơn hiến máu</Tooltip>}
+                              >
+                                <Button
+                                  variant="outline-warning"
+                                  size="sm"
+                                  onClick={() => handleSyncHealthFormStatus(request)}
+                                  className="ms-2"
+                                >
+                                  <FaSync />
+                                </Button>
+                              </OverlayTrigger>
                             )}
                           </div>
                         </td>

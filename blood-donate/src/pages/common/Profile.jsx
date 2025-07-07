@@ -18,7 +18,8 @@ import {
   message,
   Spin,
   Switch,
-  InputNumber
+  InputNumber,
+  Alert
 } from 'antd';
 import {
   UserOutlined,
@@ -132,14 +133,16 @@ const Profile = () => {
       let processedUserData = {
         userID: userData.userId || userData.userID || '',
         username: userData.username || '',
-        fullName: userData.fullName || '',
+        fullName: userData.fullName || userData.username || 'Chưa cập nhật',
         email: userData.email || '',
-        phone: userData.phone || '',
-        userIdCard: userData.userIdCard || '',
+        phone: userData.phone && userData.phone.trim() !== '' ? userData.phone : 'Chưa cập nhật',
+        userIdCard: userData.userIdCard && userData.userIdCard.trim() !== '' ? userData.userIdCard : 'Chưa cập nhật',
         dateOfBirth: userData.dateOfBirth || null,
         role: userData.role || '',
         avatar: userData.avatar || null,
       };
+      
+
       
       // Nếu là Member, thêm các field mặc định và lấy thông tin donor profile từ API
       if (userData.role === 'Member') {
@@ -234,7 +237,15 @@ const Profile = () => {
       form.setFieldsValue(formValues);
       
     } catch (error) {
-      message.error('Không thể tải thông tin người dùng. Sử dụng dữ liệu mẫu.');
+      console.error('Profile.jsx - Error loading user data:', error);
+      
+      // Show different messages based on error type
+      const isTokenIssue = error.message.includes('404') || error.message.includes('getCurrentUser');
+      if (isTokenIssue) {
+        message.warning('Không thể tải đầy đủ thông tin từ server. Hiển thị thông tin cơ bản.');
+      } else {
+        message.error('Không thể tải thông tin người dùng. Sử dụng dữ liệu mẫu.');
+      }
       
       // Fallback to mock data if API fails
       const mockData = getMockUserData();
@@ -249,12 +260,14 @@ const Profile = () => {
   const getMockUserData = () => {
     const username = localStorage.getItem('username') || 'user123';
     const role = localStorage.getItem('userRole') || 'Member';
+    const userId = localStorage.getItem('userId') || (role === 'Member' ? 'MB001' : role === 'Staff' ? 'ST001' : 'AD001');
+    const userEmail = localStorage.getItem('userEmail') || '';
     
     const baseInfo = {
-      userID: role === 'Member' ? 'MB001' : role === 'Staff' ? 'ST001' : 'AD001',
+      userID: userId,
       username: username,
-      fullName: role === 'Member' ? 'Nguyễn Văn An' : role === 'Staff' ? 'Trần Thị Bình' : 'Lê Văn Cường',
-      email: role === 'Member' ? 'nguyenvanan@email.com' : role === 'Staff' ? 'tranthibinh@bloodbank.vn' : 'levancuong@bloodbank.vn',
+      fullName: username || (role === 'Member' ? 'Nguyễn Văn An' : role === 'Staff' ? 'Trần Thị Bình' : 'Lê Văn Cường'),
+      email: userEmail || (role === 'Member' ? 'nguyenvanan@email.com' : role === 'Staff' ? 'tranthibinh@bloodbank.vn' : 'levancuong@bloodbank.vn'),
       phone: role === 'Member' ? '0912345678' : role === 'Staff' ? '0923456789' : '0934567890',
       userIdCard: role === 'Member' ? '079090001234' : role === 'Staff' ? '079085001122' : '079080005566',
       dateOfBirth: role === 'Member' ? '1990-05-15' : role === 'Staff' ? '1985-03-20' : '1980-12-10',
@@ -372,35 +385,39 @@ const Profile = () => {
       }
       
       // Call API to update user basic info
-      await UserAPI.updateUser(userInfo.userID, processedValues);
+      const updateResult = await UserAPI.updateUser(userInfo.userID, processedValues);
       
-      // Nếu là Member và có thông tin donor profile, cập nhật hoặc tạo mới donor profile
+      // Check if update was saved locally for Member
+      const isLocalSave = updateResult?.source === 'localStorage';
+      
+      // Update donor profile if user is Member with donor profile
       if (userInfo.role === 'Member' && userInfo.hasDonorProfile && userInfo.donorID) {
         try {
-          // Cập nhật donor profile hiện có
           const donorData = {
             donorID: userInfo.donorID,
-            userID: userInfo.userID, // Quan trọng: phải có userID để không bị mất liên kết
-            bloodTypeID: userInfo.bloodTypeID, // Giữ nguyên bloodTypeID hiện tại
+            userID: userInfo.userID,
+            bloodTypeID: userInfo.bloodTypeID,
             isAvailable: userInfo.isAvailable,
             lastDonationDate: processedValues.lastDonationDate,
             nextEligibleDate: processedValues.nextEligibleDate,
             currentMedications: processedValues.currentMedications || userInfo.currentMedications || '',
-            address: processedValues.address // Cập nhật địa chỉ từ form
+            address: processedValues.address
           };
           
           await updateDonorProfile(userInfo.donorID, donorData);
         } catch (donorError) {
-          message.warning('Cập nhật thông tin cá nhân thành công, nhưng không thể cập nhật hồ sơ hiến máu');
+          // Ignore donor profile update errors for Member
         }
       }
       
       const updatedInfo = { ...userInfo, ...processedValues };
       setUserInfo(updatedInfo);
       setEditModalVisible(false);
+      
+      // Show success message
       message.success('Cập nhật thông tin thành công!');
       
-      // Refresh data from server
+      // Refresh data from server (this will also merge localStorage data for Member)
       await fetchUserData();
       
     } catch (error) {

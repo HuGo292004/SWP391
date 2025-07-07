@@ -636,6 +636,109 @@ export const donorApi = {
     }
   },
 
+  // Get user information through donor profile (if available)
+  getUserInfoThroughDonor: async () => {
+    try {
+      console.log('🔍 Attempting to get user info through donor profile...');
+      
+      // Step 1: Check if user has donor profile
+      const donorProfile = await donorApi.checkDonorProfile(true);
+      console.log('Donor profile check result:', donorProfile);
+      
+      if (!donorProfile.exists || !donorProfile.donorID) {
+        console.log('❌ No donor profile found');
+        return { success: false, message: 'No donor profile found' };
+      }
+      
+      // Step 2: Get donor details
+      const donorDetails = await donorApi.getDonorProfileById(donorProfile.donorID);
+      console.log('Donor details:', donorDetails);
+      
+      if (!donorDetails || !donorDetails.userId) {
+        console.log('❌ No user ID in donor profile');
+        return { success: false, message: 'No user ID in donor profile' };
+      }
+      
+      // Step 3: Try to get all donors list to see if we can get more info
+      try {
+        const allDonors = await apiRequest('/Donor');
+        console.log('All donors list:', allDonors);
+        
+        // Find current user's donor in the list (might have more info)
+        const userDonor = allDonors.find(donor => 
+          donor.donorId === donorProfile.donorID || 
+          donor.userId === donorDetails.userId
+        );
+        
+        if (userDonor) {
+          console.log('✅ Found user donor in list:', userDonor);
+          
+          // Extract any user information available in donor data
+          const extractedUserInfo = {
+            userID: userDonor.userId || userDonor.userID,
+            userId: userDonor.userId || userDonor.userID,
+            donorID: userDonor.donorId || userDonor.donorID,
+            bloodTypeID: userDonor.bloodTypeId || userDonor.bloodTypeID,
+            
+            // Extract user info from donor if available (some APIs store it)
+            fullName: userDonor.fullName || userDonor.FullName || null,
+            email: userDonor.email || userDonor.Email || null,
+            phone: userDonor.phoneNumber || userDonor.PhoneNumber || userDonor.phone || null,
+            userIdCard: userDonor.userIdCard || userDonor.UserIdCard || null,
+            dateOfBirth: userDonor.dateOfBirth || userDonor.DateOfBirth || null,
+            address: userDonor.address || userDonor.Address || null,
+            gender: userDonor.gender || userDonor.Gender || null,
+            
+            // Donor specific info
+            isAvailable: userDonor.isAvailable,
+            lastDonationDate: userDonor.lastDonationDate,
+            nextEligibleDate: userDonor.nextEligibleDate,
+            currentMedications: userDonor.currentMedications
+          };
+          
+          // Filter out null/undefined values
+          const cleanedUserInfo = Object.fromEntries(
+            Object.entries(extractedUserInfo).filter(([key, value]) => value !== null && value !== undefined)
+          );
+          
+          console.log('Extracted user info from donor:', cleanedUserInfo);
+          
+          return {
+            success: true,
+            source: 'donorApi',
+            userInfo: cleanedUserInfo,
+            donorDetails: userDonor,
+            hasUserInfo: !!(cleanedUserInfo.fullName || cleanedUserInfo.phone || cleanedUserInfo.email)
+          };
+        }
+      } catch (listError) {
+        console.log('Failed to get donors list:', listError);
+      }
+      
+      // Fallback: return basic info from donor details
+      const basicInfo = {
+        userID: donorDetails.userId,
+        userId: donorDetails.userId,
+        donorID: donorProfile.donorID,
+        bloodTypeID: donorDetails.bloodTypeId,
+      };
+      
+      console.log('Returning basic donor info:', basicInfo);
+      
+      return {
+        success: true,
+        source: 'donorApi',
+        userInfo: basicInfo,
+        donorDetails,
+        hasUserInfo: false
+      };
+      
+    } catch (error) {
+      console.error('❌ Error getting user info through donor:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
   // Verify donor profile creation/update after registration
   verifyDonorProfile: async (userId, expectedBloodTypeID) => {
     try {
