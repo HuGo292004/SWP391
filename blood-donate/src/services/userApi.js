@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { authAPI } from './authApi';
+import { MemberUserAPI } from './memberUserApi';
 
 // Base URL cho API - có thể cấu hình trong file .env
 // Vite sử dụng import.meta.env thay vì process.env
@@ -72,16 +74,74 @@ export const UserAPI = {
   },
 
   // Cập nhật thông tin user
-  updateUser: (id, userData) => {
-    return userApi.put(`/api/User/Update-User/${id}`, userData);
+  updateUser: async (id, userData) => {
+    const userRole = localStorage.getItem('userRole');
+    
+    // For Member role, use MemberUserAPI
+    if (userRole === 'Member') {
+      console.log('Member: Using MemberUserAPI for update...');
+      return await MemberUserAPI.updateUser(id, userData);
+    } else {
+      // For Staff/Admin, use standard API call
+      try {
+        console.log('Staff/Admin: Attempting API update...');
+        const response = await userApi.put(`/api/User/Update-User/${id}`, userData);
+        console.log('Staff/Admin profile updated via API successfully:', response);
+        return response;
+      } catch (error) {
+        console.log('Staff/Admin API update failed:', error);
+        throw error;
+      }
+    }
   },
+
+
 
   // Lấy chi tiết user theo ID
   getUserDetail: (id) => {
     return userApi.get(`/api/User/Get-User-Detail/${id}`);
   },
 
-  // Lấy thông tin user hiện tại (dựa vào userID trong localStorage)
+  // Helper function to decode JWT token
+  decodeJWTToken: (token) => {
+    try {
+      if (!token || token === 'demo-token') return null;
+      
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
+  },
+
+  // Extract user info from JWT token
+  getUserInfoFromToken: (token) => {
+    const payload = UserAPI.decodeJWTToken(token);
+    if (!payload) return null;
+
+    console.log('JWT payload extracted:', payload);
+
+    return {
+      userID: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || '',
+      userId: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || '',
+      username: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '',
+      email: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || '',
+      fullName: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '', // Fallback to username for fullName
+      role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'Member',
+      phone: '', // Not available in JWT
+      userIdCard: '', // Not available in JWT
+      dateOfBirth: null, // Not available in JWT
+      avatar: null
+    };
+  },
+
+  // Lấy thông tin user hiện tại (dựa vào token hoặc userID trong localStorage)
   getCurrentUser: async () => {
     console.log('UserAPI.getCurrentUser called');
     
@@ -92,44 +152,157 @@ export const UserAPI = {
       throw new Error('Demo account - API not available');
     }
     
+    const userRole = localStorage.getItem('userRole');
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     
-    console.log('Current localStorage values:', { userId, username });
+    console.log('Current localStorage values:', { userRole, userId, username });
+    
+    // Extract userId from JWT token for later use
+    let extractedUserId = userId;
+    if (token && !extractedUserId) {
+      const tokenUserInfo = UserAPI.getUserInfoFromToken(token);
+      if (tokenUserInfo && tokenUserInfo.userId) {
+        extractedUserId = tokenUserInfo.userId;
+        localStorage.setItem('userId', extractedUserId);
+        console.log('Extracted and saved userId from JWT token:', extractedUserId);
+      }
+    }
     
     try {
-      if (userId) {
-        console.log('Fetching user by ID:', userId);
-        // Nếu có userId, lấy chi tiết user theo ID
-        const response = await userApi.get(`/api/User/Get-User-Detail/${userId}`);
-        console.log('User detail response:', response);
-        return response;
-      } else if (username) {
-        console.log('Fetching user by username:', username);
-        // Nếu không có userId, tìm theo username
-        const response = await userApi.get('/api/User/Search-User-By-Name', {
-          params: { name: username }
-        });
-        console.log('Search user response:', response);
+      // Try the correct API endpoint: /api/User/current for all users
+      console.log('Trying /api/User/current endpoint...');
+      const response = await userApi.get('/api/User/current');
+      
+      if (response) {
+        console.log('Successfully got user data from /api/User/current:', response);
         
-        // Nếu tìm thấy user, lưu userId vào localStorage
-        if (response && response.userID) {
-          localStorage.setItem('userId', response.userID);
-          console.log('Saved userId to localStorage:', response.userID);
+        // Save userID if we got it from response
+        const responseUserId = response.userID || response.userId;
+        if (responseUserId && !extractedUserId) {
+          localStorage.setItem('userId', responseUserId);
+          console.log('Saved userId to localStorage from API response:', responseUserId);
+          extractedUserId = responseUserId;
         }
-        return response;
+        
+        // Format the response to match our expected structure
+        const formattedResponse = {
+          userID: response.userID || response.userId || extractedUserId,
+          userId: response.userID || response.userId || extractedUserId,
+          username: response.username,
+          email: response.email,
+          fullName: response.fullName || response.username, // Prioritize fullName but fallback to username
+          phone: response.phone || '',
+          userIdCard: response.userIdCard || '',
+          dateOfBirth: response.dateOfBirth,
+          role: response.role,
+          avatar: response.avatar || null
+        };
+        
+        console.log('Using /api/User/current data:', formattedResponse);
+        return formattedResponse;
       } else {
-        console.log('No userId or username found in localStorage');
-        throw new Error('No user information found in localStorage');
+        console.log('/api/User/current returned empty response');
+        throw new Error('Empty response from /api/User/current');
       }
-    } catch (error) {
-      console.error('getCurrentUser error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      throw error;
+    } catch (apiError) {
+      console.log('/api/User/current failed, error:', apiError);
+      
+      // First fallback: Try Get-User-Detail only for Staff/Admin (Member doesn't have permission)
+      if (extractedUserId && userRole && (userRole === 'Staff' || userRole === 'Admin')) {
+        try {
+          console.log(`Staff/Admin: Trying /api/User/Get-User-Detail/${extractedUserId} as fallback...`);
+          const response = await userApi.get(`/api/User/Get-User-Detail/${extractedUserId}`);
+          console.log('User detail fallback successful for Staff/Admin:', response);
+          
+          // Format response to match expected structure
+          const formattedResponse = {
+            userID: response.userID || response.userId || extractedUserId,
+            userId: response.userID || response.userId || extractedUserId,
+            username: response.username,
+            email: response.email,
+            fullName: response.fullName || response.username,
+            phone: response.phone || '',
+            userIdCard: response.userIdCard || '',
+            dateOfBirth: response.dateOfBirth,
+            role: response.role,
+            avatar: response.avatar || null
+          };
+          
+          console.log('Staff/Admin: Using Get-User-Detail data:', formattedResponse);
+          return formattedResponse;
+        } catch (detailError) {
+          console.log('Staff/Admin: User detail fallback also failed:', detailError);
+        }
+      }
+      
+      // Second fallback: For Member role, use MemberUserAPI
+      if (userRole === 'Member' && token) {
+        console.log('Member role: Using MemberUserAPI...');
+        
+        try {
+          const memberApiData = await MemberUserAPI.getCurrentUser();
+          if (memberApiData) {
+            console.log('✅ Using MemberUserAPI data for Member:', memberApiData);
+            return memberApiData;
+          }
+        } catch (memberApiError) {
+          console.log('MemberUserAPI failed, falling back to JWT token:', memberApiError);
+          
+          // Final JWT token fallback
+          const tokenUserInfo = UserAPI.getUserInfoFromToken(token);
+          if (tokenUserInfo) {
+            console.log('Using JWT token fallback for Member:', tokenUserInfo);
+            return tokenUserInfo;
+          }
+        }
+      }
+      
+      // Third fallback: Try search by username for Staff/Admin
+      if (username && (userRole === 'Staff' || userRole === 'Admin')) {
+        try {
+          console.log('Trying search by username fallback for Staff/Admin:', username);
+          const response = await userApi.get('/api/User/Search-User-By-Name', {
+            params: { name: username }
+          });
+          console.log('Search user response:', response);
+          
+          // Save userID if found
+          if (response && response.userID) {
+            localStorage.setItem('userId', response.userID);
+            console.log('Saved userId to localStorage:', response.userID);
+          }
+          return response;
+        } catch (searchError) {
+          console.error('Search by username fallback failed:', searchError);
+        }
+      }
+      
+      // Final fallback: create basic user info from localStorage and JWT token
+      console.log('All API methods failed, creating fallback user info...');
+      
+      // Try to get info from JWT token as last resort
+      let jwtUserInfo = null;
+      if (token) {
+        jwtUserInfo = UserAPI.getUserInfoFromToken(token);
+        console.log('JWT fallback info:', jwtUserInfo);
+      }
+      
+      const fallbackUserInfo = {
+        userID: extractedUserId || jwtUserInfo?.userId || 'unknown',
+        userId: extractedUserId || jwtUserInfo?.userId || 'unknown',
+        username: jwtUserInfo?.username || username || 'unknown',
+        email: jwtUserInfo?.email || localStorage.getItem('userEmail') || '',
+        fullName: jwtUserInfo?.fullName || jwtUserInfo?.username || username || 'Người dùng',
+        role: jwtUserInfo?.role || userRole || 'Member',
+        phone: '',
+        userIdCard: '',
+        dateOfBirth: null,
+        avatar: null
+      };
+      
+      console.log('Using fallback user info:', fallbackUserInfo);
+      return fallbackUserInfo;
     }
   },
 

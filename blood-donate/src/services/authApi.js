@@ -103,15 +103,26 @@ export const authAPI = {
   // Lấy thông tin user hiện tại
   getCurrentUser: async () => {
     try {
-      const response = await api.get('/api/Auth/me');
+      console.log('authAPI.getCurrentUser - Calling /api/User/current...');
+      const response = await api.get('/api/User/current');
+      console.log('authAPI.getCurrentUser - Success response:', response.data);
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      console.error('authAPI.getCurrentUser - Error:', error);
+      console.error('authAPI.getCurrentUser - Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      
       return {
         success: false,
-        error: error.response?.data?.message || error.message
+        error: error.response?.data?.message || error.message,
+        status: error.response?.status
       };
     }
   }

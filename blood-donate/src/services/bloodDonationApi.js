@@ -1,18 +1,39 @@
 // Blood Donation API Service
 const BASE_URL = 'http://localhost:7262/api';
 
+// Helper function to get auth token
+const getAuthToken = () => {
+  // Try different possible storage locations for auth token
+  return localStorage.getItem('userToken') || 
+         localStorage.getItem('token') || 
+         localStorage.getItem('authToken') ||
+         localStorage.getItem('accessToken') ||
+         sessionStorage.getItem('userToken') ||
+         sessionStorage.getItem('token') ||
+         sessionStorage.getItem('authToken') ||
+         sessionStorage.getItem('accessToken');
+};
+
 // Helper function to get auth headers
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
+  const token = getAuthToken();
+  const headers = {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
   };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
     const errorData = await response.text();
     throw new Error(errorData || `HTTP error! status: ${response.status}`);
   }

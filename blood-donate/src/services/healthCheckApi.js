@@ -3,11 +3,13 @@ const API_BASE_URL = 'http://localhost:7262/api';
 // Function to get auth token (you'll need to implement this based on your auth system)
 const getAuthToken = () => {
   // Try different possible storage locations for auth token
-  return localStorage.getItem('authToken') || 
+  return localStorage.getItem('userToken') || 
          localStorage.getItem('token') || 
+         localStorage.getItem('authToken') ||
          localStorage.getItem('accessToken') ||
-         sessionStorage.getItem('authToken') ||
+         sessionStorage.getItem('userToken') ||
          sessionStorage.getItem('token') ||
+         sessionStorage.getItem('authToken') ||
          sessionStorage.getItem('accessToken');
 };
 
