@@ -338,8 +338,8 @@ import {
               label: <Link to={createRoleBasedPath("/emergency-request", currentRole)}>Yêu cầu khẩn cấp</Link>,
             },
           ]
-        : []),      // Chỉ hiển thị dashboard cho Admin và Member (không hiển thị cho Staff)
-      ...(isAuthenticated && currentRole !== 'staff'
+        : []),      // Chỉ hiển thị dashboard cho Admin (không hiển thị cho Staff và Member)
+      ...(isAuthenticated && currentRole === 'admin'
         ? [
             {
               key: createRoleBasedPath("/dashboard", currentRole),
@@ -702,14 +702,7 @@ import {
                           navigate(createRoleBasedPath('/dashboard', currentRole));
                         }
                       }] : []),
-                      ...(user?.role === 'Member' ? [{
-                        key: 'member-dashboard',
-                        icon: <DashboardOutlined style={{ color: healthThemeColors.primary }} />,
-                        label: 'Member Dashboard',
-                        onClick: () => {
-                          navigate(createRoleBasedPath('/dashboard', currentRole));
-                        }
-                      }] : []),                      ...(user?.role === 'Admin' || user?.role === 'Staff' ? [{
+                      ...(user?.role === 'Admin' || user?.role === 'Staff' ? [{
                         key: 'user-management',
                         icon: <TeamOutlined style={{ color: healthThemeColors.primary }} />,
                         label: 'Quản lý người dùng',
@@ -758,6 +751,14 @@ import {
                         label: 'Quản lý kho máu',
                         onClick: () => {
                           navigate(createRoleBasedPath('/blood-inventory', currentRole));
+                        }
+                      }] : []),
+                      ...(user?.role === 'Member' ? [{
+                        key: 'blood-donation-profile',
+                        icon: <HeartOutlined style={{ color: healthThemeColors.accent }} />,
+                        label: 'Hồ sơ hiến máu',
+                        onClick: () => {
+                          navigate('/member/blood-donation-profile');
                         }
                       }] : []),
                       { 
@@ -1015,6 +1016,15 @@ import {
                     ),
                     label: <Link to="/profile">Hồ sơ cá nhân</Link>,
                   },
+                  ...(user?.role === 'Member' ? [{
+                    key: "blood-donation-profile",
+                    icon: (
+                      <HeartOutlined
+                        style={{ fontSize: "16px", color: "#E91E63" }}
+                      />
+                    ),
+                    label: <Link to="/member/blood-donation-profile">Hồ sơ hiến máu</Link>,
+                  }] : []),
                   {
                     key: "logout",
                     icon: (
