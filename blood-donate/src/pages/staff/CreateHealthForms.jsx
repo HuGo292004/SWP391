@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
 import {
   Card,
   Form,
@@ -28,7 +29,8 @@ import {
   FileTextOutlined,
   ClockCircleOutlined,
   SearchOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import { healthCheckApi } from '../../services/healthCheckApi';
 import { mockHealthCheckApi } from '../../services/mockHealthCheckApi';
@@ -58,19 +60,20 @@ const CreateHealthForms = () => {
   // Load recent health forms when component mounts
   useEffect(() => {
     loadRecentHealthForms();
+    loadApprovedDonations(); // Also load approved donations
   }, []);
 
   // Load recent health forms from API
   const loadRecentHealthForms = async () => {
     try {
-      // Try to get pending blood donations first to prioritize those needing health checks
+      // Try to get approved blood donations first to prioritize those needing health checks
       let data = [];
       
       if (!USE_MOCK_API) {
         try {
-          const pendingDonations = await healthCheckApi.getPendingBloodDonations();
+          const approvedDonations = await healthCheckApi.getApprovedBloodDonations();
           // Convert blood donations to display format, prioritizing those without health checks
-          data = pendingDonations.slice(0, 8).map(donation => ({
+          data = approvedDonations.slice(0, 8).map(donation => ({
             healthCheckID: `BD-${donation.id || donation.donationId}`,
             donorName: donation.donorName || donation.fullName || 'N/A',
             donorID: donation.donorID || donation.donorId || donation.id,
@@ -79,7 +82,7 @@ const CreateHealthForms = () => {
             userIdCard: donation.userIdCard || donation.donorIdCard
           }));
         } catch (error) {
-          // Could not load pending donations - try health checks
+          // Could not load approved donations - try health checks
           try {
             const healthChecks = await apiService.getAllHealthChecks();
             data = Array.isArray(healthChecks) ? healthChecks.slice(0, 8) : [];
@@ -122,15 +125,17 @@ const CreateHealthForms = () => {
     }
   };
 
-  // Load pending blood donations for reference
-  const loadPendingDonations = async () => {
+  // Load approved blood donations for reference
+  const loadApprovedDonations = async () => {
     if (USE_MOCK_API) return;
     
     try {
-      const donations = await healthCheckApi.getPendingBloodDonations();
+      const donations = await healthCheckApi.getApprovedBloodDonations();
       setPendingDonations(donations.slice(0, 10)); // Show top 10
     } catch (error) {
-      // Error loading pending donations
+      console.error('Error loading approved donations:', error);
+      // Don't show error message for this, just log it
+      setPendingDonations([]);
     }
   };
 
@@ -150,8 +155,27 @@ const CreateHealthForms = () => {
       
       if (!USE_MOCK_API) {
         try {
-          // Use new method to search from blood donation table
-          donorData = await healthCheckApi.getDonorFromBloodDonation(userIdCard);
+          // Use getDonorByIdCard which now searches from blood donation table
+          donorData = await healthCheckApi.getDonorByIdCard(userIdCard);
+          
+          // Check if the donation status is approved
+          if (donorData && donorData.status && 
+              donorData.status.toLowerCase() !== 'approved' && 
+              donorData.status.toLowerCase() !== 'đã duyệt') {
+            message.error({
+              content: (
+                <div>
+                  <div><strong>Đơn hiến máu chưa được duyệt</strong></div>
+                  <div style={{ fontSize: '12px', marginTop: '4px', color: '#666' }}>
+                    CCCD/CMND: {userIdCard} có đơn hiến máu nhưng chưa được duyệt.
+                    Chỉ có thể tạo phiếu sức khỏe cho những người có đơn hiến máu đã được duyệt.
+                  </div>
+                </div>
+              ),
+              duration: 6
+            });
+            return;
+          }
         } catch (apiError) {
           // Blood donation API failed
           
@@ -160,15 +184,15 @@ const CreateHealthForms = () => {
             message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.');
             setApiError(true);
             return;
-          } else if (apiError.message.includes('Không tìm thấy đơn hiến máu')) {
-            // No pending blood donation found
+          } else if (apiError.message.includes('Không tìm thấy')) {
+            // No blood donation found
             message.error({
               content: (
                 <div>
-                  <div><strong>Không tìm thấy đơn hiến máu chờ xử lý</strong></div>
+                  <div><strong>Không tìm thấy đơn hiến máu đã được duyệt</strong></div>
                   <div style={{ fontSize: '12px', marginTop: '4px', color: '#666' }}>
-                    CCCD/CMND: {userIdCard} không có đơn hiến máu nào đang chờ xử lý.
-                    Chỉ có thể tạo phiếu sức khỏe cho những người đã gửi đơn hiến máu.
+                    CCCD/CMND: {userIdCard} không có đơn hiến máu nào đã được duyệt.
+                    Chỉ có thể tạo phiếu sức khỏe cho những người có đơn hiến máu đã được duyệt.
                   </div>
                 </div>
               ),
@@ -179,7 +203,7 @@ const CreateHealthForms = () => {
             // Other API errors - try fallback
             try {
               donorData = await healthCheckApi.getDonorByIdCard(userIdCard);
-              message.warning('Tìm thấy thông tin donor nhưng cần xác nhận có đơn hiến máu chờ xử lý.');
+              message.warning('Tìm thấy thông tin donor nhưng cần xác nhận có đơn hiến máu đã được duyệt.');
             } catch (fallbackError) {
               message.warning('API tạm thời không khả dụng.');
               donorData = await mockHealthCheckApi.getDonorByIdCard(userIdCard);
@@ -194,19 +218,58 @@ const CreateHealthForms = () => {
       // Validate donor data structure
       if (donorData && (donorData.fullName || donorData.name || donorData.donorName)) {
         const formattedDonor = {
-          donorID: donorData.donorID || donorData.donorId || donorData.id,
+          donorID: donorData.donorID || donorData.donorId || donorData.id || donorData.donationId,
           fullName: donorData.fullName || donorData.name || donorData.donorName,
           email: donorData.email || donorData.donorEmail || 'N/A',
-          phone: donorData.phone || donorData.phoneNumber || donorData.donorPhone || 'N/A',
+          phone: donorData.phone || donorData.phoneNumber || donorData.donorPhone || donorData.phone || 'N/A',
           bloodType: donorData.bloodType || donorData.donorBloodType || 'N/A',
           userIdCard: donorData.userIdCard || donorData.idCard || donorData.donorIdCard || userIdCard,
           // Additional blood donation info
-          donationRequestId: donorData.id || donorData.donationId || donorData.bloodDonationId,
+          donationRequestId: donorData.donationId || donorData.id || donorData.bloodDonationId,
           donationStatus: donorData.status || donorData.donationStatus || 'Chờ xử lý',
           donationDate: donorData.createdAt || donorData.requestDate || donorData.donationDate
         };
         
         setSelectedDonor(formattedDonor);
+        
+        // Auto-fill health check date with donation date if available
+        if (formattedDonor.donationDate) {
+          try {
+            // Try different date formats
+            let donationDate;
+            if (typeof formattedDonor.donationDate === 'string') {
+              // Handle different date string formats
+              if (formattedDonor.donationDate.includes('T')) {
+                // ISO format: "2024-01-01T00:00:00"
+                donationDate = dayjs(formattedDonor.donationDate);
+              } else if (formattedDonor.donationDate.includes('/')) {
+                // Date format: "01/01/2024"
+                donationDate = dayjs(formattedDonor.donationDate, 'DD/MM/YYYY');
+              } else {
+                // Standard format: "2024-01-01"
+                donationDate = dayjs(formattedDonor.donationDate);
+              }
+            } else {
+              // If it's already a Date object
+              donationDate = dayjs(formattedDonor.donationDate);
+            }
+            
+            if (donationDate.isValid()) {
+              form.setFieldsValue({ HealthCheck_Date: donationDate });
+            } else {
+              // Set to today if date is invalid
+              form.setFieldsValue({ HealthCheck_Date: dayjs() });
+            }
+          } catch (dateError) {
+            console.log('Could not parse donation date:', formattedDonor.donationDate, dateError);
+            // Set to today if donation date is invalid
+            form.setFieldsValue({ HealthCheck_Date: dayjs() });
+          }
+        } else {
+          // Set to today if no donation date
+          form.setFieldsValue({ HealthCheck_Date: dayjs() });
+        }
+        
         message.success({
           content: (
             <div>
@@ -230,7 +293,7 @@ const CreateHealthForms = () => {
       if (error.message.includes('đăng nhập') || error.message.includes('401')) {
         message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.');
         setApiError(true);
-      } else if (error.message.includes('Không tìm thấy đơn hiến máu')) {
+      } else if (error.message.includes('Không tìm thấy')) {
         // Already handled above
         return;
       } else {
@@ -240,7 +303,7 @@ const CreateHealthForms = () => {
             <div>
               <div>Không tìm thấy thông tin người hiến máu với CCCD/CMND: <strong>{userIdCard}</strong></div>
               <div style={{ fontSize: '12px', marginTop: '4px', color: '#666' }}>
-                Vui lòng kiểm tra lại số CCCD/CMND và đảm bảo đã có đơn hiến máu chờ xử lý
+                Vui lòng kiểm tra lại số CCCD/CMND và đảm bảo đã có đơn hiến máu đã được duyệt
               </div>
             </div>
           ),
@@ -364,25 +427,20 @@ const CreateHealthForms = () => {
           <Card title={
             <span>
               <ClockCircleOutlined style={{ marginRight: '8px' }} />
-              Đơn hiến máu cần xử lý
+              Đơn hiến máu đã duyệt
             </span>
           }>
             <List
-              dataSource={recentForms}
+              dataSource={pendingDonations}
               renderItem={(item) => (
                 <List.Item style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
                   <div style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <Text strong style={{ fontSize: '13px' }}>{item.donorName || 'N/A'}</Text>
-                      <Tag color={
-                        item.HealthCheck_Status === 'approved' ? 'green' : 
-                        item.HealthCheck_Status === 'pending' ? 'orange' : 
-                        item.HealthCheck_Status === 'no_health_check' ? 'red' : 'default'
-                      } size="small">
-                        {item.HealthCheck_Status === 'approved' ? 'Đã có phiếu SK' : 
-                         item.HealthCheck_Status === 'pending' ? 'Chờ duyệt SK' : 
-                         item.HealthCheck_Status === 'no_health_check' ? 'Cần tạo phiếu SK' :
-                         'Từ chối'}
+                      <Text strong style={{ fontSize: '13px' }}>
+                        {item.user?.fullName || item.donor?.fullName || item.fullName || 'N/A'}
+                      </Text>
+                      <Tag color="green" size="small">
+                        Đã duyệt
                       </Tag>
                     </div>
                     <div style={{ marginBottom: '6px' }}>
@@ -393,62 +451,59 @@ const CreateHealthForms = () => {
                           size="small"
                           style={{ cursor: 'pointer', marginLeft: '4px' }}
                           onClick={() => {
-                            form.setFieldsValue({userIdCard: item.userIdCard});
-                            handleSearchDonor(item.userIdCard);
+                            form.setFieldsValue({userIdCard: item.userIdCard || item.donorIdCard || item.idCard});
+                            handleSearchDonor(item.userIdCard || item.donorIdCard || item.idCard);
                           }}
                           title="Click để tìm kiếm và tạo phiếu sức khỏe"
                         >
-                          {item.userIdCard}
+                          {item.userIdCard || item.donorIdCard || item.idCard || 'N/A'}
                         </Tag>
                       </Text>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Text type="secondary" style={{ fontSize: '11px' }}>
-                        Mã: {item.healthCheckID}
+                        Mã: {item.donationID || item.id}
                       </Text>
                       <Text type="secondary" style={{ fontSize: '11px' }}>
-                        {item.HealthCheck_Date}
+                        {item.createdAt || item.requestDate || 'N/A'}
                       </Text>
                     </div>
-                    {item.HealthCheck_Status === 'no_health_check' && (
-                      <div style={{ marginTop: '8px' }}>
-                        <Button 
-                          type="primary" 
-                          size="small" 
-                          block
-                          onClick={() => {
-                            form.setFieldsValue({userIdCard: item.userIdCard});
-                            handleSearchDonor(item.userIdCard);
-                          }}
-                          icon={<MedicineBoxOutlined />}
-                        >
-                          Tạo phiếu sức khỏe
-                        </Button>
-                      </div>
-                    )}
+                    <div style={{ marginTop: '8px' }}>
+                      <Button 
+                        type="primary" 
+                        size="small" 
+                        block
+                        onClick={() => {
+                          form.setFieldsValue({userIdCard: item.userIdCard || item.donorIdCard || item.idCard});
+                          handleSearchDonor(item.userIdCard || item.donorIdCard || item.idCard);
+                        }}
+                        icon={<MedicineBoxOutlined />}
+                      >
+                        Tạo phiếu sức khỏe
+                      </Button>
+                    </div>
                   </div>
                 </List.Item>
               )}
             />
-            {recentForms.length === 0 && (
+            {pendingDonations.length === 0 && (
               <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
-                <Text type="secondary">Chưa có đơn hiến máu nào</Text>
+                <Text type="secondary">Chưa có đơn hiến máu nào đã được duyệt</Text>
               </div>
             )}
             
-            {/* Button để xem thêm đơn hiến máu chờ xử lý */}
+            {/* Button để refresh danh sách */}
             {!USE_MOCK_API && (
               <div style={{ marginTop: '16px', textAlign: 'center' }}>
                 <Button 
                   type="dashed" 
                   size="small"
                   onClick={() => {
-                    setShowPendingList(true);
-                    loadPendingDonations();
+                    loadApprovedDonations();
                   }}
-                  icon={<SearchOutlined />}
+                  icon={<ReloadOutlined />}
                 >
-                  Xem tất cả đơn chờ xử lý
+                  Làm mới danh sách
                 </Button>
               </div>
             )}
@@ -797,12 +852,12 @@ const CreateHealthForms = () => {
         )}
       </Modal>
 
-      {/* Modal hiển thị danh sách đơn hiến máu chờ xử lý */}
+      {/* Modal hiển thị danh sách đơn hiến máu đã duyệt */}
       <Modal
         title={
           <span>
             <FileTextOutlined style={{ marginRight: '8px' }} />
-            Tất cả đơn hiến máu chờ xử lý
+            Tất cả đơn hiến máu đã duyệt
           </span>
         }
         open={showPendingList}
@@ -817,7 +872,7 @@ const CreateHealthForms = () => {
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
           <Alert
             message="Hướng dẫn"
-            description="Click vào nút 'Tạo phiếu SK' để nhanh chóng tạo phiếu sức khỏe cho người hiến máu."
+            description="Click vào nút 'Tạo phiếu SK' để nhanh chóng tạo phiếu sức khỏe cho người hiến máu có đơn đã được duyệt."
             type="info"
             showIcon
             style={{ marginBottom: 16 }}
@@ -892,7 +947,7 @@ const CreateHealthForms = () => {
             <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
               <MedicineBoxOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }} />
               <br/>
-              <Text type="secondary">Không có đơn hiến máu nào chờ xử lý</Text>
+              <Text type="secondary">Không có đơn hiến máu nào đã được duyệt</Text>
             </div>
           )}
         </div>

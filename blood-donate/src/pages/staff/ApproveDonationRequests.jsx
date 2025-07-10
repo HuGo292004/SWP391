@@ -41,6 +41,7 @@ import {
 } from 'react-icons/fa';
 import { bloodDonationApi } from '../../services/bloodDonationApi';
 import { healthCheckApi } from '../../services/healthCheckApi';
+
 import '../../styles/pages.css';
 
 
@@ -48,6 +49,7 @@ import '../../styles/pages.css';
 const ApproveDonationRequests = () => {
   const [requests, setRequests] = useState([]);
   const [healthForms, setHealthForms] = useState(null); // null = not loaded yet, [] = loaded but empty
+
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -125,17 +127,7 @@ const ApproveDonationRequests = () => {
     }
   };
 
-  // Update health form status after both data are loaded
-  useEffect(() => {
-    // Only update if we have requests AND health forms have been loaded (even if empty)
-    // We use a flag to distinguish between "not loaded yet" vs "loaded but empty"
-    if (requests.length > 0 && healthForms !== null) {
-      console.log('🔄 Triggering health form status update...');
-      console.log('📊 Requests count:', requests.length);
-      console.log('🏥 Health forms count:', healthForms.length);
-      updateHealthFormStatusInRequests();
-    }
-  }, [requests.length, healthForms]);
+
 
   // Show alert message
   const showMessage = (message, type = 'success') => {
@@ -155,6 +147,48 @@ const ApproveDonationRequests = () => {
     }
     
     showMessage(errorMessage, 'danger');
+  };
+
+  // Update health form status after both data are loaded
+  useEffect(() => {
+    // Only update if we have requests AND health forms have been loaded (even if empty)
+    // We use a flag to distinguish between "not loaded yet" vs "loaded but empty"
+    if (requests.length > 0 && healthForms !== null) {
+      console.log('🔄 Triggering health form status update...');
+      console.log('📊 Requests count:', requests.length);
+      console.log('🏥 Health forms count:', healthForms.length);
+      updateHealthFormStatusInRequests();
+    }
+  }, [requests.length, healthForms]);
+
+  // Load health forms from API
+  const loadHealthForms = async () => {
+    try {
+      console.log('🔄 Loading health forms...');
+      const data = await healthCheckApi.getAllHealthChecks();
+      
+      // Format data to match UI structure
+      const formattedHealthForms = Array.isArray(data) ? data.map(formatHealthFormData) : [];
+      setHealthForms(formattedHealthForms);
+      
+      console.log('✅ Health forms loaded successfully:', formattedHealthForms.length, 'items');
+      
+    } catch (error) {
+      console.error('❌ Failed to load health forms:', error);
+      
+      // Check if it's an auth error and update auth status
+      if (error.message.includes('đăng nhập') || error.message.includes('401')) {
+        setAuthStatus({
+          isValid: false,
+          message: 'Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.'
+        });
+      }
+      
+      handleApiError(error, 'Không thể tải danh sách phiếu sức khỏe');
+      
+      // Set empty array instead of leaving null, so UI knows it's loaded but empty
+      setHealthForms([]);
+    }
   };
 
   // Load blood donation requests from API
@@ -187,35 +221,7 @@ const ApproveDonationRequests = () => {
     }
   };
 
-  // Load health forms from API
-  const loadHealthForms = async () => {
-    try {
-      console.log('🔄 Loading health forms...');
-      const data = await healthCheckApi.getAllHealthChecks();
-      
-      // Format data to match UI structure
-      const formattedHealthForms = Array.isArray(data) ? data.map(formatHealthFormData) : [];
-      setHealthForms(formattedHealthForms);
-      
-      console.log('✅ Health forms loaded successfully:', formattedHealthForms.length, 'items');
-      
-    } catch (error) {
-      console.error('❌ Failed to load health forms:', error);
-      
-      // Check if it's an auth error and update auth status
-      if (error.message.includes('đăng nhập') || error.message.includes('401')) {
-        setAuthStatus({
-          isValid: false,
-          message: 'Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.'
-        });
-      }
-      
-      handleApiError(error, 'Không thể tải danh sách phiếu sức khỏe');
-      
-      // Set empty array instead of leaving null, so UI knows it's loaded but empty
-      setHealthForms([]);
-    }
-  };
+
 
   // Format blood donation data from API
   const formatBloodDonationData = (donation) => {
@@ -232,7 +238,7 @@ const ApproveDonationRequests = () => {
       preferredDate: donation.donationDate || donation.preferredDate || '',
       location: donation.address || donation.location || 'N/A',
       status: mapApiStatus(donation.status),
-      healthFormStatus: 'none', // Will be updated later via updateHealthFormStatusInRequests
+
       healthInfo: {
         weight: donation.weight || 'N/A',
         height: donation.height || 'N/A',
@@ -245,7 +251,8 @@ const ApproveDonationRequests = () => {
       notes: donation.notes || donation.requestDescription || '',
       rejectReason: donation.rejectReason || '',
       dateOfBirth: donation.dateOfBirth || '',
-      role: donation.role || ''
+      role: donation.role || '',
+      healthFormStatus: 'none' // Will be updated later via updateHealthFormStatusInRequests
     };
   };
 
@@ -284,6 +291,8 @@ const ApproveDonationRequests = () => {
     };
   };
 
+
+
   // Helper function to calculate age from date of birth
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return null;
@@ -318,39 +327,7 @@ const ApproveDonationRequests = () => {
     }
   };
 
-  // Get health form status for a donor
-  const getHealthFormStatus = (donorId) => {
-    console.log('Finding health form for donorId:', donorId);
-    console.log('Available health forms:', healthForms);
-    
-    // If health forms not loaded yet, return 'loading'
-    if (healthForms === null) {
-      console.log('Health forms not loaded yet');
-      return 'loading';
-    }
-    
-    // If no health forms available, return 'none'
-    if (!Array.isArray(healthForms) || healthForms.length === 0) {
-      console.log('No health forms available');
-      return 'none';
-    }
-    
-    const healthForm = healthForms.find(form => {
-      console.log('Checking form:', form);
-      
-      // More robust matching logic
-      const formDonorId = form.donorId || form.userID || form.donorID;
-      const formIdCard = form.idCard || form.userIdCard;
-      
-      return formDonorId === donorId || 
-             formIdCard === donorId ||
-             String(formDonorId) === String(donorId) ||
-             String(formIdCard) === String(donorId);
-    });
-    
-    console.log('Found health form:', healthForm);
-    return healthForm ? healthForm.status : 'none';
-  };
+
 
   const getStatusBadgeVariant = (status) => {
     switch (status) {
@@ -386,133 +363,198 @@ const ApproveDonationRequests = () => {
     }
   };
 
-  const getHealthFormStatusBadge = (status, request = null) => {
-    // Check for inconsistency between blood donation and health form status
-    const hasInconsistency = request && 
-      request.status === 'rejected' && 
-      (status === 'pending' || status === 'approved');
+
+
+  // Get health form status for a donor
+  const getHealthFormStatus = (donorId) => {
+    console.log('Finding health form for donorId:', donorId);
+    console.log('Available health forms:', healthForms);
     
+    // If health forms not loaded yet, return 'loading'
+    if (healthForms === null) {
+      console.log('Health forms not loaded yet');
+      return 'loading';
+    }
+    
+    // If no health forms available, return 'none'
+    if (!Array.isArray(healthForms) || healthForms.length === 0) {
+      console.log('No health forms available');
+      return 'none';
+    }
+    
+    const healthForm = healthForms.find(form => {
+      console.log('Checking form:', form);
+      
+      // More robust matching logic
+      const formDonorId = form.donorId || form.userID || form.donorID;
+      const formIdCard = form.idCard || form.userIdCard;
+      
+      return formDonorId === donorId || 
+             formIdCard === donorId ||
+             String(formDonorId) === String(donorId) ||
+             String(formIdCard) === String(donorId);
+    });
+    
+    console.log('Found health form:', healthForm);
+    console.log('Health form status:', healthForm?.status);
+    console.log('Health form healthCheckStatus:', healthForm?.healthCheckStatus);
+    
+    // Check both status fields
+    const status = healthForm?.status || healthForm?.healthCheckStatus || 'none';
+    console.log('Returning status:', status);
+    return status;
+  };
+
+  const getHealthFormStatusBadge = (status, request = null) => {
     switch (status) {
       case 'loading': return <Badge bg="info">Đang tải...</Badge>;
       case 'none': return <Badge bg="secondary">Chưa có phiếu</Badge>;
-      case 'pending': 
-        return hasInconsistency ? 
-          <Badge bg="warning" className="d-flex align-items-center">
-            Đã có phiếu 
-            <small className="ms-1" title="Không đồng bộ với trạng thái đơn hiến máu">⚠️</small>
-          </Badge> : 
-          <Badge bg="warning">Đã có phiếu</Badge>;
-      case 'approved': 
-        return hasInconsistency ? 
-          <Badge bg="success" className="d-flex align-items-center">
-            Phiếu đã duyệt 
-            <small className="ms-1" title="Không đồng bộ với trạng thái đơn hiến máu">⚠️</small>
-          </Badge> : 
-          <Badge bg="success">Phiếu đã duyệt</Badge>;
+      case 'pending': return <Badge bg="warning">Đã có phiếu</Badge>;
+      case 'approved': return <Badge bg="success">Phiếu đã duyệt</Badge>;
       case 'rejected': return <Badge bg="danger">Phiếu bị từ chối</Badge>;
       default: return <Badge bg="secondary">Không xác định</Badge>;
     }
   };
 
   const canApproveRequest = (request) => {
-    // Có thể duyệt đơn nếu có phiếu sức khỏe (pending hoặc approved)
-    return request.healthFormStatus !== 'none' && 
-           request.healthFormStatus !== 'rejected' && 
-           request.healthFormStatus !== 'loading';
-  };
-
-  // Check if there's inconsistency between blood donation and health form status
-  const hasStatusInconsistency = (request) => {
-    return request.status === 'rejected' && 
-           (request.healthFormStatus === 'pending' || request.healthFormStatus === 'approved');
-  };
-
-  // Sync health form status with blood donation status
-  const handleSyncHealthFormStatus = async (request) => {
-    if (!hasStatusInconsistency(request)) return;
-
-    try {
-      const healthForm = healthForms && Array.isArray(healthForms) ? healthForms.find(form => 
-        form.donorId === request.requesterId || 
-        form.userID === request.requesterId ||
-        form.idCard === request.idCard ||
-        form.userID === request.idCard
-      ) : null;
-
-      if (healthForm) {
-        console.log('Syncing health form status to rejected for:', healthForm.id);
-        
-        // Auto-reject health form to match blood donation status
-        await healthCheckApi.rejectHealthCheck(healthForm.id, {
-          rejectionReason: 'Tự động đồng bộ: đơn hiến máu đã bị từ chối',
-          rejectedDate: new Date().toISOString()
-        });
-
-        // Update local state
-        setHealthForms(prev => 
-          prev.map(form => 
-            form.id === healthForm.id ? { ...form, status: 'rejected' } : form
-          )
-        );
-
-        showMessage('Đã đồng bộ trạng thái phiếu sức khỏe với đơn hiến máu', 'success');
-        
-        // Reload data to ensure consistency
-        await loadData();
-      }
-    } catch (error) {
-      console.error('Error syncing health form status:', error);
-      
-      // Fallback: update locally
-      const healthForm = healthForms && Array.isArray(healthForms) ? healthForms.find(form => 
-        form.donorId === request.requesterId || 
-        form.userID === request.requesterId ||
-        form.idCard === request.idCard ||
-        form.userID === request.idCard
-      ) : null;
-
-      if (healthForm) {
-        setHealthForms(prev => 
-          prev.map(form => 
-            form.id === healthForm.id ? { ...form, status: 'rejected' } : form
-          )
-        );
-        showMessage('Đã đồng bộ trạng thái phiếu sức khỏe (cục bộ)', 'warning');
-      }
-    }
+    // Có thể duyệt đơn hiến máu bất kỳ lúc nào
+    return true;
   };
 
   // Health form handlers
   const handleApproveHealthForm = async (formId) => {
     try {
-      // Gọi API duyệt phiếu sức khỏe
-      await healthCheckApi.approveHealthCheck(formId, {
-        approvedDate: new Date().toISOString(),
-        notes: 'Phiếu sức khỏe đã được duyệt'
+      // Tìm health form trước
+      const healthForm = healthForms.find(form => form.id === formId);
+      console.log('Found health form to approve:', healthForm);
+      
+      if (!healthForm) {
+        console.warn('Health form not found for ID:', formId);
+        showMessage('Không tìm thấy phiếu sức khỏe', 'danger');
+        return;
+      }
+
+      // Tìm blood donation tương ứng trước khi approve
+      const bloodDonation = requests.find(request => {
+        const healthFormDonorId = healthForm.donorId || healthForm.userID || healthForm.donorID;
+        const healthFormIdCard = healthForm.idCard || healthForm.userIdCard;
+        const requestDonorId = request.requesterId || request.donorId || request.userId;
+        const requestIdCard = request.idCard || request.userIdCard || request.donorIdCard;
+        
+        console.log('Matching check:', {
+          healthFormDonorId,
+          healthFormIdCard,
+          requestDonorId,
+          requestIdCard,
+          matchById: healthFormDonorId === requestDonorId,
+          matchByIdCard: healthFormIdCard === requestIdCard
+        });
+        
+        return healthFormDonorId === requestDonorId || 
+               healthFormIdCard === requestIdCard ||
+               String(healthFormDonorId) === String(requestDonorId) ||
+               String(healthFormIdCard) === String(requestIdCard);
       });
       
-      // Cập nhật state sau khi API thành công
+      console.log('Found matching blood donation:', bloodDonation);
+
+      // Gọi API duyệt phiếu sức khỏe
+      let healthCheckSuccess = false;
+      try {
+        const result = await healthCheckApi.approveHealthCheck(formId, {
+          approvedDate: new Date().toISOString(),
+          notes: 'Phiếu sức khỏe đã được duyệt'
+        });
+        console.log('Health check API call result:', result);
+        healthCheckSuccess = true;
+      } catch (healthCheckError) {
+        console.warn('Health check API failed, but continuing with local update:', healthCheckError.message);
+        // Continue with local update even if API fails
+      }
+      
+      // Cập nhật blood donation status nếu tìm thấy
+      if (bloodDonation) {
+        try {
+          console.log('Updating blood donation status to completed for ID:', bloodDonation.id);
+          await bloodDonationApi.updateBloodDonationStatus(bloodDonation.id, 'completed');
+          console.log('Blood donation status updated successfully');
+          
+          if (healthCheckSuccess) {
+            showMessage('Đã duyệt phiếu sức khỏe và hoàn thành quy trình hiến máu!', 'success');
+          } else {
+            showMessage('Đã hoàn thành quy trình hiến máu! (Phiếu sức khỏe được cập nhật cục bộ)', 'success');
+          }
+        } catch (bloodDonationError) {
+          console.error('Error completing blood donation:', bloodDonationError);
+          if (healthCheckSuccess) {
+            showMessage('Đã duyệt phiếu sức khỏe nhưng có lỗi khi cập nhật trạng thái hiến máu', 'warning');
+          } else {
+            showMessage('Có lỗi khi cập nhật trạng thái hiến máu (cả hai API đều không khả dụng)', 'warning');
+          }
+        }
+      } else {
+        console.warn('No matching blood donation found for health form:', healthForm);
+        if (healthCheckSuccess) {
+          showMessage('Đã duyệt phiếu sức khỏe nhưng không tìm thấy đơn hiến máu tương ứng', 'warning');
+        } else {
+          showMessage('Đã cập nhật phiếu sức khỏe cục bộ nhưng không tìm thấy đơn hiến máu tương ứng', 'warning');
+        }
+      }
+      
+      // Cập nhật state sau khi xử lý
       setHealthForms(prev => 
         prev.map(form => 
-          form.id === formId ? { ...form, status: 'approved' } : form
+          form.id === formId ? { 
+            ...form, 
+            status: 'approved',
+            healthCheckStatus: 'approved'
+          } : form
         )
       );
-      showMessage('Phiếu sức khỏe đã được duyệt!', 'success');
       
-      // Reload data to update health form status
-      await loadData();
+      // Cập nhật requests state để reflect blood donation status change
+      if (bloodDonation) {
+        setRequests(prev => 
+          prev.map(request => {
+            const healthFormDonorId = healthForm.donorId || healthForm.userID || healthForm.donorID;
+            const healthFormIdCard = healthForm.idCard || healthForm.userIdCard;
+            const requestDonorId = request.requesterId || request.donorId || request.userId;
+            const requestIdCard = request.idCard || request.userIdCard || request.donorIdCard;
+            
+            if (healthFormDonorId === requestDonorId || 
+                healthFormIdCard === requestIdCard ||
+                String(healthFormDonorId) === String(requestDonorId) ||
+                String(healthFormIdCard) === String(requestIdCard)) {
+              return { ...request, status: 'completed' };
+            }
+            return request;
+          })
+        );
+      }
+      
+      // Trigger health form status update in requests
+      setTimeout(() => {
+        updateHealthFormStatusInRequests();
+      }, 100);
+      
+      // Don't reload data immediately to preserve local changes
+      // await loadData();
     } catch (error) {
       console.error('Health form approval error:', error);
       
-      // Fallback: update locally if API fails
+      // Fallback: update locally if everything fails
       setHealthForms(prev => 
         prev.map(form => 
-          form.id === formId ? { ...form, status: 'approved' } : form
+          form.id === formId ? { 
+            ...form, 
+            status: 'approved',
+            healthCheckStatus: 'approved'
+          } : form
         )
       );
       showMessage('Phiếu sức khỏe đã được duyệt (cập nhật cục bộ - vui lòng kiểm tra với quản trị viên)', 'warning');
       
-      console.warn('Health form API failed, updated locally:', error.message);
+      console.warn('Health form approval failed, updated locally:', error.message);
     }
   };
 
@@ -548,6 +590,25 @@ const ApproveDonationRequests = () => {
       console.warn('Health form API failed, updated locally:', error.message);
     }
   };
+
+  const updateHealthFormStatusInRequests = () => {
+    console.log('Updating health form status in requests...');
+    console.log('Current requests:', requests);
+    console.log('Current health forms:', healthForms);
+    
+    setRequests(prevRequests => 
+      prevRequests.map(request => {
+        const newHealthFormStatus = getHealthFormStatus(request.requesterId || request.idCard);
+        console.log(`Request ${request.id}: ${request.requesterId || request.idCard} -> ${newHealthFormStatus}`);
+        return {
+          ...request,
+          healthFormStatus: newHealthFormStatus
+        };
+      })
+    );
+  };
+
+
   const filteredRequests = requests.filter(request => {
     const matchesSearch = request.requesterName.toLowerCase().includes(searchText.toLowerCase()) ||
                          request.requesterEmail.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -564,10 +625,6 @@ const ApproveDonationRequests = () => {
   };
 
   const showApprovalConfirm = (request, action) => {
-    if (action === 'approve' && !canApproveRequest(request)) {
-      showMessage('Không thể duyệt đơn hiến máu khi chưa có phiếu sức khỏe hợp lệ', 'danger');
-      return;
-    }
     setSelectedRequest(request);
     setApprovalAction(action);
     setRejectReason('');
@@ -584,68 +641,28 @@ const ApproveDonationRequests = () => {
     console.log('Starting approval process:', {
       action: approvalAction,
       requestId: selectedRequest.id,
-      requesterId: selectedRequest.requesterId,
-      healthFormStatus: selectedRequest.healthFormStatus
+      requesterId: selectedRequest.requesterId
     });
 
     try {
       if (approvalAction === 'approve') {
-        // Tự động duyệt cả đơn hiến máu và phiếu sức khỏe
+        // Chỉ duyệt đơn hiến máu và trả lịch khám sức khỏe
+        const healthCheckDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 ngày sau
+        const donationDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 ngày sau
         
-        // 1. Duyệt phiếu sức khỏe trước (nếu đang pending)
-        if (selectedRequest.healthFormStatus === 'pending') {
-          const healthForm = healthForms && Array.isArray(healthForms) ? healthForms.find(form => 
-            form.donorId === selectedRequest.requesterId || 
-            form.userID === selectedRequest.requesterId ||
-            form.idCard === selectedRequest.idCard ||
-            form.userID === selectedRequest.idCard
-          ) : null;
-          
-          if (healthForm) {
-            try {
-              console.log('Approving health form:', healthForm.id);
-              // Gọi API duyệt phiếu sức khỏe
-              await healthCheckApi.approveHealthCheck(healthForm.id, {
-                approvedDate: new Date().toISOString(),
-                notes: 'Đã duyệt cùng với đơn hiến máu'
-              });
-              
-              // Cập nhật trạng thái phiếu sức khỏe trong state
-              setHealthForms(prev => 
-                prev.map(form => 
-                  form.id === healthForm.id ? { ...form, status: 'approved' } : form
-                )
-              );
-              console.log('Health form approved successfully');
-            } catch (error) {
-              console.error('Health check approval API error:', error);
-              // Thay vì dừng lại, chúng ta sẽ tiếp tục với việc duyệt đơn hiến máu
-              // và cập nhật state phiếu sức khỏe locally
-              console.warn('Health check API failed, updating locally and continuing with blood donation approval...');
-              
-              setHealthForms(prev => 
-                prev.map(form => 
-                  form.id === healthForm.id ? { ...form, status: 'approved' } : form
-                )
-              );
-              
-              showMessage('Đã duyệt đơn hiến máu (lưu ý: có thể cần cập nhật thủ công trạng thái phiếu sức khỏe)', 'warning');
-            }
-          }
-        }
-        
-        // 2. Duyệt đơn hiến máu
         const approvalData = {
           donationId: selectedRequest.id,
           donorId: selectedRequest.requesterId,
           approvedDate: new Date().toISOString(),
-          notes: 'Đã duyệt đơn hiến máu và phiếu sức khỏe'
+          healthCheckDate: healthCheckDate.toISOString(),
+          donationDate: donationDate.toISOString(),
+          notes: 'Đã duyệt đơn hiến máu - chờ khám sức khỏe'
         };
         
         console.log('Sending approval data:', approvalData);
         await bloodDonationApi.approveBloodDonation(approvalData);
         console.log('Blood donation approved successfully');
-        showMessage('Đã duyệt đơn hiến máu và phiếu sức khỏe thành công', 'success');
+        showMessage('Đã duyệt đơn hiến máu. Người hiến máu sẽ được thông báo lịch khám sức khỏe.', 'success');
         
       } else if (approvalAction === 'reject') {
         // Gọi API từ chối đơn hiến máu
@@ -659,45 +676,6 @@ const ApproveDonationRequests = () => {
         console.log('Sending rejection data:', rejectionData);
         await bloodDonationApi.rejectBloodDonation(rejectionData);
         console.log('Blood donation rejected successfully');
-        
-        // Nếu có phiếu sức khỏe đang pending, cũng từ chối luôn
-        if (selectedRequest.healthFormStatus === 'pending') {
-          const healthForm = healthForms && Array.isArray(healthForms) ? healthForms.find(form => 
-            form.donorId === selectedRequest.requesterId || 
-            form.userID === selectedRequest.requesterId ||
-            form.idCard === selectedRequest.idCard ||
-            form.userID === selectedRequest.idCard
-          ) : null;
-          
-          if (healthForm) {
-            try {
-              console.log('Rejecting health form:', healthForm.id);
-              await healthCheckApi.rejectHealthCheck(healthForm.id, {
-                rejectionReason: rejectReason,
-                rejectedDate: new Date().toISOString()
-              });
-              
-              // Cập nhật trạng thái phiếu sức khỏe trong state
-              setHealthForms(prev => 
-                prev.map(form => 
-                  form.id === healthForm.id ? { ...form, status: 'rejected' } : form
-                )
-              );
-              console.log('Health form rejected successfully');
-            } catch (error) {
-              console.error('Health check rejection API error:', error);
-              // Cập nhật state locally nếu API thất bại
-              console.warn('Health check rejection API failed, updating locally...');
-              
-              setHealthForms(prev => 
-                prev.map(form => 
-                  form.id === healthForm.id ? { ...form, status: 'rejected' } : form
-                )
-              );
-            }
-          }
-        }
-        
         showMessage('Đã từ chối đơn hiến máu', 'warning');
       }
 
@@ -717,22 +695,7 @@ const ApproveDonationRequests = () => {
   };
 
   // Update health form status in requests after health forms are loaded
-  const updateHealthFormStatusInRequests = () => {
-    console.log('Updating health form status in requests...');
-    console.log('Current requests:', requests);
-    console.log('Current health forms:', healthForms);
-    
-    setRequests(prevRequests => 
-      prevRequests.map(request => {
-        const newHealthFormStatus = getHealthFormStatus(request.requesterId || request.idCard);
-        console.log(`Request ${request.id}: ${request.requesterId || request.idCard} -> ${newHealthFormStatus}`);
-        return {
-          ...request,
-          healthFormStatus: newHealthFormStatus
-        };
-      })
-    );
-  };
+
 
   return (
     <Container fluid className="p-4">
@@ -743,9 +706,9 @@ const ApproveDonationRequests = () => {
             <div>
               <h2 className="text-primary mb-2">
                 <FaHeart className="me-2" />
-                Duyệt Đơn Hiến Máu & Phiếu Sức Khỏe
+                Duyệt Đơn Hiến Máu
               </h2>
-              <p className="text-muted mb-0">Quản lý và duyệt các đơn đăng ký hiến máu và phiếu sức khỏe</p>
+              <p className="text-muted mb-0">Quản lý và duyệt các đơn đăng ký hiến máu</p>
             </div>
             <div>
               <Button 
@@ -812,36 +775,7 @@ const ApproveDonationRequests = () => {
         </Row>
       )}
 
-      {/* Data Inconsistency Alert */}
-      {(() => {
-        const inconsistentRequests = requests.filter(hasStatusInconsistency);
-        return inconsistentRequests.length > 0 && (
-          <Row className="mb-3">
-            <Col>
-              <Alert variant="warning" className="d-flex justify-content-between align-items-center">
-                <div>
-                  <strong>⚠️ Phát hiện dữ liệu không đồng bộ:</strong> Có {inconsistentRequests.length} đơn hiến máu có 
-                  trạng thái không nhất quán với phiếu sức khỏe. Hãy sử dụng nút đồng bộ để khắc phục.
-                </div>
-                <div>
-                  <Button 
-                    variant="outline-warning" 
-                    size="sm" 
-                    onClick={async () => {
-                      for (const request of inconsistentRequests) {
-                        await handleSyncHealthFormStatus(request);
-                      }
-                    }}
-                  >
-                    <FaSync className="me-2" />
-                    Đồng bộ tất cả
-                  </Button>
-                </div>
-              </Alert>
-            </Col>
-          </Row>
-        );
-      })()}
+
 
       {/* Filters and Search */}
       <Card className="mb-4 shadow-sm">
@@ -1020,20 +954,12 @@ const ApproveDonationRequests = () => {
                               <>
                                 <OverlayTrigger
                                   placement="top"
-                                  overlay={<Tooltip>
-                                    {request.healthFormStatus === 'loading' 
-                                      ? 'Đang tải thông tin phiếu sức khỏe...'
-                                      : canApproveRequest(request) 
-                                        ? 'Duyệt đơn hiến máu và phiếu sức khỏe' 
-                                        : 'Cần có phiếu sức khỏe hợp lệ'
-                                    }
-                                  </Tooltip>}
+                                  overlay={<Tooltip>Duyệt đơn hiến máu</Tooltip>}
                                 >
                                   <Button
-                                    variant={canApproveRequest(request) ? "outline-success" : "outline-secondary"}
+                                    variant="outline-success"
                                     size="sm"
                                     onClick={() => showApprovalConfirm(request, 'approve')}
-                                    disabled={!canApproveRequest(request)}
                                   >
                                     <FaCheck />
                                   </Button>
@@ -1052,21 +978,74 @@ const ApproveDonationRequests = () => {
                                 </OverlayTrigger>
                               </>
                             )}
-                            {hasStatusInconsistency(request) && (
-                              <OverlayTrigger
-                                placement="top"
-                                overlay={<Tooltip>Đồng bộ trạng thái phiếu sức khỏe với đơn hiến máu</Tooltip>}
-                              >
-                                <Button
-                                  variant="outline-warning"
-                                  size="sm"
-                                  onClick={() => handleSyncHealthFormStatus(request)}
-                                  className="ms-2"
-                                >
-                                  <FaSync />
-                                </Button>
-                              </OverlayTrigger>
+                            {/* Health form buttons - chỉ hiển thị cho đơn đã được duyệt */}
+                            {request.status === 'approved' && (
+                              <>
+                                {request.healthFormStatus === 'none' ? (
+                                  // Chưa có phiếu sức khỏe - hiển thị nút tạo phiếu
+                                  <OverlayTrigger
+                                    placement="top"
+                                    overlay={<Tooltip>Tạo phiếu sức khỏe</Tooltip>}
+                                  >
+                                    <Button
+                                      variant="outline-primary"
+                                      size="sm"
+                                      onClick={() => {
+                                        // TODO: Implement create health form functionality
+                                        showMessage('Chức năng tạo phiếu sức khỏe sẽ được phát triển sau', 'info');
+                                      }}
+                                    >
+                                      <FaClipboardList />
+                                    </Button>
+                                  </OverlayTrigger>
+                                ) : request.healthFormStatus === 'pending' ? (
+                                  // Có phiếu sức khỏe đang chờ duyệt - hiển thị nút duyệt/từ chối
+                                  <>
+                                    <OverlayTrigger
+                                      placement="top"
+                                      overlay={<Tooltip>Duyệt phiếu sức khỏe</Tooltip>}
+                                    >
+                                      <Button
+                                        variant="outline-success"
+                                        size="sm"
+                                        onClick={async () => {
+                                          const healthForm = healthForms.find(form => 
+                                            form.donorId === request.requesterId || 
+                                            form.idCard === request.idCard
+                                          );
+                                          if (healthForm) {
+                                            await handleApproveHealthForm(healthForm.id);
+                                          }
+                                        }}
+                                      >
+                                        <FaCheck />
+                                      </Button>
+                                    </OverlayTrigger>
+                                    <OverlayTrigger
+                                      placement="top"
+                                      overlay={<Tooltip>Từ chối phiếu sức khỏe</Tooltip>}
+                                    >
+                                      <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        onClick={async () => {
+                                          const healthForm = healthForms.find(form => 
+                                            form.donorId === request.requesterId || 
+                                            form.idCard === request.idCard
+                                          );
+                                          if (healthForm) {
+                                            await handleRejectHealthForm(healthForm.id);
+                                          }
+                                        }}
+                                      >
+                                        <FaTimes />
+                                      </Button>
+                                    </OverlayTrigger>
+                                  </>
+                                ) : null}
+                              </>
                             )}
+
                           </div>
                         </td>
                       </tr>
@@ -1163,12 +1142,7 @@ const ApproveDonationRequests = () => {
                         <strong>Lý do từ chối:</strong> {selectedRequest.rejectReason}
                       </Alert>
                     )}
-                    {!canApproveRequest(selectedRequest) && selectedRequest.status === 'pending' && (
-                      <Alert variant="warning">
-                        <FaExclamationTriangle className="me-2" />
-                        <strong>Lưu ý:</strong> Không thể duyệt đơn hiến máu khi chưa có phiếu sức khỏe hợp lệ.
-                      </Alert>
-                    )}
+
                   </Card.Body>
                 </Card>
               </Tab>
@@ -1326,6 +1300,7 @@ const ApproveDonationRequests = () => {
                   </Card.Body>
                 </Card>
               </Tab>
+
             </Tabs>
           )}
         </Modal.Body>
@@ -1336,8 +1311,7 @@ const ApproveDonationRequests = () => {
           {selectedRequest?.status === 'pending' && (
             <>
               <Button 
-                variant={canApproveRequest(selectedRequest) ? "success" : "secondary"}
-                disabled={!canApproveRequest(selectedRequest)}
+                variant="success"
                 onClick={() => {
                   setShowDetailModal(false);
                   showApprovalConfirm(selectedRequest, 'approve');
@@ -1356,6 +1330,59 @@ const ApproveDonationRequests = () => {
                 <FaTimes className="me-2" />
                 Từ chối
               </Button>
+            </>
+          )}
+          {selectedRequest?.status === 'approved' && (
+            <>
+              {selectedRequest?.healthFormStatus === 'none' ? (
+                // Chưa có phiếu sức khỏe - hiển thị nút tạo phiếu
+                <Button 
+                  variant="primary"
+                  onClick={() => {
+                    // TODO: Implement create health form functionality
+                    showMessage('Chức năng tạo phiếu sức khỏe sẽ được phát triển sau', 'info');
+                  }}
+                >
+                  <FaClipboardList className="me-2" />
+                  Tạo phiếu sức khỏe
+                </Button>
+              ) : selectedRequest?.healthFormStatus === 'pending' ? (
+                // Có phiếu sức khỏe đang chờ duyệt - hiển thị nút duyệt/từ chối
+                <>
+                  <Button 
+                    variant="success"
+                    onClick={async () => {
+                      const healthForm = healthForms.find(form => 
+                        form.donorId === selectedRequest.requesterId || 
+                        form.idCard === selectedRequest.idCard
+                      );
+                      if (healthForm) {
+                        setShowDetailModal(false);
+                        await handleApproveHealthForm(healthForm.id);
+                      }
+                    }}
+                  >
+                    <FaCheck className="me-2" />
+                    Duyệt phiếu sức khỏe
+                  </Button>
+                  <Button 
+                    variant="danger"
+                    onClick={async () => {
+                      const healthForm = healthForms.find(form => 
+                        form.donorId === selectedRequest.requesterId || 
+                        form.idCard === selectedRequest.idCard
+                      );
+                      if (healthForm) {
+                        setShowDetailModal(false);
+                        await handleRejectHealthForm(healthForm.id);
+                      }
+                    }}
+                  >
+                    <FaTimes className="me-2" />
+                    Từ chối phiếu sức khỏe
+                  </Button>
+                </>
+              ) : null}
             </>
           )}
         </Modal.Footer>
@@ -1380,16 +1407,11 @@ const ApproveDonationRequests = () => {
         </Modal.Header>
         <Modal.Body>
           <p>
-            Bạn có chắc chắn muốn {approvalAction === 'approve' ? 'duyệt đơn hiến máu và phiếu sức khỏe' : 'từ chối'} của{' '}
+            Bạn có chắc chắn muốn {approvalAction === 'approve' ? 'duyệt đơn hiến máu' : 'từ chối'} của{' '}
             <strong>{selectedRequest?.requesterName}</strong>?
           </p>
           
-          {approvalAction === 'approve' && selectedRequest?.healthFormStatus === 'pending' && (
-            <Alert variant="info">
-              <FaCheck className="me-2" />
-              <strong>Lưu ý:</strong> Phiếu sức khỏe đang chờ duyệt sẽ được tự động duyệt cùng với đơn hiến máu.
-            </Alert>
-          )}
+
           
           {approvalAction === 'reject' && (
             <Form.Group className="mt-3">

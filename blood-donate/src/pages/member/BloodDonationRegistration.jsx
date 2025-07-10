@@ -64,6 +64,7 @@ import dayjs from 'dayjs';
 import { donorApi } from '../../services/donorApi';
 import { enhancedDonorApi } from '../../services/enhancedDonorApi';
 import { bloodManagementApi } from '../../services/bloodManagementApi';
+import { bloodDonationApi } from '../../services/bloodDonationApi';
 import { UserAPI } from '../../services/userApi';
 import '../../styles/BloodDonationRegistration.css';
 
@@ -92,7 +93,32 @@ const BloodDonationRegistration = () => {
     setBloodTypes(getStaticBloodTypes());
     // Then try to load from API
     loadBloodTypes();
+    // Check if user already has pending/approved donation
+    checkExistingDonation();
   }, []);
+
+  // Check if user already has pending or approved donation
+  const checkExistingDonation = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
+      const data = await bloodDonationApi.getBloodDonationsByDonor(userId);
+      const existingDonation = data.find(donation => 
+        donation.status === 'pending' || donation.status === 'approved'
+      );
+
+      if (existingDonation) {
+        setError('Bạn đã có đơn hiến máu đang xử lý. Vui lòng chờ xác nhận hoặc hoàn thành đơn hiện tại.');
+        // Redirect to blood donation profile after 3 seconds
+        setTimeout(() => {
+          navigate('/member/blood-donation-profile');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error checking existing donation:', error);
+    }
+  };
 
   const loadBloodTypes = async () => {
     setLoadingBloodTypes(true);
