@@ -13,6 +13,7 @@ import {
     TeamOutlined,
     UserOutlined,
     CloseOutlined,
+    SafetyCertificateOutlined,
   } from "@ant-design/icons";
   import {
     Avatar,
@@ -760,6 +761,13 @@ import {
                         onClick: () => {
                           navigate('/member/blood-donation-profile');
                         }
+                      }, {
+                        key: 'certificate',
+                        icon: <SafetyCertificateOutlined style={{ color: '#faad14' }} />,
+                        label: 'Chứng chỉ & Giấy khen',
+                        onClick: () => {
+                          navigate('/member/certificate');
+                        }
                       }] : []),
                       { 
                         type: 'divider'
@@ -1024,6 +1032,14 @@ import {
                       />
                     ),
                     label: <Link to="/member/blood-donation-profile">Hồ sơ hiến máu</Link>,
+                  }, {
+                    key: "certificate",
+                    icon: (
+                      <SafetyCertificateOutlined
+                        style={{ fontSize: "16px", color: "#faad14" }}
+                      />
+                    ),
+                    label: <Link to="/member/certificate">Chứng chỉ & Giấy khen</Link>,
                   }] : []),
                   {
                     key: "logout",
