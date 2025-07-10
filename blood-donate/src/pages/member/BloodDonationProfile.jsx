@@ -10,6 +10,30 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import { bloodDonationApi } from '../../services/bloodDonationApi';
+import { healthCheckApi } from '../../services/healthCheckApi';
+import { donationHistoryApi } from '../../services/donationHistoryApi';
+// Helper function to get auth token
+const getAuthToken = () => {
+  return localStorage.getItem('userToken') || 
+         localStorage.getItem('token') || 
+         localStorage.getItem('authToken') ||
+         localStorage.getItem('accessToken') ||
+         sessionStorage.getItem('userToken') ||
+         sessionStorage.getItem('token') ||
+         sessionStorage.getItem('authToken') ||
+         sessionStorage.getItem('accessToken');
+};
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
 import { useLocation } from 'react-router-dom';
 
 const { Title, Text } = Typography;
@@ -73,16 +97,66 @@ const BloodDonationProfile = () => {
   const [loading, setLoading] = useState(true);
   const [currentDonation, setCurrentDonation] = useState(null);
   const [completedDonations, setCompletedDonations] = useState([]);
+  const [healthChecks, setHealthChecks] = useState([]);
+  const [donationHistory, setDonationHistory] = useState([]);
   const location = useLocation();
 
   // Get current user info
   const getCurrentUser = () => {
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
-    return { userId, username };
+    const email = localStorage.getItem('email');
+    console.log('DEBUG: Current user info:', { userId, username, email });
+    return { userId, username, email };
   };
 
-  const { userId, username } = getCurrentUser();
+  const { userId, username, email } = getCurrentUser();
+
+  // Clear cache khi component mount
+  useEffect(() => {
+    // Xóa cache cũ để đảm bảo lấy dữ liệu mới
+    localStorage.removeItem('donorId');
+    console.log('DEBUG: Cleared donorId cache for userId:', userId);
+  }, [userId]);
+
+  // Hàm lấy donorId hiện tại
+  const getCurrentDonorId = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return null;
+    
+    // Xóa donorId cũ để tránh cache sai
+    localStorage.removeItem('donorId');
+    
+    try {
+      // Sử dụng endpoint GET /api/Donor để lấy tất cả donors
+      const res = await fetch(`http://localhost:7262/api/Donor`, { headers: getAuthHeaders() });
+      const donors = await res.json();
+      console.log('DEBUG: All donors from API:', donors);
+      
+      if (Array.isArray(donors) && donors.length > 0) {
+        // Tìm donor record đúng cho user hiện tại
+        const currentUserDonor = donors.find(donor => 
+          donor.userId === userId || 
+          donor.UserId === userId ||
+          donor.userID === userId
+        );
+        
+        if (currentUserDonor) {
+          const donorId = currentUserDonor.donorId || currentUserDonor.id;
+          console.log('DEBUG: Found donorId for userId', userId, ':', donorId);
+          console.log('DEBUG: Full donor record:', currentUserDonor);
+          return donorId;
+        } else {
+          console.log('DEBUG: No donor found for userId', userId, 'in donors array');
+          console.log('DEBUG: Available donors:', donors.map(d => ({ userId: d.userId, donorId: d.donorId })));
+          return null; // Không có donor cho user này
+        }
+      }
+    } catch (e) {
+      console.error('Không lấy được donorId từ API:', e);
+    }
+    return null;
+  };
 
   // Load user's blood donations
   useEffect(() => {
@@ -101,28 +175,125 @@ const BloodDonationProfile = () => {
       return;
     }
     loadUserDonations();
-  }, []);
+  }, [userId]); // Thêm userId làm dependency để tải lại khi đổi tài khoản
 
   const loadUserDonations = async () => {
-    if (!userId) {
+    setLoading(true);
+    console.log('DEBUG: Loading donations for userId:', userId);
+    console.log('DEBUG: Current user email:', email);
+    const donorId = await getCurrentDonorId();
+    console.log('DEBUG: Retrieved donorId:', donorId);
+    if (!donorId) {
+      console.log('DEBUG: No donor found for user, showing empty state');
+      setDonations([]);
+      setCurrentDonation(null);
+      setCompletedDonations([]);
       setLoading(false);
       return;
     }
 
     try {
-      const data = await bloodDonationApi.getBloodDonationsByDonor(userId);
-      const formattedDonations = Array.isArray(data) ? data.map(formatDonationData) : [];
+      // Fetch blood donations
+      console.log('DEBUG: Fetching blood donations for donorId:', donorId);
+      const donationData = await bloodDonationApi.getBloodDonationsByDonor(donorId);
+      console.log('DEBUG: Raw donation data from API:', donationData);
+      const formattedDonations = Array.isArray(donationData) ? donationData.map(formatDonationData) : [];
+      console.log('DEBUG: Formatted donations:', formattedDonations);
       setDonations(formattedDonations);
 
-      // Find current active donation (pending or approved)
+      // Fetch health checks for this donor
+      let donorHealthChecks = [];
+      try {
+        const healthCheckData = await healthCheckApi.getAllHealthChecks();
+        console.log('DEBUG: All health checks from API:', healthCheckData);
+        
+        donorHealthChecks = Array.isArray(healthCheckData) ? healthCheckData.filter(hc => 
+          hc.donorId === donorId || hc.DonorId === donorId || hc.donorID === donorId
+        ) : [];
+        setHealthChecks(donorHealthChecks);
+        console.log('DEBUG: Filtered health checks for donor:', donorHealthChecks);
+        console.log('DEBUG: Looking for donorId:', donorId);
+      } catch (healthCheckError) {
+        console.error('Error loading health checks:', healthCheckError);
+        setHealthChecks([]);
+      }
+
+      // Find current active donation (pending or approved, case-insensitive)
       const activeDonation = formattedDonations.find(d => 
-        d.status === 'pending' || d.status === 'approved'
+        d.status && d.status.toLowerCase() === 'pending'
+      ) || formattedDonations.find(d => 
+        d.status && d.status.toLowerCase() === 'approved'
       );
+      
+      // Merge health check data with active donation
+      if (activeDonation) {
+        console.log('DEBUG: Active donation:', activeDonation);
+        console.log('DEBUG: Available health checks:', donorHealthChecks);
+        
+        // Try to find related health check by multiple possible relationships
+        const relatedHealthCheck = donorHealthChecks.find(hc => 
+          hc.donationId === activeDonation.id || 
+          hc.DonationId === activeDonation.id ||
+          hc.bloodDonationId === activeDonation.id ||
+          hc.bloodDonationID === activeDonation.id ||
+          hc.donationID === activeDonation.id
+        );
+        
+        if (relatedHealthCheck) {
+          activeDonation.healthCheckStatus = relatedHealthCheck.healthCheckStatus || relatedHealthCheck.HealthCheckStatus || 'N/A';
+          activeDonation.healthCheckDate = relatedHealthCheck.healthCheckDate || relatedHealthCheck.HealthCheckDate;
+          activeDonation.healthCheckId = relatedHealthCheck.healthCheckId || relatedHealthCheck.HealthCheckId;
+          console.log('DEBUG: Merged health check data:', {
+            donationId: activeDonation.id,
+            healthCheckStatus: activeDonation.healthCheckStatus,
+            healthCheckDate: activeDonation.healthCheckDate,
+            relatedHealthCheck: relatedHealthCheck
+          });
+        } else {
+          // If no direct relationship found, try to use the most recent health check for this donor
+          const mostRecentHealthCheck = donorHealthChecks
+            .filter(hc => hc.healthCheckDate || hc.HealthCheckDate)
+            .sort((a, b) => new Date(b.healthCheckDate || b.HealthCheckDate) - new Date(a.healthCheckDate || a.HealthCheckDate))[0];
+          
+          if (mostRecentHealthCheck) {
+            activeDonation.healthCheckStatus = mostRecentHealthCheck.healthCheckStatus || mostRecentHealthCheck.HealthCheckStatus || 'N/A';
+            activeDonation.healthCheckDate = mostRecentHealthCheck.healthCheckDate || mostRecentHealthCheck.HealthCheckDate;
+            activeDonation.healthCheckId = mostRecentHealthCheck.healthCheckId || mostRecentHealthCheck.HealthCheckId;
+            console.log('DEBUG: Using most recent health check:', {
+              donationId: activeDonation.id,
+              healthCheckStatus: activeDonation.healthCheckStatus,
+              healthCheckDate: activeDonation.healthCheckDate,
+              mostRecentHealthCheck: mostRecentHealthCheck
+            });
+          } else {
+            console.log('DEBUG: No health check found for donation:', activeDonation.id);
+          }
+        }
+      }
+      
       setCurrentDonation(activeDonation);
 
       // Get completed donations for history
       const completed = formattedDonations.filter(d => d.status === 'completed');
       setCompletedDonations(completed);
+
+      // Load donation history from DonationHistory API
+      try {
+        console.log('DEBUG: Loading donation history for donorId:', donorId);
+        const historyData = await donationHistoryApi.getAllDonationHistory();
+        console.log('DEBUG: Raw donation history data:', historyData);
+        
+        // Filter history for current donor
+        const donorHistory = Array.isArray(historyData) ? historyData.filter(history => 
+          history.donorID === donorId || history.donorId === donorId
+        ) : [];
+        
+        console.log('DEBUG: Filtered donation history for donor:', donorHistory);
+        setDonationHistory(donorHistory);
+      } catch (historyError) {
+        console.error('Error loading donation history:', historyError);
+        setDonationHistory([]);
+      }
 
     } catch (error) {
       console.error('Error loading user donations:', error);
@@ -133,32 +304,50 @@ const BloodDonationProfile = () => {
 
   const formatDonationData = (donation) => {
     return {
-      id: donation.id,
-      donorId: donation.donorId || donation.userId || 'N/A',
-      bloodType: donation.bloodType || 'N/A',
+      id: donation.DonationId || donation.donationID || donation.donationId || donation.id || '--',
+      donorId: donation.DonorId || donation.donorId || donation.donorID || donation.userId || 'N/A',
+      bloodType: donation.bloodType || donation.bloodTypeName || 'N/A',
       requestType: donation.requestType || 'regular',
-      status: donation.status || 'pending',
+      status: donation.Status || donation.status || 'pending',
       requestDate: donation.requestDate || donation.createdAt,
-      healthCheckDate: donation.healthCheckDate,
+      healthCheckDate: donation.HealthCheckDate || donation.healthCheckDate,
       donationDate: donation.donationDate,
       location: donation.location || 'N/A',
-      notes: donation.notes || '',
-      requestId: donation.requestId || null, // For emergency requests
+      notes: donation.Notes || donation.notes || '',
+      requestId: donation.requestId || null,
       rejectionReason: donation.rejectionReason,
-      healthCheckStatus: donation.healthCheckStatus || 'N/A'
+      healthCheckStatus: donation.HealthCheckStatus || donation.healthCheckStatus || 'N/A',
+      certificateId: donation.CertificateId || donation.certificateId || null
     };
   };
 
-  // Determine current step based on donation status
+  const formatDonationHistoryData = (history) => {
+    return {
+      id: history.historyID || history.id || '--',
+      donorId: history.donorID || history.donorId || 'N/A',
+      donationDate: history.donationDate,
+      quantity: history.quantity || 'N/A',
+      healthStatus: history.healthStatus || 'N/A',
+      nextEligibleDate: history.nextEligibleDate,
+      certificateId: history.certificateID || history.certificateId || null
+    };
+  };
+
+  // Determine current step based on donation status and health check status
   const getCurrentStep = () => {
     if (!currentDonation) return 0;
+    const status = currentDonation.status ? currentDonation.status.toLowerCase() : '';
+    const healthCheckStatus = currentDonation.healthCheckStatus ? currentDonation.healthCheckStatus.toLowerCase() : '';
     
-    switch (currentDonation.status) {
-      case 'pending': return 0;
-      case 'approved': return 1;
-      case 'completed': return 3;
-      default: return 0;
+    if (status === 'pending') return 0;
+    if (status === 'approved') {
+      // Nếu phiếu sức khỏe đã được approved thì chuyển sang bước cuối
+      if (healthCheckStatus === 'approved') return 2;
+      // Nếu chưa approved thì ở bước khám sức khỏe
+      return 1;
     }
+    if (status === 'completed') return 2;
+    return 0;
   };
 
   // Check if user has health check scheduled
@@ -200,31 +389,31 @@ const BloodDonationProfile = () => {
       render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A',
     },
     {
-      title: 'Nhóm máu',
-      dataIndex: 'bloodType',
-      key: 'bloodType',
-      render: (bloodType) => <Tag color="red">{bloodType}</Tag>,
+      title: 'Lượng máu (ml)',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      render: (quantity) => quantity ? `${quantity} ml` : 'N/A',
     },
     {
-      title: 'Loại hiến máu',
-      dataIndex: 'requestType',
-      key: 'requestType',
-      render: (type) => {
-        const color = type === 'emergency' ? 'red' : type === 'regular' ? 'blue' : 'green';
-        const text = type === 'emergency' ? 'Khẩn cấp' : type === 'regular' ? 'Định kỳ' : 'Tình nguyện';
-        return <Tag color={color}>{text}</Tag>;
+      title: 'Tình trạng sức khỏe',
+      dataIndex: 'healthStatus',
+      key: 'healthStatus',
+      render: (status) => {
+        const color = status === 'Good' ? 'green' : status === 'Fair' ? 'orange' : 'red';
+        return <Tag color={color}>{status || 'N/A'}</Tag>;
       },
     },
     {
-      title: 'Địa điểm',
-      dataIndex: 'location',
-      key: 'location',
+      title: 'Ngày hiến máu tiếp theo',
+      dataIndex: 'nextEligibleDate',
+      key: 'nextEligibleDate',
+      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A',
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => <Tag color="green">Đã hoàn thành</Tag>,
+      title: 'Certificate ID',
+      dataIndex: 'certificateId',
+      key: 'certificateId',
+      render: (certId) => certId ? <Tag color="blue">{certId}</Tag> : 'N/A',
     },
   ];
 
@@ -271,6 +460,11 @@ const BloodDonationProfile = () => {
             <Title level={4}>
               <FileTextOutlined style={{ marginRight: 8 }} />
               Quy trình hiến máu hiện tại
+              {currentDonation.id && (
+                <span style={{ fontSize: 15, marginLeft: 16, color: '#1976D2' }}>
+                  (ID: <b>{currentDonation.id}</b>)
+                </span>
+              )}
             </Title>
             {currentDonation.requestId && (
               <Alert
@@ -324,11 +518,6 @@ const BloodDonationProfile = () => {
               <div style={{ marginTop: 8, fontWeight: getCurrentStep() === 1 ? 700 : 400, color: getCurrentStep() === 1 ? '#1976D2' : '#888' }}>
                 Khám sức khỏe & Hiến máu
               </div>
-              {getCurrentStep() >= 1 && currentDonation.healthCheckDate && (
-                <div style={{ fontSize: 13, color: '#1976D2', marginTop: 4 }}>
-                  Ngày khám: {new Date(currentDonation.healthCheckDate).toLocaleDateString('vi-VN')}
-                </div>
-              )}
             </div>
             {/* Line */}
             <div style={{ width: 40, height: 3, background: getCurrentStep() > 1 ? '#4CAF50' : '#e0e0e0', marginTop: 26 }} />
@@ -357,33 +546,14 @@ const BloodDonationProfile = () => {
           </div>
 
           {/* Additional Info */}
+          {console.log('DEBUG currentDonation:', currentDonation)}
           <div style={{ marginTop: 24, padding: 16, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
             <Text strong>Thông tin chi tiết:</Text>
             <div style={{ marginTop: 8 }}>
-              <Text>Donor ID: <Tag color="blue">{currentDonation.donorId}</Tag></Text>
-              <br />
-              <Text>Donation ID: <Tag color="purple">{currentDonation.id}</Tag></Text>
+              {/* Ẩn Donor ID, nhóm máu, trạng thái khám sức khỏe, ngày đăng ký */}
+              {/* <Text>Donor ID: <Tag color="blue">{currentDonation.donorId}</Tag></Text>
               <br />
               <Text>Nhóm máu: <Tag color="red">{currentDonation.bloodType}</Tag></Text>
-              <br />
-              <Text>Loại yêu cầu: 
-                <Tag color={currentDonation.requestType === 'emergency' ? 'red' : 'blue'} style={{ marginLeft: 8 }}>
-                  {currentDonation.requestType === 'emergency' ? 'Khẩn cấp' : 'Thường'}
-                </Tag>
-              </Text>
-              <br />
-              <Text>Trạng thái hiến máu: 
-                <Tag color={
-                  currentDonation.status === 'pending' ? 'orange' : 
-                  currentDonation.status === 'approved' ? 'blue' : 
-                  currentDonation.status === 'completed' ? 'green' : 'red'
-                } style={{ marginLeft: 8 }}>
-                  {currentDonation.status === 'pending' ? 'Chờ xác nhận' : 
-                   currentDonation.status === 'approved' ? 'Đã xác nhận' : 
-                   currentDonation.status === 'completed' ? 'Đã hoàn thành' : 
-                   currentDonation.status === 'rejected' ? 'Đã từ chối' : currentDonation.status}
-                </Tag>
-              </Text>
               <br />
               <Text>Trạng thái khám sức khỏe: 
                 <Tag color={
@@ -399,18 +569,68 @@ const BloodDonationProfile = () => {
               </Text>
               <br />
               <Text>Ngày đăng ký: {new Date(currentDonation.requestDate).toLocaleDateString('vi-VN')}</Text>
+              <br /> */}
+              {/* Ẩn dòng Donation ID ở đây, chỉ hiển thị ở tiêu đề */}
+              {getCurrentStep() === 0 && (
+                <>
+                  <Text>Loại yêu cầu: 
+                    <Tag color={currentDonation.requestType === 'emergency' ? 'red' : 'blue'} style={{ marginLeft: 8 }}>
+                      {currentDonation.requestType === 'emergency' ? 'Khẩn cấp' : 'Thường'}
+                    </Tag>
+                  </Text>
+                  <br />
+                  {/* Trạng thái hiến máu */}
+                  {currentDonation.status && currentDonation.status.toLowerCase() === 'pending' ? (
+                    <div style={{ color: '#faad14', fontWeight: 500, margin: '8px 0' }}>
+                      Đơn đăng ký hiến máu của bạn đang được chờ để xử lý.
+                    </div>
+                  ) : (
+                    <>
+                      <Text>Trạng thái hiến máu: 
+                        <Tag color={
+                          currentDonation.status && currentDonation.status.toLowerCase() === 'approved' ? 'blue' : 
+                          currentDonation.status && currentDonation.status.toLowerCase() === 'completed' ? 'green' : 'red'
+                        } style={{ marginLeft: 8 }}>
+                          {currentDonation.status}
+                        </Tag>
+                      </Text>
+                      <br />
+                    </>
+                  )}
+                  {currentDonation.donationDate && (
+                    <>
+                      <Text>Ngày hiến máu dự định: {new Date(currentDonation.donationDate).toLocaleDateString('vi-VN')}</Text>
+                    </>
+                  )}
+                </>
+              )}
+              {/* Thông báo lịch khám sức khỏe & hiến máu nếu đã approved nhưng chưa có phiếu sức khỏe */}
+              {currentDonation.status && currentDonation.status.toLowerCase() === 'approved' && !currentDonation.healthCheckDate && currentDonation.donationDate && (
+                <div style={{ color: '#1976D2', fontWeight: 500, margin: '8px 0' }}>
+                  Bạn có lịch khám sức khỏe và hiến máu vào {new Date(currentDonation.donationDate).toLocaleDateString('vi-VN')}
+                </div>
+              )}
+              {/* Hiển thị ngày khám sức khỏe luôn luôn */}
               {currentDonation.healthCheckDate && (
                 <>
+                  <Text>Ngày khám sức khỏe: {new Date(currentDonation.healthCheckDate).toLocaleDateString('vi-VN')}</Text>
                   <br />
-                  <Text>Lịch khám sức khỏe: {new Date(currentDonation.healthCheckDate).toLocaleDateString('vi-VN')}</Text>
                 </>
               )}
-              {currentDonation.donationDate && (
-                <>
-                  <br />
-                  <Text>Lịch hiến máu: {new Date(currentDonation.donationDate).toLocaleDateString('vi-VN')}</Text>
-                </>
-              )}
+              {/* Hiển thị trạng thái khám sức khỏe luôn luôn */}
+              <Text>Trạng thái khám sức khỏe: 
+                <Tag color={
+                  currentDonation.healthCheckStatus === 'pending' ? 'orange' : 
+                  currentDonation.healthCheckStatus === 'approved' ? 'green' : 
+                  currentDonation.healthCheckStatus === 'rejected' ? 'red' : 'default'
+                } style={{ marginLeft: 8 }}>
+                  {currentDonation.healthCheckStatus === 'pending' ? 'Chờ xác nhận' : 
+                   currentDonation.healthCheckStatus === 'approved' ? 'Đã xác nhận' : 
+                   currentDonation.healthCheckStatus === 'rejected' ? 'Đã từ chối' : 
+                   currentDonation.healthCheckStatus === 'N/A' ? 'Chưa có' : currentDonation.healthCheckStatus}
+                </Tag>
+              </Text>
+              <br />
             </div>
           </div>
         </Card>
@@ -425,10 +645,13 @@ const BloodDonationProfile = () => {
 
       {/* Donation History */}
       <Card title="Lịch sử hiến máu">
-        {completedDonations.length > 0 ? (
+        {donationHistory.length > 0 ? (
           <Table
             columns={columns}
-            dataSource={completedDonations.map((donation, index) => ({ ...donation, key: donation.id }))}
+            dataSource={donationHistory.map((history, index) => ({ 
+              ...formatDonationHistoryData(history), 
+              key: history.historyID || history.id || index 
+            }))}
             pagination={false}
             locale={{
               emptyText: <Empty description="Chưa có lịch sử hiến máu" />
