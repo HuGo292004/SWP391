@@ -35,10 +35,10 @@ import {
   PlusOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { bloodManagementApi } from '../../services/bloodManagementApi';
 
 const { Title, Text } = Typography;
-
-const { TabPane } = Tabs;
+const { Option } = Select;
 
 const BloodInventory = () => {
   const [loading, setLoading] = useState(false);
@@ -52,161 +52,90 @@ const BloodInventory = () => {
   const [addVisible, setAddVisible] = useState(false);
   const [form] = Form.useForm();
   const [addForm] = Form.useForm();
+  const [bloodUnits, setBloodUnits] = useState([]);
+  const [bloodTypes, setBloodTypes] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Mock data từ database BloodUnit (cấu trúc chính xác theo schema)
-  const [bloodUnits, setBloodUnits] = useState([
-    {
-      unitID: 'UNIT001',
-      donationID: 'DON001',
-      bloodTypeID: 1, // A+
-      componentType: 'whole_blood',
-      expiryDate: '2025-02-15',
-      status: 'available',
-      quantity: 450,
-      requestID: null,
-      // Thông tin bổ sung từ JOIN với các bảng liên quan
-      bloodTypeName: 'A+',
-      donorName: 'Nguyễn Văn An',
-      donationDate: '2025-01-15',
-      location: 'Kho A-01',
-      createdDate: '2025-01-15'
-    },
-    {
-      unitID: 'UNIT002',
-      donationID: 'DON001',
-      bloodTypeID: 1,
-      componentType: 'red_blood_cells',
-      expiryDate: '2025-03-01',
-      status: 'available',
-      quantity: 200,
-      requestID: null,
-      bloodTypeName: 'A+',
-      donorName: 'Nguyễn Văn An',
-      donationDate: '2025-01-15',
-      location: 'Kho A-02',
-      createdDate: '2025-01-15'
-    },
-    {
-      unitID: 'UNIT003',
-      donationID: 'DON002',
-      bloodTypeID: 5, // O+
-      componentType: 'whole_blood',
-      expiryDate: '2025-02-20',
-      status: 'available',
-      quantity: 450,
-      requestID: null,
-      bloodTypeName: 'O+',
-      donorName: 'Trần Thị Bình',
-      donationDate: '2025-01-20',
-      location: 'Kho B-01',
-      createdDate: '2025-01-20'
-    },
-    {
-      unitID: 'UNIT004',
-      donationID: 'DON003',
-      bloodTypeID: 3, // B+
-      componentType: 'plasma',
-      expiryDate: '2025-04-15',
-      status: 'reserved',
-      quantity: 250,
-      requestID: 'REQ001',
-      bloodTypeName: 'B+',
-      donorName: 'Lê Văn Cường',
-      donationDate: '2025-01-10',
-      location: 'Kho C-01',
-      createdDate: '2025-01-10'
-    },
-    {
-      unitID: 'UNIT005',
-      donationID: 'DON004',
-      bloodTypeID: 7, // AB+
-      componentType: 'platelets',
-      expiryDate: '2025-01-25',
-      status: 'expired',
-      quantity: 300,
-      requestID: null,
-      bloodTypeName: 'AB+',
-      donorName: 'Phạm Thị Dung',
-      donationDate: '2024-12-20',
-      location: 'Kho D-01',
-      createdDate: '2024-12-20'
-    },
-    {
-      unitID: 'UNIT006',
-      donationID: 'DON005',
-      bloodTypeID: 6, // O-
-      componentType: 'whole_blood',
-      expiryDate: '2025-02-28',
-      status: 'used',
-      quantity: 450,
-      requestID: 'REQ002',
-      bloodTypeName: 'O-',
-      donorName: 'Hoàng Văn Em',
-      donationDate: '2025-01-28',
-      location: 'Kho E-01',
-      createdDate: '2025-01-28'
-    },
-    {
-      unitID: 'UNIT007',
-      donationID: 'DON006',
-      bloodTypeID: 2, // A-
-      componentType: 'plasma',
-      expiryDate: '2025-03-10',
-      status: 'available',
-      quantity: 280,
-      requestID: null,
-      bloodTypeName: 'A-',
-      donorName: 'Võ Thị Giang',
-      donationDate: '2025-01-25',
-      location: 'Kho F-01',
-      createdDate: '2025-01-25'
-    },
-    {
-      unitID: 'UNIT008',
-      donationID: 'DON007',
-      bloodTypeID: 4, // B-
-      componentType: 'red_blood_cells',
-      expiryDate: '2025-02-25',
-      status: 'available',
-      quantity: 180,
-      requestID: null,
-      bloodTypeName: 'B-',
-      donorName: 'Đặng Văn Hải',
-      donationDate: '2025-01-18',
-      location: 'Kho G-01',
-      createdDate: '2025-01-18'
-    },
-    {
-      unitID: 'UNIT009',
-      donationID: 'DON008',
-      bloodTypeID: 8, // AB-
-      componentType: 'platelets',
-      expiryDate: '2025-01-30',
-      status: 'quarantine',
-      quantity: 320,
-      requestID: null,
-      bloodTypeName: 'AB-',
-      donorName: 'Bùi Thị Lan',
-      donationDate: '2025-01-22',
-      location: 'Kho H-01',
-      createdDate: '2025-01-22'
-    },
-    {
-      unitID: 'UNIT010',
-      donationID: 'DON009',
-      bloodTypeID: 5, // O+
-      componentType: 'cryoprecipitate',
-      expiryDate: '2025-12-15',
-      status: 'available',
-      quantity: 150,
-      requestID: null,
-      bloodTypeName: 'O+',
-      donorName: 'Ngô Văn Minh',
-      donationDate: '2025-01-12',
-      location: 'Kho I-01',
-      createdDate: '2025-01-12'
+  // Load data from API
+  const loadBloodUnits = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await bloodManagementApi.getAllBloodUnits();
+      console.log('Blood units response:', response);
+      
+      // Handle empty or invalid response
+      if (!response || !Array.isArray(response)) {
+        console.warn('API returned invalid data:', response);
+        setBloodUnits([]);
+        return;
+      }
+      
+      // Map response data to include derived fields for display
+      const formattedUnits = response.map(unit => {
+        // Map bloodTypeID to bloodTypeName
+        const bloodTypeMap = {
+          1: 'A+', 2: 'A-', 3: 'B+', 4: 'B-',
+          5: 'O+', 6: 'O-', 7: 'AB+', 8: 'AB-'
+        };
+        
+        return {
+          ...unit,
+          bloodTypeName: bloodTypeMap[unit.bloodTypeID] || `ID-${unit.bloodTypeID}`,
+          // Add default values if not provided by API
+          donorName: unit.donorName || 'Không có thông tin',
+          donationDate: unit.donationDate || unit.createdDate || new Date().toISOString().split('T')[0],
+          location: unit.location || 'Không xác định',
+          createdDate: unit.createdDate || new Date().toISOString().split('T')[0]
+        };
+      });
+      
+      setBloodUnits(formattedUnits);
+    } catch (error) {
+      console.error('Error loading blood units:', error);
+      setError(error.message);
+      
+      // Fallback to empty array if API fails
+      setBloodUnits([]);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  // Load blood types for filters and forms
+  const loadBloodTypes = async () => {
+    try {
+      const response = await bloodManagementApi.getBloodTypes();
+      
+      // Handle empty or invalid response
+      if (!response || !Array.isArray(response)) {
+        console.warn('Blood types API returned invalid data:', response);
+        throw new Error('Invalid blood types data');
+      }
+      
+      setBloodTypes(response);
+    } catch (error) {
+      console.error('Error loading blood types:', error);
+      // Set default blood types if API fails
+      setBloodTypes([
+        { bloodTypeId: 1, aboType: 'A', rhFactor: '+' },
+        { bloodTypeId: 2, aboType: 'A', rhFactor: '-' },
+        { bloodTypeId: 3, aboType: 'B', rhFactor: '+' },
+        { bloodTypeId: 4, aboType: 'B', rhFactor: '-' },
+        { bloodTypeId: 5, aboType: 'O', rhFactor: '+' },
+        { bloodTypeId: 6, aboType: 'O', rhFactor: '-' },
+        { bloodTypeId: 7, aboType: 'AB', rhFactor: '+' },
+        { bloodTypeId: 8, aboType: 'AB', rhFactor: '-' }
+      ]);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    loadBloodUnits();
+    loadBloodTypes();
+  }, []);
 
   // Thống kê dữ liệu
   const totalUnits = bloodUnits.length;
@@ -305,20 +234,29 @@ const BloodInventory = () => {
     try {
       setLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Prepare data for API
+      const updateData = {
+        ...values,
+        expiryDate: values.expiryDate ? values.expiryDate.format('YYYY-MM-DD') : values.expiryDate
+      };
       
+      // Call API to update blood unit
+      await bloodManagementApi.updateBloodUnit(selectedUnit.unitID, updateData);
+      
+      // Update local state
       setBloodUnits(prev => prev.map(unit => 
         unit.unitID === selectedUnit.unitID 
-          ? { ...unit, ...values }
+          ? { ...unit, ...updateData }
           : unit
       ));
       
       message.success('Cập nhật đơn vị máu thành công!');
       setUpdateVisible(false);
       form.resetFields();
+      setSelectedUnit(null);
     } catch (error) {
-      message.error('Có lỗi xảy ra khi cập nhật');
+      console.error('Error updating blood unit:', error);
+      message.error('Không thể cập nhật đơn vị máu. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
@@ -329,55 +267,45 @@ const BloodInventory = () => {
     try {
       setLoading(true);
       
-      // Generate new unit ID
-      const nextUnitNumber = String(bloodUnits.length + 1).padStart(3, '0');
-      const newUnitID = `UNIT${nextUnitNumber}`;
-      
-      // Map bloodTypeID to bloodTypeName
-      const bloodTypeMap = {
-        1: 'A+', 2: 'A-', 3: 'B+', 4: 'B-',
-        5: 'O+', 6: 'O-', 7: 'AB+', 8: 'AB-'
-      };
-      
-      // Auto-generate donor info and location based on donationID
-      // In real app, this would be fetched from database
-      const donorNames = [
-        'Nguyễn Văn Nam', 'Trần Thị Lan', 'Lê Văn Hoàng', 'Phạm Thị Mai',
-        'Hoàng Văn Tuấn', 'Vũ Thị Hương', 'Đặng Văn Phúc', 'Bùi Thị Thảo'
-      ];
-      const locations = ['Kho A-01', 'Kho A-02', 'Kho B-01', 'Kho B-02', 'Kho C-01'];
-      
-      const randomDonorName = donorNames[Math.floor(Math.random() * donorNames.length)];
-      const randomLocation = locations[Math.floor(Math.random() * locations.length)];
-      
-      // Create new blood unit
-      const newUnit = {
-        unitID: newUnitID,
+      // Prepare data for API
+      const newUnitData = {
         donationID: values.donationID,
         bloodTypeID: values.bloodTypeID,
         componentType: values.componentType,
         expiryDate: values.expiryDate.format('YYYY-MM-DD'),
         status: 'available',
         quantity: values.quantity,
-        requestID: null,
-        // Auto-generated info
-        bloodTypeName: bloodTypeMap[values.bloodTypeID],
-        donorName: randomDonorName,
-        donationDate: values.donationDate.format('YYYY-MM-DD'),
-        location: randomLocation,
-        createdDate: dayjs().format('YYYY-MM-DD')
+        requestID: null
       };
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call API to create blood unit
+      const createdUnit = await bloodManagementApi.createBloodUnit(newUnitData);
       
-      setBloodUnits(prev => [...prev, newUnit]);
+      // Map bloodTypeID to bloodTypeName for display
+      const bloodTypeMap = {
+        1: 'A+', 2: 'A-', 3: 'B+', 4: 'B-',
+        5: 'O+', 6: 'O-', 7: 'AB+', 8: 'AB-'
+      };
       
-      message.success(`Thêm đơn vị máu ${newUnitID} thành công!`);
+      // Format the created unit for display
+      const formattedUnit = {
+        ...createdUnit,
+        bloodTypeName: bloodTypeMap[createdUnit.bloodTypeID] || `ID-${createdUnit.bloodTypeID}`,
+        donorName: createdUnit.donorName || 'Không có thông tin',
+        donationDate: createdUnit.donationDate || values.donationDate.format('YYYY-MM-DD'),
+        location: createdUnit.location || 'Không xác định',
+        createdDate: createdUnit.createdDate || dayjs().format('YYYY-MM-DD')
+      };
+      
+      // Update local state
+      setBloodUnits(prev => [...prev, formattedUnit]);
+      
+      message.success(`Thêm đơn vị máu ${createdUnit.unitID || 'mới'} thành công!`);
       setAddVisible(false);
       addForm.resetFields();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi thêm đơn vị máu');
+      console.error('Error creating blood unit:', error);
+      message.error('Không thể thêm đơn vị máu. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
@@ -527,6 +455,7 @@ const BloodInventory = () => {
           icon={<PlusOutlined />}
           onClick={() => setAddVisible(true)}
           style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+          disabled={error && bloodUnits.length === 0}
         >
           Thêm đơn vị máu
         </Button>
@@ -576,50 +505,6 @@ const BloodInventory = () => {
         </Col>
       </Row>
 
-      {/* Secondary Statistics */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small">
-            <Statistic
-              title="Đã sử dụng"
-              value={usedUnits}
-              prefix={<Badge status="processing" />}
-              suffix="đơn vị"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small">
-            <Statistic
-              title="Đã đặt trước"
-              value={reservedUnits}
-              prefix={<Badge status="warning" />}
-              suffix="đơn vị"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small">
-            <Statistic
-              title="Cách ly"
-              value={quarantineUnits}
-              prefix={<Badge status="default" />}
-              suffix="đơn vị"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card size="small">
-            <Statistic
-              title="Hết hạn"
-              value={expiredUnits}
-              prefix={<Badge status="error" />}
-              suffix="đơn vị"
-            />
-          </Card>
-        </Col>
-      </Row>
-
       {/* Filters */}
       <Card style={{ marginBottom: '24px' }}>
         <Row gutter={[16, 16]} align="middle">
@@ -640,14 +525,11 @@ const BloodInventory = () => {
               style={{ width: '100%' }}
             >
               <Option value="all">Tất cả</Option>
-              <Option value="A+">A+</Option>
-              <Option value="A-">A-</Option>
-              <Option value="B+">B+</Option>
-              <Option value="B-">B-</Option>
-              <Option value="AB+">AB+</Option>
-              <Option value="AB-">AB-</Option>
-              <Option value="O+">O+</Option>
-              <Option value="O-">O-</Option>
+              {bloodTypes.map(type => (
+                <Option key={type.bloodTypeId} value={`${type.aboType}${type.rhFactor}`}>
+                  {type.aboType}{type.rhFactor}
+                </Option>
+              ))}
             </Select>
           </Col>
           <Col xs={12} sm={6} lg={4}>
@@ -700,7 +582,11 @@ const BloodInventory = () => {
               <Button
                 type="primary"
                 icon={<ReloadOutlined />}
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  loadBloodUnits();
+                  loadBloodTypes();
+                }}
+                loading={loading}
               >
                 Làm mới
               </Button>
@@ -708,6 +594,38 @@ const BloodInventory = () => {
           </Col>
         </Row>
       </Card>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert
+          message="Không thể kết nối với máy chủ"
+          description="Vui lòng kiểm tra kết nối mạng và thử lại sau."
+          type="error"
+          showIcon
+          closable
+          onClose={() => setError(null)}
+          action={
+            <Button size="small" onClick={() => {
+              loadBloodUnits();
+              loadBloodTypes();
+            }}>
+              Thử lại
+            </Button>
+          }
+          style={{ marginBottom: '16px' }}
+        />
+      )}
+
+      {/* No Data Alert */}
+      {!loading && !error && bloodUnits.length === 0 && (
+        <Alert
+          message="Chưa có dữ liệu"
+          description="Hiện tại chưa có đơn vị máu nào trong hệ thống. Bạn có thể thêm mới bằng nút 'Thêm đơn vị máu' ở trên."
+          type="info"
+          showIcon
+          style={{ marginBottom: '16px' }}
+        />
+      )}
 
       {/* Alerts for expired units */}
       {expiringSoon > 0 && (
@@ -807,7 +725,6 @@ const BloodInventory = () => {
         onOk={() => form.submit()}
         confirmLoading={loading}
         width={600}
-        destroyOnClose={true}
       >
         <Form form={form} layout="vertical" onFinish={handleUpdateUnit}>
           <Row gutter={16}>
@@ -869,7 +786,6 @@ const BloodInventory = () => {
         onOk={() => addForm.submit()}
         confirmLoading={loading}
         width={800}
-        destroyOnClose={true}
       >
         <Form 
           form={addForm} 
@@ -901,14 +817,11 @@ const BloodInventory = () => {
                 rules={[{ required: true, message: 'Vui lòng chọn ID nhóm máu' }]}
               >
                 <Select placeholder="Chọn ID nhóm máu">
-                  <Option value={1}>1 (A+)</Option>
-                  <Option value={2}>2 (A-)</Option>
-                  <Option value={3}>3 (B+)</Option>
-                  <Option value={4}>4 (B-)</Option>
-                  <Option value={5}>5 (O+)</Option>
-                  <Option value={6}>6 (O-)</Option>
-                  <Option value={7}>7 (AB+)</Option>
-                  <Option value={8}>8 (AB-)</Option>
+                  {bloodTypes.map(type => (
+                    <Option key={type.bloodTypeId} value={type.bloodTypeId}>
+                      {type.bloodTypeId} ({type.aboType}{type.rhFactor})
+                    </Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
