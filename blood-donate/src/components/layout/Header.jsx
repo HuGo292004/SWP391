@@ -241,12 +241,6 @@ import {
         label: "TRANG CHỦ", 
         path: currentRole ? `/${currentRole}` : "/" 
       },
-      // Chỉ hiển thị LỊCH HẸN khi đã đăng nhập
-      ...(isAuthenticated ? [{ 
-        key: currentRole ? `/${currentRole}/appointments` : "/appointments", 
-        label: "LỊCH HẸN", 
-        path: currentRole ? `/${currentRole}/appointments` : "/appointments" 
-      }] : []),
       { 
         key: currentRole ? `/${currentRole}/faq` : "/faq", 
         label: "HỎI - ĐÁP", 
