@@ -156,8 +156,7 @@ const BloodDonationRegistration = () => {
 
   // Static blood types as fallback
   const getStaticBloodTypes = () => [
-    { bloodTypeID: '44C1A0F7-92B9-4E1B-A628-03447F5B86D7', aboType: 'O', rhFactor: '+', description: 'Nhóm máu O Rh dương' },
-    { bloodTypeID: '55B618E3-25CE-45D8-B980-03D532EC2293', aboType: 'B', rhFactor: '-', description: 'Nhóm máu B Rh âm' },
+    
     { bloodTypeID: '11111111-1111-1111-1111-111111111001', aboType: 'A', rhFactor: '+', description: 'Nhóm máu A Rh dương' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111002', aboType: 'A', rhFactor: '-', description: 'Nhóm máu A Rh âm' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111003', aboType: 'B', rhFactor: '+', description: 'Nhóm máu B Rh dương' },
@@ -166,12 +165,6 @@ const BloodDonationRegistration = () => {
     { bloodTypeID: '11111111-1111-1111-1111-111111111006', aboType: 'AB', rhFactor: '-', description: 'Nhóm máu AB Rh âm' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111007', aboType: 'O', rhFactor: '+', description: 'Nhóm máu O Rh dương' },
     { bloodTypeID: '11111111-1111-1111-1111-111111111008', aboType: 'O', rhFactor: '-', description: 'Nhóm máu O Rh âm' },
-    { bloodTypeID: 'FE6B963D-65ED-4681-96FF-213E2B9D7E9B', aboType: 'O', rhFactor: '-', description: 'Nhóm máu O Rh âm' },
-    { bloodTypeID: 'B0B93608-6EA7-4F3E-8B2A-37B66BF0CC82', aboType: 'A', rhFactor: '+', description: 'Nhóm máu A Rh dương' },
-    { bloodTypeID: 'C07C228E-DA24-4DD8-B2B5-64CE22B674A3', aboType: 'B', rhFactor: '+', description: 'Nhóm máu B Rh dương' },
-    { bloodTypeID: '5060875F-D7D5-40FD-8FCD-75F843A71A32', aboType: 'AB', rhFactor: '-', description: 'Nhóm máu AB Rh âm' },
-    { bloodTypeID: 'A12373C7-3BFC-496E-8021-C0031B9BC0D8', aboType: 'A', rhFactor: '-', description: 'Nhóm máu A Rh âm' },
-    { bloodTypeID: '5AE0C996-2594-48D2-8023-FD80676E4BCC', aboType: 'AB', rhFactor: '+', description: 'Nhóm máu AB Rh dương' }
   ];
 
   // Fetch current user information

@@ -155,10 +155,10 @@ const BloodInventory = () => {
 
   // Lọc dữ liệu
   const filteredData = bloodUnits.filter(unit => {
-    const matchesSearch = unit.unitID.toLowerCase().includes(searchText.toLowerCase()) ||
-                         unit.donationID.toLowerCase().includes(searchText.toLowerCase()) ||
-                         unit.bloodTypeName.toLowerCase().includes(searchText.toLowerCase()) ||
-                         unit.donorName?.toLowerCase().includes(searchText.toLowerCase());
+    const matchesSearch = (unit.unitID && unit.unitID.toLowerCase().includes(searchText.toLowerCase())) ||
+                         (unit.donationID && unit.donationID.toLowerCase().includes(searchText.toLowerCase())) ||
+                         (unit.bloodTypeName && unit.bloodTypeName.toLowerCase().includes(searchText.toLowerCase())) ||
+                         (unit.donorName && unit.donorName.toLowerCase().includes(searchText.toLowerCase()));
     const matchesBloodType = filterBloodType === 'all' || unit.bloodTypeName === filterBloodType;
     const matchesStatus = filterStatus === 'all' || unit.status === filterStatus;
     const matchesComponent = filterComponent === 'all' || unit.componentType === filterComponent;
@@ -643,7 +643,7 @@ const BloodInventory = () => {
         <Table
           columns={columns}
           dataSource={filteredData}
-          rowKey="unitID"
+          rowKey={(record) => record.unitID || `${record.donationID}-${record.bloodTypeID}-${record.componentType}`}
           loading={loading}
           scroll={{ x: 1200 }}
           pagination={{
