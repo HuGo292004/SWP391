@@ -27,6 +27,8 @@ import {
   FileTextOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { certificateApi } from '../../services/certificateApi';
+import { UserAPI } from '../../services/userApi';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -92,9 +94,44 @@ const Certificate = () => {
   const loadCertificates = async () => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setCertificates(mockCertificates);
+      // Lấy user hiện tại
+      let currentUser = null;
+      try {
+        currentUser = await UserAPI.getCurrentUser();
+      } catch (e) {
+        // fallback nếu lỗi
+        currentUser = {
+          userId: localStorage.getItem('userId'),
+          fullName: localStorage.getItem('userFullName')
+        };
+      }
+      // Gọi API lấy tất cả certificates
+      const apiCertificates = await certificateApi.getAll();
+      // Map dữ liệu từ API sang format UI
+      const mapped = (Array.isArray(apiCertificates) ? apiCertificates : []).map((c) => ({
+        id: c.certificateId || c.id,
+        certificateNumber: c.certificateNumber,
+        issueDate: c.issueDate,
+        type: c.certificateType === 'Blood Donation' ? 'donation' : 'achievement',
+        bloodType: c.bloodType,
+        bloodDonationDate: c.bloodDonationDate,
+        fullName: c.fullName,
+        address: c.address,
+        donationId: c.donationId,
+        donorId: c.donorId,
+        userId: c.userId,
+        status: 'issued',
+      }));
+      // Lọc chỉ giữ certificate của user hiện tại
+      let filtered = mapped;
+      if (currentUser && (currentUser.userId || currentUser.fullName)) {
+        filtered = mapped.filter(c =>
+          (c.donorId && c.donorId === currentUser.userId) ||
+          (c.userId && c.userId === currentUser.userId) ||
+          (c.fullName && c.fullName === currentUser.fullName)
+        );
+      }
+      setCertificates(filtered);
     } catch (error) {
       console.error('Error loading certificates:', error);
     } finally {
@@ -144,10 +181,10 @@ const Certificate = () => {
 Họ và tên: ${userInfo.fullName}
 Số chứng nhận: ${certificate.certificateNumber}
 ${certificate.type === 'donation' ? 
-  `Ngày hiến máu: ${dayjs(certificate.donationDate).format('DD/MM/YYYY')}
+  `Ngày hiến máu: ${dayjs(certificate.bloodDonationDate).format('DD/MM/YYYY')}
 Nhóm máu: ${certificate.bloodType}
 Thể tích: ${certificate.volume}ml
-Địa điểm: ${certificate.location}` :
+Địa điểm: ${certificate.address}` :
   `Thành tích: ${certificate.title}
 Mô tả: ${certificate.description}
 Số lần hiến máu: ${certificate.donationCount}`
@@ -198,7 +235,7 @@ Hiệu lực đến: ${certificate.validUntil === 'permanent' ? 'Vĩnh viễn' :
             Chứng nhận cho
           </Title>
           <Title level={3} style={{ color: '#ffd700', marginBottom: '0' }}>
-            {userInfo.fullName}
+            {selectedCertificate.fullName || userInfo.fullName}
           </Title>
         </div>
 
@@ -209,7 +246,7 @@ Hiệu lực đến: ${certificate.validUntil === 'permanent' ? 'Vĩnh viễn' :
                 <Text style={{ color: 'rgba(255,255,255,0.8)' }}>Ngày hiến máu:</Text>
                 <br />
                 <Text strong style={{ color: 'white', fontSize: '16px' }}>
-                  {dayjs(selectedCertificate.donationDate).format('DD/MM/YYYY')}
+                  {dayjs(selectedCertificate.bloodDonationDate).format('DD/MM/YYYY')}
                 </Text>
               </Col>
               <Col span={12}>
@@ -232,7 +269,7 @@ Hiệu lực đến: ${certificate.validUntil === 'permanent' ? 'Vĩnh viễn' :
                 <Text style={{ color: 'rgba(255,255,255,0.8)' }}>Địa điểm:</Text>
                 <br />
                 <Text strong style={{ color: 'white', fontSize: '14px' }}>
-                  {selectedCertificate.location}
+                  {selectedCertificate.address}
                 </Text>
               </Col>
             </Row>
@@ -405,7 +442,7 @@ Hiệu lực đến: ${certificate.validUntil === 'permanent' ? 'Vĩnh viễn' :
                         <div>
                           <Text>
                             <CalendarOutlined style={{ marginRight: '4px' }} />
-                            {dayjs(certificate.donationDate).format('DD/MM/YYYY')}
+                            {dayjs(certificate.bloodDonationDate).format('DD/MM/YYYY')}
                           </Text>
                           <Divider type="vertical" />
                           <Text>
@@ -416,7 +453,7 @@ Hiệu lực đến: ${certificate.validUntil === 'permanent' ? 'Vĩnh viễn' :
                           <Text>{certificate.volume}ml</Text>
                           <br />
                           <Text type="secondary" style={{ fontSize: '12px' }}>
-                            {certificate.location}
+                            {certificate.address}
                           </Text>
                         </div>
                       ) : (

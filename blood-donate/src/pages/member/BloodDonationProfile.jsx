@@ -92,6 +92,16 @@ const mockData = [
   },
 ];
 
+// Helper để chuyển đổi trạng thái khám sức khỏe sang thông báo thân thiện
+const getHealthCheckStatusText = (status) => {
+  if (!status || status === 'N/A') return 'Chưa có hồ sơ khám sức khỏe';
+  const s = status.toLowerCase();
+  if (s === 'pending') return 'Hồ sơ sức khỏe của bạn đang được xem xét';
+  if (s === 'approved') return 'Đã khám sức khỏe, đủ điều kiện hiến máu';
+  if (s === 'rejected') return 'Không đủ điều kiện hiến máu';
+  return status;
+};
+
 const BloodDonationProfile = () => {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,6 +110,8 @@ const BloodDonationProfile = () => {
   const [healthChecks, setHealthChecks] = useState([]);
   const [donationHistory, setDonationHistory] = useState([]);
   const location = useLocation();
+  // Thêm state viewStep để điều khiển bước đang xem
+  const [viewStep, setViewStep] = useState(0);
 
   // Get current user info
   const getCurrentUser = () => {
@@ -410,12 +422,32 @@ const BloodDonationProfile = () => {
       render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A',
     },
     {
-      title: 'Certificate ID',
+      title: 'Chứng chỉ',
       dataIndex: 'certificateId',
       key: 'certificateId',
-      render: (certId) => certId ? <Tag color="blue">{certId}</Tag> : 'N/A',
+      render: (certId) =>
+        certId ? (
+          <a href={`/member/certificate?certificateId=${certId}`}>
+            <button style={{
+              background: '#1976D2',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '4px 12px',
+              fontSize: 14,
+              cursor: 'pointer'
+            }}>
+              Xem chứng chỉ
+            </button>
+          </a>
+        ) : 'N/A',
     },
   ];
+
+  useEffect(() => {
+    // Khi currentDonation thay đổi, cập nhật viewStep về bước hiện tại
+    setViewStep(getCurrentStep());
+  }, [currentDonation]);
 
   if (loading) {
     return (
@@ -454,7 +486,7 @@ const BloodDonationProfile = () => {
       </div>
 
       {/* Current Donation Process */}
-      {currentDonation ? (
+      {currentDonation && (
         <Card style={{ marginBottom: 32 }}>
           <div style={{ marginBottom: 16 }}>
             <Title level={4}>
@@ -486,57 +518,69 @@ const BloodDonationProfile = () => {
             padding: '0 12px',
           }}>
             {/* Bước 1: Chờ xác nhận */}
-            <div style={{ flex: 1, textAlign: 'center', opacity: 1 }}>
+            <div
+              style={{ flex: 1, textAlign: 'center', opacity: 1, cursor: 'pointer' }}
+              onClick={() => setViewStep(0)}
+            >
               <div style={{
                 width: 56, height: 56, margin: '0 auto', borderRadius: '50%',
-                background: getCurrentStep() === 0 ? '#1976D2' : (getCurrentStep() > 0 ? '#4CAF50' : '#e0e0e0'),
+                background: viewStep === 0 ? '#1976D2' : (viewStep > 0 ? '#4CAF50' : '#e0e0e0'),
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontSize: 32, border: getCurrentStep() === 0 ? '3px solid #1976D2' : 'none',
-                boxShadow: getCurrentStep() === 0 ? '0 0 0 4px #1976d233' : 'none',
+                color: '#fff', fontSize: 32, border: viewStep === 0 ? '3px solid #1976D2' : 'none',
+                boxShadow: viewStep === 0 ? '0 0 0 4px #1976d233' : 'none',
                 position: 'relative',
+                transition: 'all 0.2s',
               }}>
-                {getCurrentStep() > 0 ? <CheckCircleOutlined style={{ fontSize: 32, color: '#fff' }} /> : <FileTextOutlined />}
+                {viewStep > 0 ? <CheckCircleOutlined style={{ fontSize: 32, color: '#fff' }} /> : <FileTextOutlined />}
               </div>
-              <div style={{ marginTop: 8, fontWeight: getCurrentStep() === 0 ? 700 : 400, color: getCurrentStep() === 0 ? '#1976D2' : '#888' }}>
+              <div style={{ marginTop: 8, fontWeight: viewStep === 0 ? 700 : 400, color: viewStep === 0 ? '#1976D2' : '#888' }}>
                 Chờ xác nhận
               </div>
             </div>
             {/* Line */}
-            <div style={{ width: 40, height: 3, background: getCurrentStep() > 0 ? '#4CAF50' : '#e0e0e0', marginTop: 26 }} />
+            <div style={{ width: 40, height: 3, background: viewStep > 0 ? '#4CAF50' : '#e0e0e0', marginTop: 26 }} />
             {/* Bước 2: Khám sức khỏe & Hiến máu */}
-            <div style={{ flex: 1, textAlign: 'center', opacity: getCurrentStep() >= 1 ? 1 : 0.5 }}>
+            <div
+              style={{ flex: 1, textAlign: 'center', opacity: viewStep >= 1 ? 1 : 0.5, cursor: getCurrentStep() >= 1 ? 'pointer' : 'not-allowed' }}
+              onClick={getCurrentStep() >= 1 ? () => setViewStep(1) : undefined}
+            >
               <div style={{
                 width: 56, height: 56, margin: '0 auto', borderRadius: '50%',
-                background: getCurrentStep() === 1 ? '#1976D2' : (getCurrentStep() > 1 ? '#4CAF50' : '#e0e0e0'),
+                background: viewStep === 1 ? '#1976D2' : (viewStep > 1 ? '#4CAF50' : '#e0e0e0'),
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontSize: 32, border: getCurrentStep() === 1 ? '3px solid #1976D2' : 'none',
-                boxShadow: getCurrentStep() === 1 ? '0 0 0 4px #1976d233' : 'none',
+                color: '#fff', fontSize: 32, border: viewStep === 1 ? '3px solid #1976D2' : 'none',
+                boxShadow: viewStep === 1 ? '0 0 0 4px #1976d233' : 'none',
                 position: 'relative',
+                transition: 'all 0.2s',
               }}>
-                {getCurrentStep() > 1 ? <CheckCircleOutlined style={{ fontSize: 32, color: '#fff' }} /> : <SolutionOutlined />}
+                {viewStep > 1 ? <CheckCircleOutlined style={{ fontSize: 32, color: '#fff' }} /> : <SolutionOutlined />}
               </div>
-              <div style={{ marginTop: 8, fontWeight: getCurrentStep() === 1 ? 700 : 400, color: getCurrentStep() === 1 ? '#1976D2' : '#888' }}>
+              <div style={{ marginTop: 8, fontWeight: viewStep === 1 ? 700 : 400, color: viewStep === 1 ? '#1976D2' : '#888' }}>
                 Khám sức khỏe & Hiến máu
               </div>
             </div>
             {/* Line */}
-            <div style={{ width: 40, height: 3, background: getCurrentStep() > 1 ? '#4CAF50' : '#e0e0e0', marginTop: 26 }} />
+            <div style={{ width: 40, height: 3, background: viewStep > 1 ? '#4CAF50' : '#e0e0e0', marginTop: 26 }} />
             {/* Bước 3: Nhận certificate */}
-            <div style={{ flex: 1, textAlign: 'center', opacity: getCurrentStep() === 2 ? 1 : (getCurrentStep() > 2 ? 1 : 0.5) }}>
+            <div
+              style={{ flex: 1, textAlign: 'center', opacity: viewStep === 2 ? 1 : (viewStep > 2 ? 1 : 0.5), cursor: getCurrentStep() >= 2 ? 'pointer' : 'not-allowed' }}
+              onClick={getCurrentStep() >= 2 ? () => setViewStep(2) : undefined}
+            >
               <div style={{
                 width: 56, height: 56, margin: '0 auto', borderRadius: '50%',
-                background: getCurrentStep() === 2 ? '#1976D2' : (getCurrentStep() > 2 ? '#4CAF50' : '#e0e0e0'),
+                background: viewStep === 2 ? '#1976D2' : (viewStep > 2 ? '#4CAF50' : '#e0e0e0'),
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontSize: 32, border: getCurrentStep() === 2 ? '3px solid #1976D2' : 'none',
-                boxShadow: getCurrentStep() === 2 ? '0 0 0 4px #1976d233' : 'none',
+                color: '#fff', fontSize: 32, border: viewStep === 2 ? '3px solid #1976D2' : 'none',
+                boxShadow: viewStep === 2 ? '0 0 0 4px #1976d233' : 'none',
                 position: 'relative',
+                transition: 'all 0.2s',
               }}>
-                {getCurrentStep() > 2 ? <CheckCircleOutlined style={{ fontSize: 32, color: '#fff' }} /> : <StarOutlined />}
+                {viewStep > 2 ? <CheckCircleOutlined style={{ fontSize: 32, color: '#fff' }} /> : <StarOutlined />}
               </div>
-              <div style={{ marginTop: 8, fontWeight: getCurrentStep() === 2 ? 700 : 400, color: getCurrentStep() === 2 ? '#1976D2' : '#888' }}>
+              <div style={{ marginTop: 8, fontWeight: viewStep === 2 ? 700 : 400, color: viewStep === 2 ? '#1976D2' : '#888' }}>
                 Nhận certificate
               </div>
-              {getCurrentStep() >= 2 && currentDonation.bloodType && (
+              {viewStep >= 2 && currentDonation && currentDonation.bloodType && (
                 <div style={{ fontSize: 13, color: '#1976D2', marginTop: 4 }}>
                   Nhóm máu: <b>{currentDonation.bloodType}</b><br />
                   <span>Cảm ơn bạn đã hiến máu!</span>
@@ -546,43 +590,26 @@ const BloodDonationProfile = () => {
           </div>
 
           {/* Additional Info */}
-          {console.log('DEBUG currentDonation:', currentDonation)}
           <div style={{ marginTop: 24, padding: 16, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
             <Text strong>Thông tin chi tiết:</Text>
             <div style={{ marginTop: 8 }}>
-              {/* Ẩn Donor ID, nhóm máu, trạng thái khám sức khỏe, ngày đăng ký */}
-              {/* <Text>Donor ID: <Tag color="blue">{currentDonation.donorId}</Tag></Text>
-              <br />
-              <Text>Nhóm máu: <Tag color="red">{currentDonation.bloodType}</Tag></Text>
-              <br />
-              <Text>Trạng thái khám sức khỏe: 
-                <Tag color={
-                  currentDonation.healthCheckStatus === 'pending' ? 'orange' : 
-                  currentDonation.healthCheckStatus === 'approved' ? 'green' : 
-                  currentDonation.healthCheckStatus === 'rejected' ? 'red' : 'default'
-                } style={{ marginLeft: 8 }}>
-                  {currentDonation.healthCheckStatus === 'pending' ? 'Chờ xác nhận' : 
-                   currentDonation.healthCheckStatus === 'approved' ? 'Đã xác nhận' : 
-                   currentDonation.healthCheckStatus === 'rejected' ? 'Đã từ chối' : 
-                   currentDonation.healthCheckStatus === 'N/A' ? 'Chưa có' : currentDonation.healthCheckStatus}
-                </Tag>
-              </Text>
-              <br />
-              <Text>Ngày đăng ký: {new Date(currentDonation.requestDate).toLocaleDateString('vi-VN')}</Text>
-              <br /> */}
-              {/* Ẩn dòng Donation ID ở đây, chỉ hiển thị ở tiêu đề */}
-              {getCurrentStep() === 0 && (
+              {/* Hiển thị chi tiết theo viewStep */}
+              {viewStep === 0 && (
                 <>
+                  {/* Bước 1: Chờ xác nhận */}
                   <Text>Loại yêu cầu: 
                     <Tag color={currentDonation.requestType === 'emergency' ? 'red' : 'blue'} style={{ marginLeft: 8 }}>
                       {currentDonation.requestType === 'emergency' ? 'Khẩn cấp' : 'Thường'}
                     </Tag>
                   </Text>
                   <br />
-                  {/* Trạng thái hiến máu */}
                   {currentDonation.status && currentDonation.status.toLowerCase() === 'pending' ? (
                     <div style={{ color: '#faad14', fontWeight: 500, margin: '8px 0' }}>
                       Đơn đăng ký hiến máu của bạn đang được chờ để xử lý.
+                    </div>
+                  ) : currentDonation.status && currentDonation.status.toLowerCase() === 'approved' ? (
+                    <div style={{ color: '#1976D2', fontWeight: 500, margin: '8px 0' }}>
+                      Đơn đăng ký hiến máu của bạn đã được duyệt.
                     </div>
                   ) : (
                     <>
@@ -602,44 +629,153 @@ const BloodDonationProfile = () => {
                       <Text>Ngày hiến máu dự định: {new Date(currentDonation.donationDate).toLocaleDateString('vi-VN')}</Text>
                     </>
                   )}
+                  {/* Nếu bị từ chối ở bước này */}
+                  {(currentDonation.status && currentDonation.status.toLowerCase() === 'rejected') && (
+                    <div style={{ textAlign: 'center', marginTop: 16 }}>
+                      <a href="/member/blood-donation-register">
+                        <button
+                          style={{
+                            background: '#E91E63',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 6,
+                            padding: '8px 20px',
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            fontWeight: 500
+                          }}
+                          onClick={() => setViewStep(0)}
+                        >
+                          Đăng ký hiến máu lại
+                        </button>
+                      </a>
+                    </div>
+                  )}
                 </>
               )}
-              {/* Thông báo lịch khám sức khỏe & hiến máu nếu đã approved nhưng chưa có phiếu sức khỏe */}
-              {currentDonation.status && currentDonation.status.toLowerCase() === 'approved' && !currentDonation.healthCheckDate && currentDonation.donationDate && (
-                <div style={{ color: '#1976D2', fontWeight: 500, margin: '8px 0' }}>
-                  Bạn có lịch khám sức khỏe và hiến máu vào {new Date(currentDonation.donationDate).toLocaleDateString('vi-VN')}
-                </div>
-              )}
-              {/* Hiển thị ngày khám sức khỏe luôn luôn */}
-              {currentDonation.healthCheckDate && (
+              {viewStep === 1 && (
                 <>
-                  <Text>Ngày khám sức khỏe: {new Date(currentDonation.healthCheckDate).toLocaleDateString('vi-VN')}</Text>
+                  {/* Bước 2: Khám sức khỏe & Hiến máu */}
+                  {currentDonation.healthCheckDate ? (
+                    <>
+                      <Text>Ngày khám sức khỏe: {new Date(currentDonation.healthCheckDate).toLocaleDateString('vi-VN')}</Text>
+                      <br />
+                    </>
+                  ) : currentDonation.donationDate ? (
+                    <>
+                      <Text>Lịch Khám sức khỏe & Hiến máu: {new Date(currentDonation.donationDate).toLocaleDateString('vi-VN')}</Text>
+                      <br />
+                    </>
+                  ) : null}
+                  {/* Trạng thái khám sức khỏe */}
+                  <Text>Trạng thái khám sức khỏe: 
+                    <Tag color={
+                      currentDonation.healthCheckStatus === 'pending' ? 'orange' : 
+                      currentDonation.healthCheckStatus === 'approved' ? 'green' : 
+                      currentDonation.healthCheckStatus === 'rejected' ? 'red' : 'default'
+                    } style={{ marginLeft: 8 }}>
+                      {getHealthCheckStatusText(currentDonation.healthCheckStatus)}
+                    </Tag>
+                  </Text>
                   <br />
+                  {/* Nếu bị từ chối ở bước này */}
+                  {(currentDonation.healthCheckStatus && currentDonation.healthCheckStatus.toLowerCase() === 'rejected') && (
+                    <div style={{ textAlign: 'center', marginTop: 16 }}>
+                      <a href="/member/blood-donation-register">
+                        <button
+                          style={{
+                            background: '#E91E63',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 6,
+                            padding: '8px 20px',
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            fontWeight: 500
+                          }}
+                          onClick={() => setViewStep(0)}
+                        >
+                          Đăng ký hiến máu lại
+                        </button>
+                      </a>
+                    </div>
+                  )}
                 </>
               )}
-              {/* Hiển thị trạng thái khám sức khỏe luôn luôn */}
-              <Text>Trạng thái khám sức khỏe: 
-                <Tag color={
-                  currentDonation.healthCheckStatus === 'pending' ? 'orange' : 
-                  currentDonation.healthCheckStatus === 'approved' ? 'green' : 
-                  currentDonation.healthCheckStatus === 'rejected' ? 'red' : 'default'
-                } style={{ marginLeft: 8 }}>
-                  {currentDonation.healthCheckStatus === 'pending' ? 'Chờ xác nhận' : 
-                   currentDonation.healthCheckStatus === 'approved' ? 'Đã xác nhận' : 
-                   currentDonation.healthCheckStatus === 'rejected' ? 'Đã từ chối' : 
-                   currentDonation.healthCheckStatus === 'N/A' ? 'Chưa có' : currentDonation.healthCheckStatus}
-                </Tag>
-              </Text>
-              <br />
+              {viewStep === 2 && (
+                <>
+                  {/* Bước 3: Nhận certificate */}
+                  {currentDonation.donationDate && (
+                    <>
+                      <Text>Ngày hiến máu: {new Date(currentDonation.donationDate).toLocaleDateString('vi-VN')}</Text>
+                      <br />
+                    </>
+                  )}
+                  <Text>Trạng thái khám sức khỏe: 
+                    <Tag color={
+                      currentDonation.healthCheckStatus === 'pending' ? 'orange' : 
+                      currentDonation.healthCheckStatus === 'approved' ? 'green' : 
+                      currentDonation.healthCheckStatus === 'rejected' ? 'red' : 'default'
+                    } style={{ marginLeft: 8 }}>
+                      {getHealthCheckStatusText(currentDonation.healthCheckStatus)}
+                    </Tag>
+                  </Text>
+                  <br />
+                  {currentDonation.certificateId && (
+                    <div style={{ marginTop: 16, textAlign: 'center' }}>
+                      <Text strong style={{ fontSize: 16, color: '#1976D2' }}>
+                        Chúc mừng bạn đã nhận được chứng chỉ hiến máu!
+                      </Text>
+                      <div style={{ margin: '12px 0' }}>
+                        <span style={{ color: '#4CAF50', fontWeight: 500 }}>
+                          Cảm ơn bạn đã tham gia hiến máu và lan tỏa nghĩa cử cao đẹp!
+                        </span>
+                      </div>
+                      <a href="/member/certificate">
+                        <button
+                          style={{
+                            background: '#1976D2',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 6,
+                            padding: '8px 20px',
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            fontWeight: 500
+                          }}
+                          onClick={() => setViewStep(0)}
+                        >
+                          Xem Chứng chỉ & Giấy khen
+                        </button>
+                      </a>
+                    </div>
+                  )}
+                  {/* Nếu bị từ chối ở bước này */}
+                  {(currentDonation.status && currentDonation.status.toLowerCase() === 'rejected') || (currentDonation.healthCheckStatus && currentDonation.healthCheckStatus.toLowerCase() === 'rejected') ? (
+                    <div style={{ textAlign: 'center', marginTop: 16 }}>
+                      <a href="/member/blood-donation-register">
+                        <button
+                          style={{
+                            background: '#E91E63',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 6,
+                            padding: '8px 20px',
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            fontWeight: 500
+                          }}
+                          onClick={() => setViewStep(0)}
+                        >
+                          Đăng ký hiến máu lại
+                        </button>
+                      </a>
+                    </div>
+                  ) : null}
+                </>
+              )}
             </div>
           </div>
-        </Card>
-      ) : (
-        <Card style={{ marginBottom: 32 }}>
-          <Empty
-            description="Bạn chưa có đơn hiến máu nào đang xử lý"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
         </Card>
       )}
 
@@ -658,7 +794,27 @@ const BloodDonationProfile = () => {
             }}
           />
         ) : (
-          <Empty description="Chưa có lịch sử hiến máu" />
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <Empty description={null} />
+            <div style={{ marginTop: 16, fontSize: 16 }}>
+              Bạn chưa từng hiến máu. Hãy đăng ký hiến máu tại đây
+            </div>
+            <a href="/member/blood-donation-register">
+              <button style={{
+                marginTop: 16,
+                background: '#1976D2',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 6,
+                padding: '8px 20px',
+                fontSize: 16,
+                cursor: 'pointer',
+                fontWeight: 500
+              }}>
+                Đăng ký hiến máu
+              </button>
+            </a>
+          </div>
         )}
       </Card>
 
