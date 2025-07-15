@@ -63,9 +63,11 @@ class HealthCheckApi {
         currentMedications: healthCheckData.currentMedications,
         allergies: healthCheckData.allergies,
         healthCheckDate: healthCheckData.HealthCheck_Date, // API uses healthCheckDate
-        healthCheckStatus: healthCheckData.HealthCheck_Status || 'pending' // API uses healthCheckStatus
+        healthCheckStatus: healthCheckData.HealthCheck_Status || 'pending', // API uses healthCheckStatus
+        quantity: healthCheckData.quantity // THÊM TRƯỜNG QUANTITY
       };
 
+      console.log('API Data being sent:', apiData);
       const response = await fetch(`${API_BASE_URL}/HealthCheck`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -216,14 +218,23 @@ class HealthCheckApi {
         });
         
         if (userResponse.ok) {
-          const allUsers = await userResponse.json();
-          console.log('All users from API:', allUsers);
-          userInfo = allUsers.find(user => 
-            user.userIdCard === userIdCard || 
-            user.idCard === userIdCard ||
-            user.identityCard === userIdCard
-          );
-          console.log('User info found:', userInfo);
+          const userResponseData = await userResponse.json();
+          console.log('All users from API:', userResponseData);
+          
+          // Check if the response has a users array property
+          const allUsers = userResponseData.users || userResponseData;
+          
+          // Ensure allUsers is an array before using find
+          if (Array.isArray(allUsers)) {
+            userInfo = allUsers.find(user => 
+              user.userIdCard === userIdCard || 
+              user.idCard === userIdCard ||
+              user.identityCard === userIdCard
+            );
+            console.log('User info found:', userInfo);
+          } else {
+            console.log('allUsers is not an array:', allUsers);
+          }
         }
       } catch (userError) {
         console.log('Could not fetch user details:', userError);

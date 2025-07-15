@@ -34,6 +34,7 @@ import {
 } from '@ant-design/icons';
 import { healthCheckApi } from '../../services/healthCheckApi';
 import { mockHealthCheckApi } from '../../services/mockHealthCheckApi';
+import { bloodDonationApi } from '../../services/bloodDonationApi';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -54,6 +55,9 @@ const CreateHealthForms = () => {
   // Pending blood donations state
   const [pendingDonations, setPendingDonations] = useState([]);
   const [showPendingList, setShowPendingList] = useState(false);
+
+  // Thêm state lưu ngày hiến máu đã đăng ký
+  const [availableDonationDates, setAvailableDonationDates] = useState([]);
 
   const apiService = USE_MOCK_API ? mockHealthCheckApi : healthCheckApi;
 
@@ -139,7 +143,7 @@ const CreateHealthForms = () => {
     }
   };
 
-  // Search donor by ID card from blood donation requests
+  // Sửa handleSearchDonor để lấy ngày hiến máu đã đăng ký
   const handleSearchDonor = async (userIdCard) => {
     if (!userIdCard || userIdCard.length < 9) {
       setSelectedDonor(null);
@@ -231,43 +235,53 @@ const CreateHealthForms = () => {
         };
         
         setSelectedDonor(formattedDonor);
+        // Lấy danh sách ngày hiến máu đã đăng ký (approved)
+        console.log('Formatted donor:', formattedDonor);
         
-        // Auto-fill health check date with donation date if available
-        if (formattedDonor.donationDate) {
-          try {
-            // Try different date formats
-            let donationDate;
-            if (typeof formattedDonor.donationDate === 'string') {
-              // Handle different date string formats
-              if (formattedDonor.donationDate.includes('T')) {
-                // ISO format: "2024-01-01T00:00:00"
-                donationDate = dayjs(formattedDonor.donationDate);
-              } else if (formattedDonor.donationDate.includes('/')) {
-                // Date format: "01/01/2024"
-                donationDate = dayjs(formattedDonor.donationDate, 'DD/MM/YYYY');
-              } else {
-                // Standard format: "2024-01-01"
-                donationDate = dayjs(formattedDonor.donationDate);
-              }
-            } else {
-              // If it's already a Date object
-              donationDate = dayjs(formattedDonor.donationDate);
+        try {
+          // Thử lấy donations bằng donorID trước
+          let donations = [];
+          if (formattedDonor.donorID) {
+            try {
+              donations = await bloodDonationApi.getBloodDonationsByDonor(formattedDonor.donorID);
+              console.log('Donations for donor ID:', formattedDonor.donorID, donations);
+            } catch (e) {
+              console.log('Could not fetch by donorID, trying all donations...');
             }
-            
-            if (donationDate.isValid()) {
-              form.setFieldsValue({ HealthCheck_Date: donationDate });
-            } else {
-              // Set to today if date is invalid
-              form.setFieldsValue({ HealthCheck_Date: dayjs() });
-            }
-          } catch (dateError) {
-            console.log('Could not parse donation date:', formattedDonor.donationDate, dateError);
-            // Set to today if donation date is invalid
-            form.setFieldsValue({ HealthCheck_Date: dayjs() });
           }
-        } else {
-          // Set to today if no donation date
-          form.setFieldsValue({ HealthCheck_Date: dayjs() });
+          
+          // Nếu không có donations, thử lấy tất cả và filter theo userIdCard
+          if (!donations || donations.length === 0) {
+            try {
+              const allDonations = await bloodDonationApi.getAllBloodDonations();
+              console.log('All donations:', allDonations);
+              donations = (allDonations || []).filter(d => 
+                d.userIdCard === formattedDonor.userIdCard || 
+                d.donorIdCard === formattedDonor.userIdCard
+              );
+              console.log('Filtered donations by userIdCard:', donations);
+            } catch (e) {
+              console.error('Error fetching all donations:', e);
+            }
+          }
+          
+          const approvedDates = (donations || [])
+            .filter(d => d.status && (d.status.toLowerCase() === 'approved' || d.status.toLowerCase() === 'đã duyệt'))
+            .map(d => d.donationDate)
+            .filter(Boolean);
+          console.log('Approved Dates:', approvedDates);
+          setAvailableDonationDates(approvedDates);
+          
+          if (approvedDates.length === 0) {
+            message.error('Người này chưa đăng ký hiến máu hoặc chưa có đơn hiến máu nào được duyệt.');
+            form.setFieldsValue({ HealthCheck_Date: undefined });
+          } else {
+            // Nếu có ngày, tự động chọn ngày gần nhất (dạng string)
+            form.setFieldsValue({ HealthCheck_Date: dayjs(approvedDates[0]).format('YYYY-MM-DD') });
+          }
+        } catch (e) {
+          console.error('Error fetching donations:', e);
+          setAvailableDonationDates([]);
         }
         
         message.success({
@@ -318,7 +332,14 @@ const CreateHealthForms = () => {
   const handlePreview = () => {
     form.validateFields()
       .then((values) => {
-        setPreviewData(values);
+        // Đảm bảo HealthCheck_Date được format đúng cho preview
+        const previewValues = {
+          ...values,
+          HealthCheck_Date: typeof values.HealthCheck_Date === 'string' ? 
+            values.HealthCheck_Date : 
+            values.HealthCheck_Date?.format('YYYY-MM-DD')
+        };
+        setPreviewData(previewValues);
         setPreviewVisible(true);
       })
       .catch((errorInfo) => {
@@ -329,6 +350,31 @@ const CreateHealthForms = () => {
   const handleSubmit = async (values) => {
     if (!selectedDonor) {
       message.error('Vui lòng tìm kiếm thông tin người hiến máu trước khi tạo phiếu');
+      return;
+    }
+
+    // Kiểm tra điều kiện ngày hiến máu phải bằng với ngày của blood donation
+    const selectedDate = typeof values.HealthCheck_Date === 'string' ? 
+      values.HealthCheck_Date : 
+      values.HealthCheck_Date?.format('YYYY-MM-DD');
+    const hasMatchingDonation = availableDonationDates.some(date => {
+      const donationDate = dayjs(date).format('YYYY-MM-DD');
+      return donationDate === selectedDate;
+    });
+
+    if (!hasMatchingDonation) {
+      message.error({
+        content: (
+          <div>
+            <div><strong>Ngày kiểm tra sức khỏe không khớp với ngày hiến máu</strong></div>
+            <div style={{ fontSize: '12px', marginTop: '4px', color: '#666' }}>
+              Ngày kiểm tra: {selectedDate} không khớp với bất kỳ ngày hiến máu đã được duyệt nào.
+              Chỉ có thể cập nhật quantity khi ngày kiểm tra sức khỏe trùng với ngày hiến máu.
+            </div>
+          </div>
+        ),
+        duration: 6
+      });
       return;
     }
 
@@ -346,9 +392,12 @@ const CreateHealthForms = () => {
         medicalHistory: values.medicalHistory,
         currentMedications: values.currentMedications,
         allergies: values.allergies,
-        HealthCheck_Date: values.HealthCheck_Date.format('YYYY-MM-DD'), // Sẽ được transform thành healthCheckDate
-        HealthCheck_Status: 'pending' // Sẽ được transform thành healthCheckStatus
+        HealthCheck_Date: selectedDate, // Sử dụng selectedDate đã format
+        HealthCheck_Status: 'pending', // Sẽ được transform thành healthCheckStatus
+        quantity: values.quantity // BỔ SUNG DÒNG NÀY
       };
+      console.log('Payload gửi lên API:', healthCheckData);
+      console.log('Ngày kiểm tra khớp với blood donation:', selectedDate);
       
       // Try to call API to create health check
       try {
@@ -573,11 +622,23 @@ const CreateHealthForms = () => {
                     label="Ngày kiểm tra sức khỏe"
                     rules={[{ required: true, message: 'Vui lòng chọn ngày kiểm tra' }]}
                   >
-                    <DatePicker 
-                      style={{ width: '100%' }} 
-                      placeholder="Chọn ngày kiểm tra"
-                      format="YYYY-MM-DD"
-                    />
+                    <Select
+                      placeholder={availableDonationDates.length === 0 ? 'Không có ngày hiến máu hợp lệ' : 'Chọn ngày hiến máu đã đăng ký'}
+                      disabled={availableDonationDates.length === 0}
+                      showSearch
+                      optionFilterProp="children"
+                      value={form.getFieldValue('HealthCheck_Date')}
+                      onChange={value => form.setFieldsValue({ HealthCheck_Date: value })}
+                    >
+                      {availableDonationDates.map(date => {
+                        const dateStr = dayjs(date).format('YYYY-MM-DD');
+                        return (
+                          <Select.Option key={dateStr} value={dateStr}>
+                            {dateStr}
+                          </Select.Option>
+                        );
+                      })}
+                    </Select>
                   </Form.Item>
                 </Col>
               </Row>
@@ -715,6 +776,28 @@ const CreateHealthForms = () => {
                 </Col>
               </Row>
 
+              {/* Trường lượng máu có thể hiến */}
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="quantity"
+                    label="Lượng máu có thể hiến (ml)"
+                    rules={[
+                      { required: true, message: 'Vui lòng nhập lượng máu có thể hiến' },
+                      { type: 'number', min: 100, max: 1000, message: 'Lượng máu phải từ 100 đến 1000 ml' }
+                    ]}
+                  >
+                    <InputNumber
+                      style={{ width: '100%' }}
+                      placeholder="Nhập lượng máu (ml)"
+                      min={100}
+                      max={1000}
+                      step={50}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+
               <Divider />
 
               {/* Thông tin y tế */}
@@ -799,7 +882,14 @@ const CreateHealthForms = () => {
             <Title level={4}>Thông tin người hiến máu</Title>
             <Row gutter={16}>
               <Col span={12}><Text strong>CCCD/CMND:</Text> {previewData.userIdCard}</Col>
-              <Col span={12}><Text strong>Ngày kiểm tra:</Text> {previewData.HealthCheck_Date?.format('DD/MM/YYYY')}</Col>
+              <Col span={12}><Text strong>Ngày kiểm tra:</Text> {
+                previewData.HealthCheck_Date ? 
+                  (typeof previewData.HealthCheck_Date === 'string' ? 
+                    dayjs(previewData.HealthCheck_Date).format('DD/MM/YYYY') : 
+                    previewData.HealthCheck_Date.format('DD/MM/YYYY')
+                  ) : 
+                  'N/A'
+              }</Col>
             </Row>
             {selectedDonor && (
               <Row gutter={16} style={{ marginTop: '8px' }}>
@@ -819,6 +909,11 @@ const CreateHealthForms = () => {
             <Row gutter={16} style={{ marginTop: '8px' }}>
               <Col span={12}><Text strong>Nhịp tim:</Text> {previewData.heartRate} lần/phút</Col>
               <Col span={12}><Text strong>Nhiệt độ:</Text> {previewData.temperature}°C</Col>
+            </Row>
+
+            {/* Hiển thị lượng máu có thể hiến */}
+            <Row gutter={16} style={{ marginTop: '8px' }}>
+              <Col span={12}><Text strong>Lượng máu có thể hiến:</Text> {previewData.quantity} ml</Col>
             </Row>
 
             <Divider />
