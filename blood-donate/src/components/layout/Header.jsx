@@ -618,7 +618,7 @@ import {
                   fontWeight: "700",
                 }}
               >
-                BloodDonate
+                Blood Donation
               </span>
             </Link>
           </div>
@@ -728,20 +728,12 @@ import {
                           }
                         ]
                       }, {
-                        type: 'submenu',
                         key: 'health-forms',
                         icon: <HeartOutlined style={{ color: healthThemeColors.accent }} />,
                         label: 'Phiếu sức khỏe',
-                        children: [
-                          {
-                            key: 'create-health-forms',
-                            icon: <MedicineBoxOutlined style={{ color: healthThemeColors.primary }} />,
-                            label: 'Tạo phiếu',
-                            onClick: () => {
-                              navigate(createRoleBasedPath('/create-health-forms', currentRole));
-                            }
-                          }
-                        ]                      }, {                        key: 'blood-inventory',
+                        onClick: () => { navigate(createRoleBasedPath('/create-health-forms', currentRole)); }
+                      }, {
+                        key: 'blood-inventory',
                         icon: <MedicineBoxOutlined style={{ color: healthThemeColors.success }} />,
                         label: 'Quản lý kho máu',
                         onClick: () => {
@@ -974,7 +966,7 @@ import {
                   fontSize: "18px",
                 }}
               >
-                BloodDonate
+                Blood Donation
               </span>
             </div>
           }

@@ -73,10 +73,10 @@ export const donationHistoryApi = {
     }
   },
 
-  // GET /api/DonationHistory/donor/{donorId} - Lấy lịch sử hiến máu theo donor
+  // GET /api/DonationHistory?donorId={donorId} - Lấy lịch sử hiến máu theo donor
   getDonationHistoryByDonor: async (donorId) => {
     try {
-      const response = await fetch(`${BASE_URL}/DonationHistory/donor/${donorId}`, {
+      const response = await fetch(`${BASE_URL}/DonationHistory?donorId=${donorId}`, {
         method: 'GET',
         headers: getAuthHeaders()
       });

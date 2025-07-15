@@ -332,19 +332,48 @@
 
 /* Confirmation step styles */
 .confirmation-content {
-  padding: 20px;
+  max-width: 650px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(25, 118, 210, 0.07);
+  padding: 32px 24px 24px 24px;
 }
 
 .confirm-item {
-  padding: 12px;
-  background: #f8f9fa;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+  font-size: 16px;
+  background: #f8fafc;
   border-radius: 8px;
-  margin-bottom: 16px;
-  border-left: 4px solid #1976D2;
+  padding: 12px 18px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.04);
 }
-
+.confirm-item strong {
+  min-width: 140px;
+  display: inline-block;
+  color: #1976D2;
+  font-weight: 600;
+  font-size: 16px;
+}
 .confirm-item .ant-typography {
-  margin-bottom: 4px;
+  color: #222;
+  font-size: 16px;
+  font-weight: 500;
+}
+.confirm-item .ant-tag {
+  font-size: 15px;
+  padding: 2px 14px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.confirm-item .ant-tag:hover {
+  background: #ffb3b3;
+  color: #b71c1c;
 }
 
 .confirmation-content .ant-divider-horizontal.ant-divider-with-text::before,
@@ -355,6 +384,18 @@
 .confirmation-content .ant-divider-horizontal.ant-divider-with-text.ant-divider-with-text-left .ant-divider-inner-text {
   color: #1976D2;
   font-weight: 600;
+}
+
+.confirm-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px 0 18px 0;
+}
+
+.confirm-alert {
+  margin: 0 auto 18px auto;
+  max-width: 600px;
 }
 
 /* Responsive Design */
@@ -399,6 +440,21 @@
 
   .info-cards .ant-col {
     margin-bottom: 20px;
+  }
+
+  .confirmation-content {
+    padding: 18px 4px 12px 4px;
+    max-width: 100%;
+  }
+  .confirm-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 8px;
+    font-size: 15px;
+  }
+  .confirm-item strong {
+    min-width: unset;
+    font-size: 15px;
   }
 }
 

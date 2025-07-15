@@ -58,6 +58,7 @@ import {
   isValidDonorID
 } from '../../services/userManagementApi';
 import { donorApi } from '../../services/donorApi';
+import { donationHistoryApi } from '../../services/donationHistoryApi';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -81,6 +82,10 @@ const UserManagement = () => {
   const [currentUserRole, setCurrentUserRole] = useState(null);
   const [canEdit, setCanEdit] = useState(false);
 
+  // Add state for donation history
+  const [donationHistory, setDonationHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   // Kiểm tra quyền khi component mount
   useEffect(() => {
     const role = getCurrentUserRole();
@@ -93,6 +98,25 @@ const UserManagement = () => {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // Fetch donation history when viewingUser changes and has donorID
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (viewingUser && viewingUser.donorID) {
+        setLoadingHistory(true);
+        try {
+          const history = await donationHistoryApi.getDonationHistoryByDonor(viewingUser.donorID);
+          setDonationHistory(Array.isArray(history) ? history : []);
+        } catch (e) {
+          setDonationHistory([]);
+        }
+        setLoadingHistory(false);
+      } else {
+        setDonationHistory([]);
+      }
+    };
+    fetchHistory();
+  }, [viewingUser]);
 
   // Hàm hiển thị thông báo
   const showMessage = (message, type = 'success') => {
@@ -945,24 +969,36 @@ const UserManagement = () => {
                               <Card.Header className="bg-light">
                                 <h6 className="mb-0 text-info">
                                   <FaCalendarAlt className="me-2" />
-                                  Lịch trình hiến máu
+                                  Lịch sử hiến máu
                                 </h6>
                               </Card.Header>
                               <Card.Body>
-                                <div className="info-item mb-3">
-                                  <strong>
-                                    <FaCalendarAlt className="me-2" />
-                                    Lần hiến máu cuối (lastDonationDate):
-                                  </strong>
-                                  <span className="ms-2">{viewingUser.lastDonationDate || 'Chưa hiến máu lần nào'}</span>
-                                </div>
-                                <div className="info-item mb-3">
-                                  <strong>
-                                    <FaCalendarAlt className="me-2" />
-                                    Có thể hiến tiếp theo (nextEligibleDate):
-                                  </strong>
-                                  <span className="ms-2">{viewingUser.nextEligibleDate || 'Có thể hiến ngay'}</span>
-                                </div>
+                                {loadingHistory ? (
+                                  <div className="text-center"><Spinner animation="border" size="sm" /> Đang tải...</div>
+                                ) : donationHistory.length > 0 ? (
+                                  <Table striped bordered hover size="sm">
+                                    <thead>
+                                      <tr>
+                                        <th>Ngày hiến</th>
+                                        <th>Số lượng (ml)</th>
+                                        <th>Địa điểm</th>
+                                        <th>Ghi chú</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {donationHistory.map((item, idx) => (
+                                        <tr key={item.id || `${item.donationDate || 'nodate'}-${item.quantity || 'noqty'}-${idx}`}>
+                                          <td>{item.donationDate ? new Date(item.donationDate).toLocaleDateString() : ''}</td>
+                                          <td>{item.quantity || ''}</td>
+                                          <td>{item.location || ''}</td>
+                                          <td>{item.notes || ''}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </Table>
+                                ) : (
+                                  <div className="text-muted">Chưa có lịch sử hiến máu</div>
+                                )}
                               </Card.Body>
                             </Card>
                           </Col>
@@ -972,11 +1008,7 @@ const UserManagement = () => {
                       // Hiển thị thông báo nếu chưa có hồ sơ hiến máu
                       <div className="text-center p-5">
                         <FaInfoCircle className="text-warning mb-3" size={48} />
-                        <h4 className="text-warning mb-3">Người dùng chưa đăng ký hiến máu</h4>
-                        <p className="text-muted">
-                          Người dùng này chưa có hồ sơ hiến máu trong hệ thống. 
-                          Hồ sơ hiến máu sẽ được tạo tự động khi người dùng thực hiện đăng ký hiến máu lần đầu.
-                        </p>
+                        <h4 className="text-warning mb-3">Người dùng chưa có hồ sơ hiến máu</h4>
                       </div>
                     )}
                   </div>
@@ -1186,35 +1218,36 @@ const UserManagement = () => {
                         <Card.Header className="bg-light">
                           <h6 className="mb-0 text-info">
                             <FaCalendarAlt className="me-2" />
-                            Lịch trình hiến máu
+                            Lịch sử hiến máu
                           </h6>
                         </Card.Header>
                         <Card.Body>
-                          <Row>
-                            <Col md={6}>
-                              <Form.Group className="mb-3">
-                                <Form.Label>Lần hiến máu cuối (lastDonationDate)</Form.Label>
-                                <Form.Control
-                                  type="date"
-                                  name="lastDonationDate"
-                                  defaultValue={editingUser.lastDonationDate || ''}
-                                />
-                              </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                              <Form.Group className="mb-3">
-                                <Form.Label>Có thể hiến tiếp theo (nextEligibleDate)</Form.Label>
-                                <Form.Control
-                                  type="date"
-                                  name="nextEligibleDate"
-                                  defaultValue={editingUser.nextEligibleDate || ''}
-                                />
-                                <Form.Text className="text-muted">
-                                  Thường là 12 tuần sau lần hiến cuối
-                                </Form.Text>
-                              </Form.Group>
-                            </Col>
-                          </Row>
+                          {loadingHistory ? (
+                            <div className="text-center"><Spinner animation="border" size="sm" /> Đang tải...</div>
+                          ) : donationHistory.length > 0 ? (
+                            <Table striped bordered hover size="sm">
+                              <thead>
+                                <tr>
+                                  <th>Ngày hiến</th>
+                                  <th>Số lượng (ml)</th>
+                                  <th>Địa điểm</th>
+                                  <th>Ghi chú</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {donationHistory.map((item, idx) => (
+                                  <tr key={item.id || idx}>
+                                    <td>{item.donationDate ? new Date(item.donationDate).toLocaleDateString() : ''}</td>
+                                    <td>{item.quantity || ''}</td>
+                                    <td>{item.location || ''}</td>
+                                    <td>{item.notes || ''}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                          ) : (
+                            <div className="text-muted">Chưa có lịch sử hiến máu</div>
+                          )}
                         </Card.Body>
                       </Card>
                       
@@ -1243,22 +1276,7 @@ const UserManagement = () => {
                         // Hiển thị thông báo nếu chưa có hồ sơ hiến máu
                         <div className="text-center p-5">
                           <FaInfoCircle className="text-warning mb-3" size={48} />
-                          <h4 className="text-warning mb-3">Member chưa có hồ sơ hiến máu</h4>
-                          <p className="text-muted mb-3">
-                            Người dùng này chưa có hồ sơ hiến máu trong hệ thống. 
-                            Staff không thể tạo mới hồ sơ hiến máu cho member.
-                          </p>
-                          <Alert variant="info" className="text-start">
-                            <h6 className="mb-1">
-                              <FaInfoCircle className="me-2" />
-                              Hướng dẫn
-                            </h6>
-                            <small>
-                              • Hồ sơ hiến máu sẽ được tạo tự động khi member thực hiện đăng ký hiến máu lần đầu<br/>
-                              • Staff chỉ có thể chỉnh sửa hồ sơ hiến máu đã tồn tại<br/>
-                              • Liên hệ member để họ tự đăng ký hiến máu qua hệ thống
-                            </small>
-                          </Alert>
+                          <h4 className="text-warning mb-3">Người dùng chưa có hồ sơ hiến máu</h4>
                         </div>
                       )}
                     </div>

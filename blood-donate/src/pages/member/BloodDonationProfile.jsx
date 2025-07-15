@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Steps, Typography, Table, Tag, Empty, Spin, Alert } from 'antd';
+import { Card, Steps, Typography, Table, Tag, Empty, Spin, Alert, Row, Col, Avatar, Statistic, Divider, List } from 'antd';
 import { 
   FileTextOutlined, 
   SolutionOutlined, 
@@ -35,6 +35,7 @@ const getAuthHeaders = () => {
   return headers;
 };
 import { useLocation } from 'react-router-dom';
+import './BloodDonationProfile.css';
 
 const { Title, Text } = Typography;
 
@@ -451,7 +452,7 @@ const BloodDonationProfile = () => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 50 }}>
+      <div className="profile-loading">
         <Spin size="large" />
         <div style={{ marginTop: 16 }}>Đang tải thông tin hiến máu...</div>
       </div>
@@ -460,7 +461,7 @@ const BloodDonationProfile = () => {
 
   if (!userId) {
     return (
-      <div style={{ padding: 24 }}>
+      <div className="profile-alert">
         <Alert
           message="Vui lòng đăng nhập"
           description="Bạn cần đăng nhập để xem hồ sơ hiến máu."
@@ -471,23 +472,36 @@ const BloodDonationProfile = () => {
     );
   }
 
-  return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <Title level={2}>
-          <HeartOutlined style={{ marginRight: 8, color: '#1890ff' }} />
-          Hồ sơ hiến máu
-        </Title>
-        <Text type="secondary">
-          <UserOutlined style={{ marginRight: 4 }} />
-          {username}
-        </Text>
-      </div>
+  // Tổng số lần hiến và tổng lượng máu
+  const totalDonations = donationHistory.length;
+  const totalQuantity = donationHistory.reduce((sum, d) => sum + (parseInt(d.quantity) || 0), 0);
+  const bloodType = (donationHistory[0]?.bloodType || currentDonation?.bloodType || 'N/A');
 
-      {/* Current Donation Process */}
+  return (
+    <div className="profile-container">
+      {/* Card thông tin cá nhân */}
+      <Card className="profile-card" bordered={false}>
+        <Row gutter={[24, 24]} align="middle">
+          <Col xs={24} md={6} className="profile-avatar-col">
+            <Avatar size={100} icon={<UserOutlined />} style={{ background: '#1976D2' }} />
+          </Col>
+          <Col xs={24} md={18} className="profile-info-col">
+            <Title level={3} style={{ marginBottom: 0 }}>{username}</Title>
+            <div style={{ margin: '8px 0' }}>
+              <Tag color="red" style={{ fontSize: 16 }}>{bloodType}</Tag>
+            </div>
+            <Row gutter={16}>
+              <Col span={8}><Statistic title="Tổng số lần hiến" value={totalDonations} prefix={<HeartOutlined />} /></Col>
+              <Col span={8}><Statistic title="Tổng lượng máu (ml)" value={totalQuantity} /></Col>
+              <Col span={8}><Statistic title="Trạng thái" value={currentDonation?.status || 'N/A'} prefix={<CheckCircleOutlined />} /></Col>
+            </Row>
+          </Col>
+        </Row>
+      </Card>
+      <Divider />
+      {/* Quy trình hiến máu hiện tại */}
       {currentDonation && (
-        <Card style={{ marginBottom: 32 }}>
+        <Card className="profile-process-card" style={{ marginBottom: 32 }}>
           <div style={{ marginBottom: 16 }}>
             <Title level={4}>
               <FileTextOutlined style={{ marginRight: 8 }} />
@@ -745,7 +759,7 @@ const BloodDonationProfile = () => {
                           }}
                           onClick={() => setViewStep(0)}
                         >
-                          Xem Chứng chỉ & Giấy khen
+                          Xem Chứng nhận đăng ký hiến máu
                         </button>
                       </a>
                     </div>
@@ -778,9 +792,8 @@ const BloodDonationProfile = () => {
           </div>
         </Card>
       )}
-
-      {/* Donation History */}
-      <Card title="Lịch sử hiến máu">
+      {/* Lịch sử hiến máu */}
+      <Card className="profile-history-card" title="Lịch sử hiến máu">
         {donationHistory.length > 0 ? (
           <Table
             columns={columns}
@@ -794,33 +807,22 @@ const BloodDonationProfile = () => {
             }}
           />
         ) : (
-          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+          <div className="profile-empty-history">
             <Empty description={null} />
             <div style={{ marginTop: 16, fontSize: 16 }}>
               Bạn chưa từng hiến máu. Hãy đăng ký hiến máu tại đây
             </div>
             <a href="/member/blood-donation-register">
-              <button style={{
-                marginTop: 16,
-                background: '#1976D2',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                padding: '8px 20px',
-                fontSize: 16,
-                cursor: 'pointer',
-                fontWeight: 500
-              }}>
+              <button className="profile-register-btn">
                 Đăng ký hiến máu
               </button>
             </a>
           </div>
         )}
       </Card>
-
       {/* No Donations Message */}
       {donations.length === 0 && (
-        <Card>
+        <Card className="profile-no-donation">
           <Empty
             description="Bạn chưa có đơn hiến máu nào"
             image={Empty.PRESENTED_IMAGE_SIMPLE}

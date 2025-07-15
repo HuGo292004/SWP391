@@ -610,68 +610,35 @@ const BloodDonationRegistration = () => {
                       <Col span={12}>
                         <div className="confirm-item">
                           <Text strong>Họ và tên:</Text>
-                          <br />
                           <Text>{userInfo.fullName || 'Chưa cập nhật'}</Text>
                         </div>
                       </Col>
                       <Col span={12}>
                         <div className="confirm-item">
-                          <Text strong>Tên đăng nhập:</Text>
-                          <br />
-                          <Text>{userInfo.username || 'Chưa cập nhật'}</Text>
-                        </div>
-                      </Col>
-                      <Col span={12}>
-                        <div className="confirm-item">
                           <Text strong>Email:</Text>
-                          <br />
                           <Text>{userInfo.email || 'Chưa cập nhật'}</Text>
                         </div>
                       </Col>
                       <Col span={12}>
                         <div className="confirm-item">
                           <Text strong>Số điện thoại:</Text>
-                          <br />
                           <Text>{userInfo.phone || 'Chưa cập nhật'}</Text>
                         </div>
                       </Col>
                       <Col span={12}>
                         <div className="confirm-item">
                           <Text strong>Số CMND/CCCD:</Text>
-                          <br />
                           <Text>{userInfo.userIdCard || 'Chưa cập nhật'}</Text>
                         </div>
                       </Col>
                       <Col span={12}>
                         <div className="confirm-item">
                           <Text strong>Ngày sinh:</Text>
-                          <br />
                           <Text>
                             {userInfo.dateOfBirth 
                               ? dayjs(userInfo.dateOfBirth).format('DD/MM/YYYY')
                               : 'Chưa cập nhật'
                             }
-                          </Text>
-                        </div>
-                      </Col>
-                      <Col span={12}>
-                        <div className="confirm-item">
-                          <Text strong>Vai trò:</Text>
-                          <br />
-                          <Tag color="blue">
-                            {userInfo.role === 'Member' ? 'Thành viên' : 
-                             userInfo.role === 'Staff' ? 'Nhân viên' :
-                             userInfo.role === 'Admin' ? 'Quản trị viên' :
-                             userInfo.role || 'Chưa xác định'}
-                          </Tag>
-                        </div>
-                      </Col>
-                      <Col span={12}>
-                        <div className="confirm-item">
-                          <Text strong>Mã người dùng:</Text>
-                          <br />
-                          <Text style={{ fontSize: '12px', color: '#666' }}>
-                            {userInfo.userId || 'Chưa có'}
                           </Text>
                         </div>
                       </Col>
@@ -691,7 +658,6 @@ const BloodDonationRegistration = () => {
                     <Col span={12}>
                       <div className="confirm-item">
                         <Text strong>Ngày hiến máu mong muốn:</Text>
-                        <br />
                         <Text>
                           {formData.donationDate 
                             ? formData.donationDate.format('DD/MM/YYYY')
@@ -703,7 +669,6 @@ const BloodDonationRegistration = () => {
                     <Col span={12}>
                       <div className="confirm-item">
                         <Text strong>Nhóm máu:</Text>
-                        <br />
                         <Text>
                           {(() => {
                             const selectedBloodTypeID = formData.bloodTypeID;
@@ -730,7 +695,6 @@ const BloodDonationRegistration = () => {
                     <Col span={24}>
                       <div className="confirm-item">
                         <Text strong>Địa chỉ:</Text>
-                        <br />
                         <Text>{formData.address || 'Chưa điền'}</Text>
                       </div>
                     </Col>
@@ -740,7 +704,6 @@ const BloodDonationRegistration = () => {
                     <Col span={24}>
                       <div className="confirm-item">
                         <Text strong>Thuốc đang sử dụng:</Text>
-                        <br />
                         <Text>{formData.currentMedications || 'Chưa điền'}</Text>
                       </div>
                     </Col>
@@ -751,7 +714,6 @@ const BloodDonationRegistration = () => {
                       <Col span={24}>
                         <div className="confirm-item">
                           <Text strong>Ghi chú:</Text>
-                          <br />
                           <Text>{formData.notes}</Text>
                         </div>
                       </Col>
@@ -763,7 +725,6 @@ const BloodDonationRegistration = () => {
                       <Col span={24}>
                         <div className="confirm-item">
                           <Text strong>Mã hỗ trợ khẩn cấp:</Text>
-                          <br />
                           <Text>{formData.requestID}</Text>
                         </div>
                       </Col>
@@ -777,17 +738,13 @@ const BloodDonationRegistration = () => {
                       checked={agreement}
                       onChange={(e) => setAgreement(e.target.checked)}
                     >
-                      <Text>
-                        Tôi đồng ý với{' '}
-                        <a href="#terms" target="_blank">điều khoản hiến máu</a> và{' '}
-                        <a href="#privacy" target="_blank">chính sách bảo mật</a>
-                      </Text>
+                      <Text>Xác nhận đơn đăng ký</Text>
                     </Checkbox>
                   </div>
 
                   <Alert
                     message="Lưu ý quan trọng"
-                    description="Sau khi đăng ký thành công, bạn sẽ nhận được thông báo xác nhận qua email/SMS. Vui lòng đến đúng thời gian đã đăng ký và mang theo CMND/CCCD."
+                    description="Sau khi đăng ký thành công, vui lòng vào hồ sơ hiến máu để cập nhật thông báo mới nhất về tình trạng đơn đăng ký và lịch hiến máu của bạn."
                     type="info"
                     showIcon
                   />
