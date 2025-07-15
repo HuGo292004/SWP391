@@ -121,6 +121,7 @@ const Certificate = () => {
         donorId: c.donorId,
         userId: c.userId,
         status: 'issued',
+        volume: c.quantity,
       }));
       // Lọc chỉ giữ certificate của user hiện tại
       let filtered = mapped;

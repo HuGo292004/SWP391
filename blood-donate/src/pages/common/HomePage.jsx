@@ -500,16 +500,18 @@ const HomePage = () => {
                 </p>
                 
                 <div className="hero-banner-buttons-new">
-                  <Button 
-                    variant="danger" 
-                    size="lg" 
-                    as={Link} 
-                    to={createRoleBasedPath("/blood-donation-register", userRole)}
-                    className="hero-cta-btn-new me-3 mb-3"
-                  >
-                    <HeartOutlined className="me-2" />
-                    Đăng Ký Hiến Máu
-                  </Button>
+                  {userRole !== 'staff' && (
+                    <Button 
+                      variant="danger" 
+                      size="lg" 
+                      as={Link} 
+                      to={createRoleBasedPath("/blood-donation-register", userRole)}
+                      className="hero-cta-btn-new me-3 mb-3"
+                    >
+                      <HeartOutlined className="me-2" />
+                      Đăng Ký Hiến Máu
+                    </Button>
+                  )}
                     <Button 
                     variant="light" 
                     size="lg" 

@@ -41,6 +41,7 @@ import {
 } from 'react-icons/fa';
 import { bloodDonationApi } from '../../services/bloodDonationApi';
 import { healthCheckApi } from '../../services/healthCheckApi';
+import { useNavigate } from 'react-router-dom';
 
 import '../../styles/pages.css';
 
@@ -61,6 +62,8 @@ const ApproveDonationRequests = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [showAlert, setShowAlert] = useState({ show: false, message: '', type: 'success' });
   const [authStatus, setAuthStatus] = useState({ isValid: true, message: '' });
+
+  const navigate = useNavigate();
 
   // Check authentication status
   const checkAuthStatus = () => {
@@ -991,8 +994,7 @@ const ApproveDonationRequests = () => {
                                       variant="outline-primary"
                                       size="sm"
                                       onClick={() => {
-                                        // TODO: Implement create health form functionality
-                                        showMessage('Chức năng tạo phiếu sức khỏe sẽ được phát triển sau', 'info');
+                                        navigate('/staff/create-health-forms', { state: { donorId: request.requesterId } });
                                       }}
                                     >
                                       <FaClipboardList />
@@ -1339,8 +1341,7 @@ const ApproveDonationRequests = () => {
                 <Button 
                   variant="primary"
                   onClick={() => {
-                    // TODO: Implement create health form functionality
-                    showMessage('Chức năng tạo phiếu sức khỏe sẽ được phát triển sau', 'info');
+                    navigate('/staff/create-health-forms', { state: { donorId: selectedRequest.requesterId } });
                   }}
                 >
                   <FaClipboardList className="me-2" />
