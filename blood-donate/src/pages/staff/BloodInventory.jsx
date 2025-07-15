@@ -40,6 +40,18 @@ import { bloodManagementApi } from '../../services/bloodManagementApi';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
+// Map bloodTypeID (UUID) to bloodTypeName and description
+const bloodTypeMap = {
+  '11111111-1111-1111-1111-111111111001': { name: 'A+', description: 'Nhóm máu A Rh dương' },
+  '11111111-1111-1111-1111-111111111002': { name: 'A-', description: 'Nhóm máu A Rh âm' },
+  '11111111-1111-1111-1111-111111111003': { name: 'B+', description: 'Nhóm máu B Rh dương' },
+  '11111111-1111-1111-1111-111111111004': { name: 'B-', description: 'Nhóm máu B Rh âm' },
+  '11111111-1111-1111-1111-111111111005': { name: 'AB+', description: 'Nhóm máu AB Rh dương' },
+  '11111111-1111-1111-1111-111111111006': { name: 'AB-', description: 'Nhóm máu AB Rh âm' },
+  '11111111-1111-1111-1111-111111111007': { name: 'O+', description: 'Nhóm máu O Rh dương' },
+  '11111111-1111-1111-1111-111111111008': { name: 'O-', description: 'Nhóm máu O Rh âm' }
+};
+
 const BloodInventory = () => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -73,21 +85,19 @@ const BloodInventory = () => {
       }
       
       // Map response data to include derived fields for display
-      const formattedUnits = response.map(unit => {
-        // Map bloodTypeID to bloodTypeName
-        const bloodTypeMap = {
-          1: 'A+', 2: 'A-', 3: 'B+', 4: 'B-',
-          5: 'O+', 6: 'O-', 7: 'AB+', 8: 'AB-'
-        };
-        
+      const formattedUnits = response.map((unit, idx) => {
+        const bloodType = bloodTypeMap[unit.bloodTypeId] || { name: `ID-${unit.bloodTypeId}`, description: '' };
         return {
           ...unit,
-          bloodTypeName: bloodTypeMap[unit.bloodTypeID] || `ID-${unit.bloodTypeID}`,
-          // Add default values if not provided by API
+          bloodTypeName: bloodType.name,
+          bloodTypeDescription: bloodType.description,
           donorName: unit.donorName || 'Không có thông tin',
           donationDate: unit.donationDate || unit.createdDate || new Date().toISOString().split('T')[0],
           location: unit.location || 'Không xác định',
-          createdDate: unit.createdDate || new Date().toISOString().split('T')[0]
+          createdDate: unit.createdDate || new Date().toISOString().split('T')[0],
+          uniqueKey: unit.unitId || (unit.donationId && unit.bloodTypeId && unit.componentType
+            ? `${unit.donationId}-${unit.bloodTypeId}-${unit.componentType}`
+            : `row-${idx}`)
         };
       });
       
@@ -119,14 +129,14 @@ const BloodInventory = () => {
       console.error('Error loading blood types:', error);
       // Set default blood types if API fails
       setBloodTypes([
-        { bloodTypeId: 1, aboType: 'A', rhFactor: '+' },
-        { bloodTypeId: 2, aboType: 'A', rhFactor: '-' },
-        { bloodTypeId: 3, aboType: 'B', rhFactor: '+' },
-        { bloodTypeId: 4, aboType: 'B', rhFactor: '-' },
-        { bloodTypeId: 5, aboType: 'O', rhFactor: '+' },
-        { bloodTypeId: 6, aboType: 'O', rhFactor: '-' },
-        { bloodTypeId: 7, aboType: 'AB', rhFactor: '+' },
-        { bloodTypeId: 8, aboType: 'AB', rhFactor: '-' }
+        { bloodTypeId: '11111111-1111-1111-1111-111111111001', aboType: 'A', rhFactor: '+' },
+        { bloodTypeId: '11111111-1111-1111-1111-111111111002', aboType: 'A', rhFactor: '-' },
+        { bloodTypeId: '11111111-1111-1111-1111-111111111003', aboType: 'B', rhFactor: '+' },
+        { bloodTypeId: '11111111-1111-1111-1111-111111111004', aboType: 'B', rhFactor: '-' },
+        { bloodTypeId: '11111111-1111-1111-1111-111111111005', aboType: 'O', rhFactor: '+' },
+        { bloodTypeId: '11111111-1111-1111-1111-111111111006', aboType: 'O', rhFactor: '-' },
+        { bloodTypeId: '11111111-1111-1111-1111-111111111007', aboType: 'AB', rhFactor: '+' },
+        { bloodTypeId: '11111111-1111-1111-1111-111111111008', aboType: 'AB', rhFactor: '-' }
       ]);
     }
   };
@@ -155,11 +165,11 @@ const BloodInventory = () => {
 
   // Lọc dữ liệu
   const filteredData = bloodUnits.filter(unit => {
-    const matchesSearch = (unit.unitID && unit.unitID.toLowerCase().includes(searchText.toLowerCase())) ||
-                         (unit.donationID && unit.donationID.toLowerCase().includes(searchText.toLowerCase())) ||
+    const matchesSearch = (unit.unitId && unit.unitId.toLowerCase().includes(searchText.toLowerCase())) ||
+                         (unit.donationId && unit.donationId.toLowerCase().includes(searchText.toLowerCase())) ||
                          (unit.bloodTypeName && unit.bloodTypeName.toLowerCase().includes(searchText.toLowerCase())) ||
                          (unit.donorName && unit.donorName.toLowerCase().includes(searchText.toLowerCase()));
-    const matchesBloodType = filterBloodType === 'all' || unit.bloodTypeName === filterBloodType;
+    const matchesBloodType = filterBloodType === 'all' || unit.bloodTypeId === filterBloodType;
     const matchesStatus = filterStatus === 'all' || unit.status === filterStatus;
     const matchesComponent = filterComponent === 'all' || unit.componentType === filterComponent;
     return matchesSearch && matchesBloodType && matchesStatus && matchesComponent;
@@ -241,11 +251,11 @@ const BloodInventory = () => {
       };
       
       // Call API to update blood unit
-      await bloodManagementApi.updateBloodUnit(selectedUnit.unitID, updateData);
+      await bloodManagementApi.updateBloodUnit(selectedUnit.unitId, updateData);
       
       // Update local state
       setBloodUnits(prev => prev.map(unit => 
-        unit.unitID === selectedUnit.unitID 
+        unit.unitId === selectedUnit.unitId 
           ? { ...unit, ...updateData }
           : unit
       ));
@@ -269,13 +279,13 @@ const BloodInventory = () => {
       
       // Prepare data for API
       const newUnitData = {
-        donationID: values.donationID,
-        bloodTypeID: values.bloodTypeID,
+        donationId: values.donationId,
+        bloodTypeId: values.bloodTypeId,
         componentType: values.componentType,
         expiryDate: values.expiryDate.format('YYYY-MM-DD'),
         status: 'available',
         quantity: values.quantity,
-        requestID: null
+        requestId: null
       };
       
       // Call API to create blood unit
@@ -290,17 +300,20 @@ const BloodInventory = () => {
       // Format the created unit for display
       const formattedUnit = {
         ...createdUnit,
-        bloodTypeName: bloodTypeMap[createdUnit.bloodTypeID] || `ID-${createdUnit.bloodTypeID}`,
+        bloodTypeName: bloodTypeMap[createdUnit.bloodTypeId] || `ID-${createdUnit.bloodTypeId}`,
         donorName: createdUnit.donorName || 'Không có thông tin',
         donationDate: createdUnit.donationDate || values.donationDate.format('YYYY-MM-DD'),
         location: createdUnit.location || 'Không xác định',
-        createdDate: createdUnit.createdDate || dayjs().format('YYYY-MM-DD')
+        createdDate: createdUnit.createdDate || dayjs().format('YYYY-MM-DD'),
+        uniqueKey: createdUnit.unitId || (createdUnit.donationId && createdUnit.bloodTypeId && createdUnit.componentType
+          ? `${createdUnit.donationId}-${createdUnit.bloodTypeId}-${createdUnit.componentType}`
+          : `row-${bloodUnits.length}`) // Ensure unique key for new units
       };
       
       // Update local state
       setBloodUnits(prev => [...prev, formattedUnit]);
       
-      message.success(`Thêm đơn vị máu ${createdUnit.unitID || 'mới'} thành công!`);
+      message.success(`Thêm đơn vị máu ${createdUnit.unitId || 'mới'} thành công!`);
       setAddVisible(false);
       addForm.resetFields();
     } catch (error) {
@@ -313,18 +326,19 @@ const BloodInventory = () => {
 
   // Table columns
   const columns = [
-    {
-      title: 'Mã đơn vị',
-      dataIndex: 'unitID',
-      key: 'unitID',
-      width: 120,
-      fixed: 'left',
-      render: (text) => <Text strong style={{ color: '#1890ff' }}>{text}</Text>
-    },
+    // Ẩn cột mã đơn vị
+    // {
+    //   title: 'Mã đơn vị',
+    //   dataIndex: 'unitId',
+    //   key: 'unitId',
+    //   width: 120,
+    //   fixed: 'left',
+    //   render: (text) => <Text strong style={{ color: '#1890ff' }}>{text}</Text>
+    // },
     {
       title: 'Mã hiến máu',
-      dataIndex: 'donationID',
-      key: 'donationID',
+      dataIndex: 'donationId',
+      key: 'donationId',
       width: 120,
       render: (text) => <Text code>{text}</Text>
     },
@@ -333,8 +347,8 @@ const BloodInventory = () => {
       dataIndex: 'bloodTypeName',
       key: 'bloodTypeName',
       width: 100,
-      render: (text) => (
-        <Tag color="blue" style={{ fontWeight: 'bold', fontSize: '13px' }}>
+      render: (text, record) => (
+        <Tag color="blue" style={{ fontWeight: 'bold', fontSize: '13px' }} title={record.bloodTypeDescription}>
           {text}
         </Tag>
       )
@@ -420,7 +434,7 @@ const BloodInventory = () => {
             title="Chỉnh sửa"
             style={{ color: record.status === 'used' ? '#d9d9d9' : '#52c41a' }}
             onClick={() => {
-              console.log('Edit button clicked for:', record.unitID);
+              console.log('Edit button clicked for:', record.unitId);
               setSelectedUnit(record);
               // Format dữ liệu cho form
               const formData = {
@@ -526,8 +540,8 @@ const BloodInventory = () => {
             >
               <Option value="all">Tất cả</Option>
               {bloodTypes.map(type => (
-                <Option key={type.bloodTypeId} value={`${type.aboType}${type.rhFactor}`}>
-                  {type.aboType}{type.rhFactor}
+                <Option key={type.bloodTypeId} value={type.bloodTypeId}>
+                  {bloodTypeMap[type.bloodTypeId]?.name || type.aboType + type.rhFactor}
                 </Option>
               ))}
             </Select>
@@ -643,7 +657,7 @@ const BloodInventory = () => {
         <Table
           columns={columns}
           dataSource={filteredData}
-          rowKey={(record) => record.unitID || `${record.donationID}-${record.bloodTypeID}-${record.componentType}`}
+          rowKey="uniqueKey"
           loading={loading}
           scroll={{ x: 1200 }}
           pagination={{
@@ -661,7 +675,7 @@ const BloodInventory = () => {
         title={
           <span>
             <EyeOutlined style={{ marginRight: '8px' }} />
-            Chi tiết đơn vị máu - {selectedUnit?.unitID}
+            Chi tiết đơn vị máu - {selectedUnit?.unitId}
           </span>
         }
         open={detailVisible}
@@ -675,9 +689,9 @@ const BloodInventory = () => {
       >
         {selectedUnit && (
           <Descriptions bordered column={2} size="small">
-            <Descriptions.Item label="Mã đơn vị">{selectedUnit.unitID}</Descriptions.Item>
-            <Descriptions.Item label="Mã hiến máu">{selectedUnit.donationID}</Descriptions.Item>
-            <Descriptions.Item label="ID nhóm máu">{selectedUnit.bloodTypeID}</Descriptions.Item>
+            <Descriptions.Item label="Mã đơn vị">{selectedUnit.unitId}</Descriptions.Item>
+            <Descriptions.Item label="Mã hiến máu">{selectedUnit.donationId}</Descriptions.Item>
+            <Descriptions.Item label="ID nhóm máu">{selectedUnit.bloodTypeId}</Descriptions.Item>
             <Descriptions.Item label="Nhóm máu">
               <Tag color="blue">{selectedUnit.bloodTypeName}</Tag>
             </Descriptions.Item>
@@ -696,7 +710,7 @@ const BloodInventory = () => {
               {dayjs(selectedUnit.expiryDate).format('DD/MM/YYYY')}
             </Descriptions.Item>
             <Descriptions.Item label="Mã yêu cầu">
-              {selectedUnit.requestID || 'Không có'}
+              {selectedUnit.requestId || 'Không có'}
             </Descriptions.Item>
             <Descriptions.Item label="Người hiến máu" span={2}>
               {selectedUnit.donorName}
@@ -713,7 +727,7 @@ const BloodInventory = () => {
         title={
           <span>
             <EditOutlined style={{ marginRight: '8px' }} />
-            Cập nhật đơn vị máu - {selectedUnit?.unitID}
+            Cập nhật đơn vị máu - {selectedUnit?.unitId}
           </span>
         }
         open={updateVisible}
@@ -756,7 +770,7 @@ const BloodInventory = () => {
             </Col>
           </Row>
           <Form.Item
-            name="requestID"
+            name="requestId"
             label="Mã yêu cầu (nếu có)"
           >
             <Input placeholder="Nhập mã yêu cầu..." />
@@ -800,7 +814,7 @@ const BloodInventory = () => {
           <Row gutter={16}>
             <Col span={24}>
               <Form.Item
-                name="donationID"
+                name="donationId"
                 label="Mã hiến máu"
                 rules={[{ required: true, message: 'Vui lòng nhập mã hiến máu' }]}
               >
@@ -812,7 +826,7 @@ const BloodInventory = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="bloodTypeID"
+                name="bloodTypeId"
                 label="ID nhóm máu"
                 rules={[{ required: true, message: 'Vui lòng chọn ID nhóm máu' }]}
               >

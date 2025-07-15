@@ -165,13 +165,7 @@ const Certificate = () => {
     }
   };
 
-  const getTypeText = (type) => {
-    switch (type) {
-      case 'donation': return 'Chứng nhận hiến máu';
-      case 'achievement': return 'Giấy khen';
-      default: return 'Chứng chỉ';
-    }
-  };
+  const getTypeText = (type) => 'Chứng nhận đăng ký hiến máu';
 
   const handleDownload = (certificate) => {
     // Simulate certificate download
@@ -226,7 +220,7 @@ Hiệu lực đến: ${certificate.validUntil === 'permanent' ? 'Vĩnh viễn' :
             {getTypeText(selectedCertificate.type)}
           </Title>
           <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>
-            Hệ thống quản lý hiến máu BloodDonate
+            Hệ thống quản lý hiến máu Blood Donation
           </Text>
         </div>
 
@@ -312,7 +306,7 @@ Hiệu lực đến: ${certificate.validUntil === 'permanent' ? 'Vĩnh viễn' :
       <div style={{ marginBottom: '24px' }}>
         <Title level={2} style={{ marginBottom: '8px' }}>
           <SafetyCertificateOutlined style={{ marginRight: '12px', color: '#1890ff' }} />
-          Chứng Chỉ & Giấy Khen
+          Chứng nhận đăng ký hiến máu
         </Title>
         <Text type="secondary">Quản lý các chứng nhận hiến máu và giấy khen của bạn</Text>
       </div>
