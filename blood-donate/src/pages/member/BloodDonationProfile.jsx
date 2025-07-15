@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Steps, Typography, Table, Tag, Empty, Spin, Alert, Row, Col, Avatar, Statistic, Divider, List } from 'antd';
+import { Card, Steps, Typography, Table, Tag, Empty, Spin, Alert, Row, Col, Avatar, Statistic, Divider, List, Button, message, Modal, Input } from 'antd';
 import { 
   FileTextOutlined, 
   SolutionOutlined, 
@@ -113,6 +113,9 @@ const BloodDonationProfile = () => {
   const location = useLocation();
   // Thêm state viewStep để điều khiển bước đang xem
   const [viewStep, setViewStep] = useState(0);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   // Get current user info
   const getCurrentUser = () => {
@@ -789,6 +792,63 @@ const BloodDonationProfile = () => {
                 </>
               )}
             </div>
+            {/* Nút hủy quy trình hiến máu */}
+            {(currentDonation.status && (currentDonation.status.toLowerCase() === 'pending' || currentDonation.status.toLowerCase() === 'approved')) && (
+              <div style={{ textAlign: 'center', marginTop: 24 }}>
+                <Button
+                  danger
+                  type="primary"
+                  onClick={() => setCancelModalVisible(true)}
+                  style={{ marginTop: 8 }}
+                >
+                  Hủy quy trình hiến máu
+                </Button>
+                <Modal
+                  title="Hủy quy trình hiến máu"
+                  visible={cancelModalVisible}
+                  onOk={async () => {
+                    if (!cancelReason.trim()) {
+                      message.warning('Vui lòng nhập lý do hủy!');
+                      return;
+                    }
+                    setCancelLoading(true);
+                    try {
+                      const res = await fetch('http://localhost:7262/api/BloodDonation/cancel-blood-donation', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ donationId: currentDonation.id, reason: cancelReason })
+                      });
+                      if (res.ok) {
+                        message.success('Đã hủy quy trình hiến máu thành công!');
+                        setCancelModalVisible(false);
+                        setCancelReason('');
+                        loadUserDonations();
+                      } else {
+                        message.error('Hủy quy trình thất bại!');
+                      }
+                    } catch (err) {
+                      message.error('Có lỗi khi hủy quy trình!');
+                    } finally {
+                      setCancelLoading(false);
+                    }
+                  }}
+                  onCancel={() => {
+                    setCancelModalVisible(false);
+                    setCancelReason('');
+                  }}
+                  confirmLoading={cancelLoading}
+                  okText="Xác nhận hủy"
+                  cancelText="Đóng"
+                >
+                  <Input.TextArea
+                    rows={4}
+                    placeholder="Nhập lý do hủy quy trình hiến máu..."
+                    value={cancelReason}
+                    onChange={e => setCancelReason(e.target.value)}
+                  />
+                </Modal>
+              </div>
+            )}
           </div>
         </Card>
       )}

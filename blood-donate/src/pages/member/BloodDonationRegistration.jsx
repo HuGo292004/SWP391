@@ -272,11 +272,6 @@ const BloodDonationRegistration = () => {
         setError('Vui lòng nhập địa chỉ!');
         return;
       }
-
-      if (!formValues.currentMedications || !formValues.currentMedications.trim()) {
-        setError('Vui lòng điền thông tin thuốc đang sử dụng!');
-        return;
-      }
       
       // Convert bloodTypeID to bloodType string for API
       const bloodTypeString = convertBloodTypeIDToString(formValues.bloodTypeID);
@@ -288,7 +283,11 @@ const BloodDonationRegistration = () => {
       const donationData = {
         donorID: null, // Let backend set this based on authenticated user
         requestID: formValues.requestID || null,
-        donationDate: formValues.donationDate ? formValues.donationDate.format('YYYY-MM-DD') : null,
+        donationDate: (formValues.donationDate && formValues.donationTime)
+          ? dayjs(
+              formValues.donationDate.format('YYYY-MM-DD') + 'T' + formValues.donationTime.format('HH:mm')
+            ).toISOString()
+          : null,
         bloodTypeID: formValues.bloodTypeID || null, // Keep for internal tracking
         bloodType: bloodTypeString, // Send this to API (e.g., "A+", "B-")
         status: 'Pending',
@@ -408,10 +407,6 @@ const BloodDonationRegistration = () => {
           setError('Vui lòng nhập địa chỉ!');
           return;
         }
-        if (!allFormValues.currentMedications || !allFormValues.currentMedications.trim()) {
-          setError('Vui lòng điền thông tin thuốc đang sử dụng!');
-          return;
-        }
       }
       
       // Store form data - merge with existing data
@@ -450,17 +445,36 @@ const BloodDonationRegistration = () => {
         return (
           <Card title="Thông tin hiến máu" className="step-card">
             <Form.Item
-              label="Ngày hiến máu mong muốn"
+              label="Ngày hiến máu"
               name="donationDate"
               rules={[{ required: true, message: 'Vui lòng chọn ngày hiến máu mong muốn!' }]}
             >
               <DatePicker
-                placeholder="Chọn ngày hiến máu mong muốn"
+                placeholder="Chọn ngày hiến máu"
                 className="modern-input"
                 style={{ width: '100%' }}
                 format="DD/MM/YYYY"
                 disabledDate={disabledDate}
                 suffixIcon={<CalendarOutlined />}
+              />
+            </Form.Item>
+            <Form.Item
+              label="Giờ hiến máu"
+              name="donationTime"
+              rules={[{ required: true, message: 'Vui lòng chọn giờ hiến máu mong muốn!' }]}
+            >
+              <TimePicker
+                placeholder="Chọn giờ hiến máu"
+                className="modern-input"
+                style={{ width: '50%' }}
+                format="HH:mm"
+                minuteStep={5}
+                suffixIcon={<ClockCircleOutlined />}
+                disabledHours={() => [
+                  ...Array(8).keys(), // 0-7
+                  ...Array.from({length: 24-17}, (_, i) => i + 18) // 18-23 (chỉ cho phép đến 17:00)
+                ]}
+                hideDisabledOptions={true}
               />
             </Form.Item>
 
@@ -567,19 +581,6 @@ const BloodDonationRegistration = () => {
                 className="modern-input"
               />
             </Form.Item>
-
-            <Form.Item
-              label="Thuốc đang sử dụng"
-              name="currentMedications"
-              rules={[{ required: true, message: 'Vui lòng điền thông tin thuốc đang sử dụng!' }]}
-            >
-              <TextArea
-                placeholder="Vui lòng mô tả các loại thuốc đang sử dụng. Nếu không có, hãy ghi 'Không có'."
-                rows={3}
-                className="modern-input"
-              />
-            </Form.Item>
-
             <Form.Item
               label="Ghi chú"
               name="notes"
@@ -607,31 +608,31 @@ const BloodDonationRegistration = () => {
                   
                   {userInfo ? (
                     <Row gutter={[16, 16]}>
-                      <Col span={12}>
+                      <Col span={24}>
                         <div className="confirm-item">
                           <Text strong>Họ và tên:</Text>
                           <Text>{userInfo.fullName || 'Chưa cập nhật'}</Text>
                         </div>
                       </Col>
-                      <Col span={12}>
+                      <Col span={24}>
                         <div className="confirm-item">
                           <Text strong>Email:</Text>
                           <Text>{userInfo.email || 'Chưa cập nhật'}</Text>
                         </div>
                       </Col>
-                      <Col span={12}>
+                      <Col span={11}>
                         <div className="confirm-item">
                           <Text strong>Số điện thoại:</Text>
                           <Text>{userInfo.phone || 'Chưa cập nhật'}</Text>
                         </div>
                       </Col>
-                      <Col span={12}>
+                      <Col span={13}>
                         <div className="confirm-item">
                           <Text strong>Số CMND/CCCD:</Text>
                           <Text>{userInfo.userIdCard || 'Chưa cập nhật'}</Text>
                         </div>
                       </Col>
-                      <Col span={12}>
+                      <Col span={24}>
                         <div className="confirm-item">
                           <Text strong>Ngày sinh:</Text>
                           <Text>
@@ -655,18 +656,23 @@ const BloodDonationRegistration = () => {
                   <Divider orientation="left">Thông tin hiến máu</Divider>
                   
                   <Row gutter={[16, 16]}>
-                    <Col span={12}>
+                    <Col span={24}>
                       <div className="confirm-item">
-                        <Text strong>Ngày hiến máu mong muốn:</Text>
+                        <Text strong>Ngày hiến máu :</Text>
                         <Text>
                           {formData.donationDate 
                             ? formData.donationDate.format('DD/MM/YYYY')
                             : 'Chưa chọn'
                           }
+                          {formData.donationTime ? (
+                            <>
+                              {' '}<Text strong> Giờ: </Text>{formData.donationTime.format('HH:mm')}
+                            </>
+                          ) : null}
                         </Text>
                       </div>
                     </Col>
-                    <Col span={12}>
+                    <Col span={24}>
                       <div className="confirm-item">
                         <Text strong>Nhóm máu:</Text>
                         <Text>
@@ -696,15 +702,6 @@ const BloodDonationRegistration = () => {
                       <div className="confirm-item">
                         <Text strong>Địa chỉ:</Text>
                         <Text>{formData.address || 'Chưa điền'}</Text>
-                      </div>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={[16, 16]}>
-                    <Col span={24}>
-                      <div className="confirm-item">
-                        <Text strong>Thuốc đang sử dụng:</Text>
-                        <Text>{formData.currentMedications || 'Chưa điền'}</Text>
                       </div>
                     </Col>
                   </Row>
@@ -793,18 +790,7 @@ const BloodDonationRegistration = () => {
       </div>
 
       <div className="registration-content">
-        <div className="steps-container">
-          <Steps current={currentStep} size="default">
-            {steps.map((step, index) => (
-              <Step 
-                key={index} 
-                title={step.title} 
-                description={step.description}
-                icon={index === 0 ? <MedicineBoxOutlined /> : <SafetyCertificateOutlined />}
-              />
-            ))}
-          </Steps>
-        </div>
+        
 
         <Form
           form={form}
