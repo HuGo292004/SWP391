@@ -61,6 +61,8 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { donorApi } from '../../services/donorApi';
 import { enhancedDonorApi } from '../../services/enhancedDonorApi';
 import { bloodManagementApi } from '../../services/bloodManagementApi';
@@ -286,7 +288,7 @@ const BloodDonationRegistration = () => {
         donationDate: (formValues.donationDate && formValues.donationTime)
           ? dayjs(
               formValues.donationDate.format('YYYY-MM-DD') + 'T' + formValues.donationTime.format('HH:mm')
-            ).toISOString()
+            ).add(7, 'hour').toISOString()
           : null,
         bloodTypeID: formValues.bloodTypeID || null, // Keep for internal tracking
         bloodType: bloodTypeString, // Send this to API (e.g., "A+", "B-")
