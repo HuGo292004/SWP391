@@ -88,6 +88,8 @@ const BloodDonationRegistration = () => {
   const [loadingBloodTypes, setLoadingBloodTypes] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [autoBloodType, setAutoBloodType] = useState('');
+  const [autoAddress, setAutoAddress] = useState('');
 
   // Load blood types from API on component mount
   useEffect(() => {
@@ -98,6 +100,33 @@ const BloodDonationRegistration = () => {
     // Check if user already has pending/approved donation
     checkExistingDonation();
   }, []);
+
+  // useEffect để auto fill khi user đã đăng nhập
+  useEffect(() => {
+    const fetchDonorProfile = async () => {
+      const donorProfile = await donorApi.checkDonorProfile(true);
+      if (donorProfile && donorProfile.exists && donorProfile.donorID) {
+        const donorDetail = await donorApi.getDonorProfileById(donorProfile.donorID);
+        const bloodTypeId = donorDetail.bloodTypeId || donorDetail.bloodTypeID;
+        const address = donorDetail.address || donorDetail.Address || '';
+        setAutoBloodType(bloodTypeId || '');
+        setAutoAddress(address);
+        form.setFieldsValue({
+          bloodTypeID: bloodTypeId || '',
+          address: address
+        });
+        form.validateFields(['bloodTypeID']);
+      }
+    };
+    fetchDonorProfile();
+  }, [bloodTypes]);
+
+  // Sau khi setAutoAddress trong useEffect, đồng bộ lại form nếu autoAddress thay đổi
+  useEffect(() => {
+    if (autoAddress) {
+      form.setFieldsValue({ address: autoAddress });
+    }
+  }, [autoAddress]);
 
   // Check if user already has pending or approved donation
   const checkExistingDonation = async () => {
@@ -527,17 +556,13 @@ const BloodDonationRegistration = () => {
                         bloodTypeID: value
                       });
                     }}
-                    onOpenChange={(open) => {
-                      // Optional: Trigger reload when dropdown opens
-                    }}
+                    // KHÔNG dùng defaultValue hoặc value ở đây
                   >
                     {bloodTypes.map((type, index) => {
-                      // Use consistent field order - prioritize API field name (bloodTypeId with lowercase 'd')
                       const key = type.bloodTypeId || type.bloodTypeID || type.BloodTypeID || type.id || `type-${index}`;
                       const aboType = type.aboType || type.AboType || '';
                       const rhFactor = type.rhFactor || type.RhFactor || '';
                       const description = type.description || type.Description || `Nhóm máu ${aboType} Rh ${rhFactor === '+' ? 'dương' : 'âm'}`;
-                      
                       return (
                         <Option 
                           key={key} 
@@ -779,6 +804,11 @@ const BloodDonationRegistration = () => {
     }
   };
 
+  const initialValues = {
+    bloodTypeID: autoBloodType || undefined,
+    address: autoAddress || undefined
+  };
+
   return (
     <div className="blood-donation-registration-container">
       <div className="registration-header">
@@ -802,6 +832,7 @@ const BloodDonationRegistration = () => {
           size="large"
           onFinish={onFinish}
           onFinishFailed={onFinishFailed}
+          // initialValues={initialValues} // Đảm bảo KHÔNG có initialValues ở <Form> bên dưới (nếu có, hãy xóa đi)
           autoComplete="off"
         >
           <div className="form-content">

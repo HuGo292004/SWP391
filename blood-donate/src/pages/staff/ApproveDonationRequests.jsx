@@ -706,6 +706,21 @@ const ApproveDonationRequests = () => {
     return date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
   };
 
+  // Thêm hàm formatVNDateTimeWithTime
+  const formatVNDateTimeWithTime = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    if (hours === '00' && minutes === '00') {
+      return `${day}/${month}/${year}`;
+    }
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
 
   return (
     <Container fluid className="p-4">
@@ -1218,7 +1233,7 @@ const ApproveDonationRequests = () => {
                                 <div className="d-flex align-items-center mb-3">
                                   <FaCalendarAlt className="me-2 text-primary" />
                                   <strong>Ngày khám:</strong>
-                                  <span className="ms-2">{new Date(healthForm.submittedDate).toLocaleDateString('vi-VN')}</span>
+                                  <span className="ms-2">{formatVNDateTimeWithTime(healthForm.submittedDate)}</span>
                                 </div>
                               </Card.Body>
                             </Card>
