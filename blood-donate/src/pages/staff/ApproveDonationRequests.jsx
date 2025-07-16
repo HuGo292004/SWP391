@@ -699,6 +699,13 @@ const ApproveDonationRequests = () => {
 
   // Update health form status in requests after health forms are loaded
 
+  // Chuyển đổi ISO date string sang giờ Việt Nam, định dạng dễ đọc
+  const formatVNDateTime = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    return date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+  };
+
 
   return (
     <Container fluid className="p-4">
@@ -932,7 +939,7 @@ const ApproveDonationRequests = () => {
                             {getRequestTypeText(request.requestType)}
                           </Badge>
                         </td>
-                        <td>{request.preferredDate}</td>
+                        <td>{formatVNDateTime(request.preferredDate)}</td>
                         <td>{getHealthFormStatusBadge(request.healthFormStatus, request)}</td>
                         <td>
                           <Badge bg={getStatusBadgeVariant(request.status)}>
@@ -1127,7 +1134,7 @@ const ApproveDonationRequests = () => {
                         </div>
                         <div className="info-item mb-3">
                           <strong>Ngày hiến máu:</strong>
-                          <span className="ms-2">{selectedRequest.preferredDate}</span>
+                          <span className="ms-2">{formatVNDateTime(selectedRequest.preferredDate)}</span>
                         </div>
                       </Col>
                     </Row>
