@@ -18,7 +18,8 @@ import {
   Tag,
   Modal,
   Spin,
-  Alert
+  Alert,
+  TimePicker
 } from 'antd';
 import {
   UserOutlined,
@@ -35,6 +36,8 @@ import {
 import { healthCheckApi } from '../../services/healthCheckApi';
 import { mockHealthCheckApi } from '../../services/mockHealthCheckApi';
 import { bloodDonationApi } from '../../services/bloodDonationApi';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -58,6 +61,9 @@ const CreateHealthForms = () => {
 
   // Thêm state lưu ngày hiến máu đã đăng ký
   const [availableDonationDates, setAvailableDonationDates] = useState([]);
+
+  // Thêm state cho giờ khám sức khỏe
+  const [healthCheckTime, setHealthCheckTime] = useState(dayjs('08:00', 'HH:mm'));
 
   const apiService = USE_MOCK_API ? mockHealthCheckApi : healthCheckApi;
 
@@ -143,10 +149,11 @@ const CreateHealthForms = () => {
     }
   };
 
-  // Sửa handleSearchDonor để lấy ngày hiến máu đã đăng ký
+  // Sửa handleSearchDonor để lấy ngày và giờ hiến máu đã đăng ký
   const handleSearchDonor = async (userIdCard) => {
     if (!userIdCard || userIdCard.length < 9) {
       setSelectedDonor(null);
+      setHealthCheckTime(dayjs('08:00', 'HH:mm'));
       return;
     }
 
@@ -271,17 +278,29 @@ const CreateHealthForms = () => {
             .filter(Boolean);
           console.log('Approved Dates:', approvedDates);
           setAvailableDonationDates(approvedDates);
-          
+          // Auto fill ngày và giờ nếu có
           if (approvedDates.length === 0) {
-            message.error('Người này chưa đăng ký hiến máu hoặc chưa có đơn hiến máu nào được duyệt.');
             form.setFieldsValue({ HealthCheck_Date: undefined });
+            setHealthCheckTime(dayjs('08:00', 'HH:mm'));
           } else {
-            // Nếu có ngày, tự động chọn ngày gần nhất (dạng string)
-            form.setFieldsValue({ HealthCheck_Date: dayjs(approvedDates[0]).format('YYYY-MM-DD') });
+            // Lấy ngày gần nhất
+            const firstDate = approvedDates[0];
+            const dateObj = dayjs(firstDate);
+            form.setFieldsValue({ HealthCheck_Date: dateObj.format('YYYY-MM-DD') });
+            // Nếu có giờ, set vào time, không thì mặc định 08:00
+            if (dateObj.isValid() && firstDate.includes('T')) {
+              const timeVal = dayjs(firstDate);
+              setHealthCheckTime(timeVal.isValid() ? timeVal : dayjs('08:00', 'HH:mm'));
+              form.setFieldsValue({ HealthCheck_Time: timeVal.isValid() ? timeVal : dayjs('08:00', 'HH:mm') });
+            } else {
+              setHealthCheckTime(dayjs('08:00', 'HH:mm'));
+              form.setFieldsValue({ HealthCheck_Time: dayjs('08:00', 'HH:mm') });
+            }
           }
         } catch (e) {
           console.error('Error fetching donations:', e);
           setAvailableDonationDates([]);
+          setHealthCheckTime(dayjs('08:00', 'HH:mm'));
         }
         
         message.success({
@@ -337,7 +356,8 @@ const CreateHealthForms = () => {
           ...values,
           HealthCheck_Date: typeof values.HealthCheck_Date === 'string' ? 
             values.HealthCheck_Date : 
-            values.HealthCheck_Date?.format('YYYY-MM-DD')
+            values.HealthCheck_Date?.format('YYYY-MM-DD'),
+          HealthCheck_Time: healthCheckTime ? healthCheckTime.format('HH:mm') : '08:00',
         };
         setPreviewData(previewValues);
         setPreviewVisible(true);
@@ -381,6 +401,11 @@ const CreateHealthForms = () => {
     try {
       setLoading(true);
       
+      // Lấy giờ khám sức khỏe
+      const selectedTime = form.getFieldValue('HealthCheck_Time')?.format('HH:mm') || '08:00';
+      // Kết hợp ngày và giờ thành ISO string hoặc 'YYYY-MM-DDTHH:mm'
+      const healthCheckDateTime = `${selectedDate}T${selectedTime}`;
+
       // Chuẩn bị dữ liệu theo cấu trúc API
       const healthCheckData = {
         userIdCard: selectedDonor.userIdCard, // Sử dụng userIdCard thay vì donorID
@@ -392,7 +417,7 @@ const CreateHealthForms = () => {
         medicalHistory: values.medicalHistory,
         currentMedications: values.currentMedications,
         allergies: values.allergies,
-        HealthCheck_Date: selectedDate, // Sử dụng selectedDate đã format
+        HealthCheck_Date: healthCheckDateTime, // Sử dụng ngày + giờ
         HealthCheck_Status: 'pending', // Sẽ được transform thành healthCheckStatus
         quantity: values.quantity // BỔ SUNG DÒNG NÀY
       };
@@ -433,6 +458,7 @@ const CreateHealthForms = () => {
       message.error('Có lỗi xảy ra khi tạo phiếu kiểm tra sức khỏe. Vui lòng thử lại.');
     } finally {
       setLoading(false);
+      setHealthCheckTime(dayjs('08:00', 'HH:mm')); // Reset time to default after submit
     }
   };
 
@@ -605,6 +631,7 @@ const CreateHealthForms = () => {
                           handleSearchDonor(value);
                         } else {
                           setSelectedDonor(null);
+                          setHealthCheckTime(dayjs('08:00', 'HH:mm'));
                         }
                       }}
                       onPressEnter={() => {
@@ -616,7 +643,7 @@ const CreateHealthForms = () => {
                     />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={8}>
                   <Form.Item
                     name="HealthCheck_Date"
                     label="Ngày kiểm tra sức khỏe"
@@ -628,7 +655,19 @@ const CreateHealthForms = () => {
                       showSearch
                       optionFilterProp="children"
                       value={form.getFieldValue('HealthCheck_Date')}
-                      onChange={value => form.setFieldsValue({ HealthCheck_Date: value })}
+                      onChange={value => {
+                        form.setFieldsValue({ HealthCheck_Date: value });
+                        // Khi chọn ngày, tìm trong availableDonationDates xem có ngày nào trùng và có giờ không
+                        const found = availableDonationDates.find(dateStr => dayjs(dateStr).format('YYYY-MM-DD') === value);
+                        if (found && found.includes('T')) {
+                          const timeObj = dayjs(found);
+                          setHealthCheckTime(timeObj.isValid() ? timeObj : dayjs('08:00', 'HH:mm'));
+                          form.setFieldsValue({ HealthCheck_Time: timeObj.isValid() ? timeObj : dayjs('08:00', 'HH:mm') });
+                        } else {
+                          setHealthCheckTime(dayjs('08:00', 'HH:mm'));
+                          form.setFieldsValue({ HealthCheck_Time: dayjs('08:00', 'HH:mm') });
+                        }
+                      }}
                     >
                       {availableDonationDates.map(date => {
                         const dateStr = dayjs(date).format('YYYY-MM-DD');
@@ -639,6 +678,25 @@ const CreateHealthForms = () => {
                         );
                       })}
                     </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item
+                    label="Giờ khám sức khỏe"
+                    name="HealthCheck_Time"
+                    rules={[{ required: true, message: 'Vui lòng chọn giờ khám sức khỏe' }]}
+                  >
+                    <TimePicker
+                      format="HH:mm"
+                      value={healthCheckTime}
+                      onChange={val => {
+                        setHealthCheckTime(val);
+                        form.setFieldsValue({ HealthCheck_Time: val });
+                      }}
+                      minuteStep={5}
+                      placeholder="Chọn giờ"
+                      style={{ width: '100%' }}
+                    />
                   </Form.Item>
                 </Col>
               </Row>
@@ -890,6 +948,9 @@ const CreateHealthForms = () => {
                   ) : 
                   'N/A'
               }</Col>
+            </Row>
+            <Row gutter={16} style={{ marginTop: '8px' }}>
+              <Col span={12}><Text strong>Giờ khám sức khỏe:</Text> {previewData.HealthCheck_Time || '08:00'}</Col>
             </Row>
             {selectedDonor && (
               <Row gutter={16} style={{ marginTop: '8px' }}>
