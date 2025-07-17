@@ -946,6 +946,10 @@ export const donorApi = {
     }
   },
 
+  getAllDonors: async () => {
+    return await apiRequest('/Donor');
+  },
+
 };
 
 export default donorApi;
