@@ -577,3 +577,4 @@ class HealthCheckApi {
 }
 
 export const healthCheckApi = new HealthCheckApi();
+export default HealthCheckApi;

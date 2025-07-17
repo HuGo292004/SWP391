@@ -15,7 +15,7 @@ import { MainLayout } from "./components/layout";
 import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage, Profile } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
-import { UserManagement, ApproveDonationRequests, CreateEmergencyRequest, CreateHealthForms, BloodInventory, BloodDonorManagement } from "./pages/staff";
+import { UserManagement, CreateEmergencyRequest, CreateHealthForms, BloodInventory, BloodDonorManagement, BloodDonationManagement } from "./pages/staff";
 import { BloodDonationRegistration, BloodDonationProfile, Certificate } from "./pages/member";
 
 // Y tế theme colors
@@ -97,10 +97,10 @@ function App() {
                 <Route path="/admin/profile" element={<Profile />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/user-management" element={<UserManagement />} />
-                <Route path="/admin/approve-donation-requests" element={<ApproveDonationRequests />} />
                 <Route path="/admin/create-emergency-request" element={<CreateEmergencyRequest />} />
                 <Route path="/admin/create-health-forms" element={<CreateHealthForms />} />
                 <Route path="/admin/blood-inventory" element={<BloodInventory />} />
+                <Route path="/admin/blood-donation-management" element={<BloodDonationManagement />} />
 
                 {/* Staff routes */}
                 <Route path="/staff" element={<HomePage />} />
@@ -110,10 +110,10 @@ function App() {
                 <Route path="/staff/profile" element={<Profile />} />
                 <Route path="/staff/user-management" element={<UserManagement />} />
                 <Route path="/staff/donor-management" element={<BloodDonorManagement />} />
-                <Route path="/staff/approve-donation-requests" element={<ApproveDonationRequests />} />
                 <Route path="/staff/create-emergency-request" element={<CreateEmergencyRequest />} />
                 <Route path="/staff/create-health-forms" element={<CreateHealthForms />} />
                 <Route path="/staff/blood-inventory" element={<BloodInventory />} />
+                <Route path="/staff/blood-donation-management" element={<BloodDonationManagement />} />
 
                 {/* Member routes */}
                 <Route path="/member" element={<HomePage />} />

@@ -103,6 +103,19 @@ const getHealthCheckStatusText = (status) => {
   return status;
 };
 
+// Mapping bloodTypeID sang tên nhóm máu
+const BLOOD_TYPES = [
+  { id: "11111111-1111-1111-1111-111111111001", label: "A+" },
+  { id: "11111111-1111-1111-1111-111111111002", label: "A-" },
+  { id: "11111111-1111-1111-1111-111111111003", label: "B+" },
+  { id: "11111111-1111-1111-1111-111111111004", label: "B-" },
+  { id: "11111111-1111-1111-1111-111111111005", label: "AB+" },
+  { id: "11111111-1111-1111-1111-111111111006", label: "AB-" },
+  { id: "11111111-1111-1111-1111-111111111007", label: "O+" },
+  { id: "11111111-1111-1111-1111-111111111008", label: "O-" },
+];
+const getBloodTypeLabel = (id) => BLOOD_TYPES.find(bt => bt.id === id)?.label || "N/A";
+
 const BloodDonationProfile = () => {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,6 +129,8 @@ const BloodDonationProfile = () => {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
+  // Thêm state donorProfile
+  const [donorProfile, setDonorProfile] = useState(null);
 
   // Get current user info
   const getCurrentUser = () => {
@@ -159,6 +174,7 @@ const BloodDonationProfile = () => {
         
         if (currentUserDonor) {
           const donorId = currentUserDonor.donorId || currentUserDonor.id;
+          setDonorProfile(currentUserDonor); // Lưu donorProfile vào state
           console.log('DEBUG: Found donorId for userId', userId, ':', donorId);
           console.log('DEBUG: Full donor record:', currentUserDonor);
           return donorId;
@@ -354,15 +370,15 @@ const BloodDonationProfile = () => {
     if (!currentDonation) return 0;
     const status = currentDonation.status ? currentDonation.status.toLowerCase() : '';
     const healthCheckStatus = currentDonation.healthCheckStatus ? currentDonation.healthCheckStatus.toLowerCase() : '';
-    
     if (status === 'pending') return 0;
     if (status === 'approved') {
-      // Nếu phiếu sức khỏe đã được approved thì chuyển sang bước cuối
       if (healthCheckStatus === 'approved') return 2;
-      // Nếu chưa approved thì ở bước khám sức khỏe
       return 1;
     }
-    if (status === 'completed') return 2;
+    // Chỉ khi status là completed VÀ healthCheckStatus là approved mới cho sang bước cuối
+    if (status === 'completed' && healthCheckStatus === 'approved') return 2;
+    // Nếu completed mà chưa approved healthCheck, vẫn ở bước 1 (chờ khám sức khỏe)
+    if (status === 'completed') return 1;
     return 0;
   };
 
@@ -478,7 +494,16 @@ const BloodDonationProfile = () => {
   // Tổng số lần hiến và tổng lượng máu
   const totalDonations = donationHistory.length;
   const totalQuantity = donationHistory.reduce((sum, d) => sum + (parseInt(d.quantity) || 0), 0);
-  const bloodType = (donationHistory[0]?.bloodType || currentDonation?.bloodType || 'N/A');
+  // Ưu tiên lấy bloodTypeID, nếu không có thì lấy bloodType string, nếu không có nữa thì lấy từ donorProfile
+  const bloodTypeId =
+    donationHistory[0]?.bloodTypeID ||
+    donationHistory[0]?.bloodTypeId ||
+    currentDonation?.bloodTypeID ||
+    currentDonation?.bloodTypeId ||
+    donorProfile?.bloodTypeId;
+  const bloodType = bloodTypeId
+    ? getBloodTypeLabel(bloodTypeId)
+    : (donationHistory[0]?.bloodType || currentDonation?.bloodType || 'N/A');
 
   return (
     <div className="profile-container">
@@ -496,7 +521,8 @@ const BloodDonationProfile = () => {
             <Row gutter={16}>
               <Col span={8}><Statistic title="Tổng số lần hiến" value={totalDonations} prefix={<HeartOutlined />} /></Col>
               <Col span={8}><Statistic title="Tổng lượng máu (ml)" value={totalQuantity} /></Col>
-              <Col span={8}><Statistic title="Trạng thái" value={currentDonation?.status || 'N/A'} prefix={<CheckCircleOutlined />} /></Col>
+              {/* Ẩn trạng thái, xóa dòng dưới */}
+              {/* <Col span={8}><Statistic title="Trạng thái" value={currentDonation?.status || 'N/A'} prefix={<CheckCircleOutlined />} /></Col> */}
             </Row>
           </Col>
         </Row>

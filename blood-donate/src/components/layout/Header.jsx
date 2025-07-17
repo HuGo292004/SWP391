@@ -713,9 +713,9 @@ import {
                           {
                             key: 'approve-donation-requests',
                             icon: <CheckCircleFilled style={{ color: healthThemeColors.success }} />,
-                            label: 'Duyệt đơn hiến máu',
+                            label: 'Quản lý yêu cầu hiến máu',
                             onClick: () => {
-                              navigate(createRoleBasedPath('/approve-donation-requests', currentRole));
+                              navigate(createRoleBasedPath('/blood-donation-management', currentRole));
                             }
                           },
                           {
