@@ -1,48 +1,72 @@
 // Blood Donation API Service
-const BASE_URL = 'http://localhost:7262/api';
+const BASE_URL = "http://localhost:7262/api";
 
 // Helper function to get auth token
 const getAuthToken = () => {
   // Try different possible storage locations for auth token
-  return localStorage.getItem('userToken') || 
-         localStorage.getItem('token') || 
-         localStorage.getItem('authToken') ||
-         localStorage.getItem('accessToken') ||
-         sessionStorage.getItem('userToken') ||
-         sessionStorage.getItem('token') ||
-         sessionStorage.getItem('authToken') ||
-         sessionStorage.getItem('accessToken');
+  return (
+    localStorage.getItem("userToken") ||
+    localStorage.getItem("token") ||
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("accessToken") ||
+    sessionStorage.getItem("userToken") ||
+    sessionStorage.getItem("token") ||
+    sessionStorage.getItem("authToken") ||
+    sessionStorage.getItem("accessToken")
+  );
 };
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
   const token = getAuthToken();
   const headers = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
-  
+
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
-  
+
   return headers;
 };
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
+  console.log("API Response status:", response.status);
+  console.log("API Response ok:", response.ok);
+
   if (!response.ok) {
     if (response.status === 401) {
-      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
     }
     const errorData = await response.text();
+    console.log("Error response:", errorData);
     throw new Error(errorData || `HTTP error! status: ${response.status}`);
   }
-  
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    return await response.json();
+
+  const contentType = response.headers.get("content-type");
+  console.log("Response content-type:", contentType);
+
+  if (contentType && contentType.includes("application/json")) {
+    const jsonData = await response.json();
+    console.log("JSON response:", jsonData);
+    return jsonData;
   }
-  return await response.text();
+
+  // For successful responses without JSON (like 200 OK with plain text)
+  const textData = await response.text();
+  console.log("Text response:", textData);
+
+  // If it's a successful response, return success object
+  if (response.status >= 200 && response.status < 300) {
+    return {
+      success: true,
+      message: textData || "Success",
+      status: response.status,
+    };
+  }
+
+  return textData;
 };
 
 export const bloodDonationApi = {
@@ -50,12 +74,12 @@ export const bloodDonationApi = {
   getAllBloodDonations: async () => {
     try {
       const response = await fetch(`${BASE_URL}/BloodDonation`, {
-        method: 'GET',
-        headers: getAuthHeaders()
+        method: "GET",
+        headers: getAuthHeaders(),
       });
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error fetching blood donations:', error);
+      console.error("Error fetching blood donations:", error);
       throw error;
     }
   },
@@ -64,12 +88,12 @@ export const bloodDonationApi = {
   getBloodDonationById: async (id) => {
     try {
       const response = await fetch(`${BASE_URL}/BloodDonation/${id}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
+        method: "GET",
+        headers: getAuthHeaders(),
       });
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error fetching blood donation by ID:', error);
+      console.error("Error fetching blood donation by ID:", error);
       throw error;
     }
   },
@@ -77,13 +101,16 @@ export const bloodDonationApi = {
   // GET /api/BloodDonation/donor/{donorId} - Lấy đơn hiến máu theo donor
   getBloodDonationsByDonor: async (donorId) => {
     try {
-      const response = await fetch(`${BASE_URL}/BloodDonation/donor/${donorId}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
+      const response = await fetch(
+        `${BASE_URL}/BloodDonation/donor/${donorId}`,
+        {
+          method: "GET",
+          headers: getAuthHeaders(),
+        }
+      );
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error fetching blood donations by donor:', error);
+      console.error("Error fetching blood donations by donor:", error);
       throw error;
     }
   },
@@ -92,13 +119,13 @@ export const bloodDonationApi = {
   createBloodDonation: async (bloodDonationData) => {
     try {
       const response = await fetch(`${BASE_URL}/BloodDonation`, {
-        method: 'POST',
+        method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify(bloodDonationData)
+        body: JSON.stringify(bloodDonationData),
       });
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error creating blood donation:', error);
+      console.error("Error creating blood donation:", error);
       throw error;
     }
   },
@@ -107,13 +134,13 @@ export const bloodDonationApi = {
   updateBloodDonation: async (id, bloodDonationData) => {
     try {
       const response = await fetch(`${BASE_URL}/BloodDonation/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: getAuthHeaders(),
-        body: JSON.stringify(bloodDonationData)
+        body: JSON.stringify(bloodDonationData),
       });
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error updating blood donation:', error);
+      console.error("Error updating blood donation:", error);
       throw error;
     }
   },
@@ -122,12 +149,12 @@ export const bloodDonationApi = {
   deleteBloodDonation: async (id) => {
     try {
       const response = await fetch(`${BASE_URL}/BloodDonation/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
+        method: "DELETE",
+        headers: getAuthHeaders(),
       });
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error deleting blood donation:', error);
+      console.error("Error deleting blood donation:", error);
       throw error;
     }
   },
@@ -135,13 +162,16 @@ export const bloodDonationApi = {
   // PATCH /api/BloodDonation/{id}/status/{status} - Cập nhật trạng thái
   updateBloodDonationStatus: async (id, status) => {
     try {
-      const response = await fetch(`${BASE_URL}/BloodDonation/${id}/status/${status}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders()
-      });
+      const response = await fetch(
+        `${BASE_URL}/BloodDonation/${id}/status/${status}`,
+        {
+          method: "PATCH",
+          headers: getAuthHeaders(),
+        }
+      );
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error updating blood donation status:', error);
+      console.error("Error updating blood donation status:", error);
       throw error;
     }
   },
@@ -149,14 +179,42 @@ export const bloodDonationApi = {
   // POST /api/BloodDonation/approve-blood-donation - Duyệt đơn hiến máu
   approveBloodDonation: async (approvalData) => {
     try {
-      const response = await fetch(`${BASE_URL}/BloodDonation/approve-blood-donation`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(approvalData)
-      });
-      return await handleResponse(response);
+      console.log("Approving blood donation with data:", approvalData);
+
+      const response = await fetch(
+        `${BASE_URL}/BloodDonation/approve-blood-donation`,
+        {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(approvalData),
+        }
+      );
+
+      console.log("Blood donation approval response status:", response.status);
+
+      if (response.status === 409) {
+        // Conflict - might already be approved
+        const errorText = await response.text();
+        console.log("Conflict response:", errorText);
+        if (errorText.includes("already") || errorText.includes("đã duyệt")) {
+          console.log("Blood donation already approved");
+          return { success: true, message: "Blood donation already approved" };
+        }
+      }
+
+      const result = await handleResponse(response);
+      console.log("Blood donation approval result:", result);
+      return result;
     } catch (error) {
-      console.error('Error approving blood donation:', error);
+      console.error("Error approving blood donation:", error);
+
+      // Re-throw with more specific error message
+      if (error.message.includes("already") || error.message.includes("đã")) {
+        // Already approved - this is actually success
+        console.log("Blood donation was already approved");
+        return { success: true, message: "Blood donation already approved" };
+      }
+
       throw error;
     }
   },
@@ -164,14 +222,17 @@ export const bloodDonationApi = {
   // POST /api/BloodDonation/reject-blood-donation - Từ chối đơn hiến máu
   rejectBloodDonation: async (rejectionData) => {
     try {
-      const response = await fetch(`${BASE_URL}/BloodDonation/reject-blood-donation`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(rejectionData)
-      });
+      const response = await fetch(
+        `${BASE_URL}/BloodDonation/reject-blood-donation`,
+        {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(rejectionData),
+        }
+      );
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error rejecting blood donation:', error);
+      console.error("Error rejecting blood donation:", error);
       throw error;
     }
   },
@@ -180,15 +241,15 @@ export const bloodDonationApi = {
   syncBloodDonations: async () => {
     try {
       const response = await fetch(`${BASE_URL}/BloodDonation/sync`, {
-        method: 'POST',
-        headers: getAuthHeaders()
+        method: "POST",
+        headers: getAuthHeaders(),
       });
       return await handleResponse(response);
     } catch (error) {
-      console.error('Error syncing blood donations:', error);
+      console.error("Error syncing blood donations:", error);
       throw error;
     }
-  }
+  },
 };
 
 export default bloodDonationApi;
