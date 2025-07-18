@@ -36,6 +36,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { bloodManagementApi } from '../../services/bloodManagementApi';
+import '../../styles/BloodInventory.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -50,6 +51,16 @@ const bloodTypeMap = {
   '11111111-1111-1111-1111-111111111006': { name: 'AB-', description: 'Nhóm máu AB Rh âm' },
   '11111111-1111-1111-1111-111111111007': { name: 'O+', description: 'Nhóm máu O Rh dương' },
   '11111111-1111-1111-1111-111111111008': { name: 'O-', description: 'Nhóm máu O Rh âm' }
+};
+
+// Thêm mapping componentId -> componentName
+const componentMap = {
+  '321FC094-8CBA-4351-8F21-167D8D974DF2': 'Bạch cầu',
+  '80BFD932-0D38-46DA-AD65-176CA398B66F': 'Huyết tương',
+  'EEC9ADCB-1189-4647-8763-32FCE9A628C6': 'Máu toàn phần',
+  '349DBBD3-C98C-4D03-93A2-6692E07E3A25': 'Hồng cầu',
+  '2086DB63-1BA1-4AD5-9BEA-7EF69F1C1F67': 'Tủa lạnh',
+  '6CDE6913-37CA-41F2-B7D8-F88E8CB23E93': 'Tiểu cầu',
 };
 
 const BloodInventory = () => {
@@ -67,6 +78,7 @@ const BloodInventory = () => {
   const [bloodUnits, setBloodUnits] = useState([]);
   const [bloodTypes, setBloodTypes] = useState([]);
   const [error, setError] = useState(null);
+  const [bloodTypeQuantities, setBloodTypeQuantities] = useState([]);
 
   // Load data from API
   const loadBloodUnits = async () => {
@@ -145,6 +157,29 @@ const BloodInventory = () => {
   useEffect(() => {
     loadBloodUnits();
     loadBloodTypes();
+    // Gọi API tổng lượng máu từng loại
+    bloodManagementApi.getQuantitiesByType().then(res => {
+      let result = [];
+      // Nếu là object dạng {A+: 1000, ...}
+      if (res && !Array.isArray(res) && typeof res === 'object') {
+        result = Object.entries(res).map(([bloodType, quantity]) => ({
+          bloodType,
+          quantity
+        }));
+      }
+      // Nếu là array dạng [{ bloodTypeId, aboType, rhFactor, totalUnits }]
+      else if (Array.isArray(res) && res.length && res[0].aboType) {
+        result = res.map(item => ({
+          bloodType: (item.aboType || '') + (item.rhFactor || ''),
+          quantity: item.totalUnits || 0
+        }));
+      }
+      // Nếu là array dạng [{ bloodType, quantity }]
+      else if (Array.isArray(res) && res.length && res[0].bloodType && res[0].quantity !== undefined) {
+        result = res;
+      }
+      setBloodTypeQuantities(result);
+    });
   }, []);
 
   // Thống kê dữ liệu
@@ -358,11 +393,15 @@ const BloodInventory = () => {
       dataIndex: 'componentType',
       key: 'componentType',
       width: 140,
-      render: (text) => (
-        <Tag color={getComponentColor(text)}>
-          {getComponentText(text)}
-        </Tag>
-      )
+      render: (text) => {
+        // Normalize to string and uppercase for ID lookup, fallback to code string
+        const idKey = String(text).toUpperCase();
+        return (
+          <Tag color={getComponentColor(text)}>
+            {componentMap[idKey] || getComponentText(text) || text}
+          </Tag>
+        );
+      }
     },
     {
       title: 'Số lượng',
@@ -402,12 +441,6 @@ const BloodInventory = () => {
         );
       },
       sorter: (a, b) => dayjs(a.expiryDate).unix() - dayjs(b.expiryDate).unix()
-    },
-    {
-      title: 'Vị trí',
-      dataIndex: 'location',
-      key: 'location',
-      width: 100
     },
     {
       title: 'Thao tác',
@@ -453,15 +486,15 @@ const BloodInventory = () => {
   ];
 
   return (
-    <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+    <div className="blood-inventory-container">
       {/* Header */}
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <Title level={2} style={{ marginBottom: '8px' }}>
+      <div className="blood-inventory-header">
+        <div className="blood-inventory-header-title-group">
+          <Title level={2} className="blood-inventory-title">
             <DatabaseOutlined style={{ marginRight: '12px', color: '#1890ff' }} />
             Quản Lý Kho Máu
           </Title>
-          <Text type="secondary">Quản lý đơn vị máu theo database BloodUnit</Text>
+          <Text type="secondary" className="blood-inventory-subtitle">Quản lý đơn vị máu theo database BloodUnit</Text>
         </div>
         <Button
           type="primary"
@@ -476,7 +509,7 @@ const BloodInventory = () => {
       </div>
 
       {/* Statistics */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+      <Row gutter={[16, 16]} className="blood-inventory-stats">
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
@@ -519,8 +552,27 @@ const BloodInventory = () => {
         </Col>
       </Row>
 
+      {/* Tổng lượng máu từng nhóm máu */}
+      <Title level={4} style={{ margin: '24px 0 8px 0', color: '#1976D2', fontWeight: 700 }}>
+        Tổng lượng máu theo từng nhóm máu
+      </Title>
+      <Row gutter={[16, 16]} className="blood-inventory-quantities">
+        {bloodTypeQuantities.length === 0 ? (
+          <Col span={24}><Alert type="info" message="Không có dữ liệu tổng hợp nhóm máu." showIcon /></Col>
+        ) : (
+          bloodTypeQuantities.map(item => (
+            <Col xs={12} sm={8} md={6} lg={4} key={item.bloodType}>
+              <Card bordered={false} style={{ textAlign: 'center', borderRadius: 12, boxShadow: '0 2px 8px #e3e8ee' }}>
+                <Tag color="red" style={{ fontSize: 18, fontWeight: 700, borderRadius: 8, marginBottom: 8 }}>{item.bloodType}</Tag>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#1976D2' }}>{item.quantity.toLocaleString()} ml</div>
+              </Card>
+            </Col>
+          ))
+        )}
+      </Row>
+
       {/* Filters */}
-      <Card style={{ marginBottom: '24px' }}>
+      <Card className="blood-inventory-filters">
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} lg={8}>
             <Input
@@ -653,7 +705,7 @@ const BloodInventory = () => {
       )}
 
       {/* Table */}
-      <Card>
+      <Card className="blood-inventory-table">
         <Table
           columns={columns}
           dataSource={filteredData}
@@ -697,7 +749,7 @@ const BloodInventory = () => {
             </Descriptions.Item>
             <Descriptions.Item label="Thành phần">
               <Tag color={getComponentColor(selectedUnit.componentType)}>
-                {getComponentText(selectedUnit.componentType)}
+                {componentMap[String(selectedUnit.componentType).toUpperCase()] || getComponentText(selectedUnit.componentType) || selectedUnit.componentType}
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Số lượng">{selectedUnit.quantity} ml</Descriptions.Item>
@@ -774,12 +826,6 @@ const BloodInventory = () => {
             label="Mã yêu cầu (nếu có)"
           >
             <Input placeholder="Nhập mã yêu cầu..." />
-          </Form.Item>
-          <Form.Item
-            name="location"
-            label="Vị trí lưu trữ"
-          >
-            <Input placeholder="Nhập vị trí lưu trữ..." />
           </Form.Item>
         </Form>
       </Modal>
