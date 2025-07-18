@@ -8,11 +8,14 @@ import {
   Tabs,
   Empty,
   Popconfirm,
+  Input,
+  Select,
 } from "antd";
 import donorApi from "../../services/donorApi";
 import HealthCheckApi from "../../services/healthCheckApi";
 import { UserAPI } from "../../services/userApi";
 import bloodDonationApi from "../../services/bloodDonationApi";
+import "./BloodDonationManagement.css";
 
 const healthCheckApi = new HealthCheckApi();
 
@@ -86,13 +89,6 @@ const BloodDonationManagement = () => {
         }
         return false;
       });
-
-      if (inconsistentData.length > 0) {
-        console.warn("Found inconsistent data:", inconsistentData);
-        message.warning(
-          `Phát hiện ${inconsistentData.length} đơn hiến máu đã hoàn thành nhưng phiếu sức khỏe chưa được duyệt. Vui lòng kiểm tra lại dữ liệu.`
-        );
-      }
 
       setDonations(sortedDonations);
       setDonors(
@@ -565,6 +561,7 @@ const BloodDonationManagement = () => {
         return (
           <div style={{ display: "flex", gap: 8 }}>
             <Button
+              className="management-action-btn"
               onClick={() => {
                 setSelectedDonation(record);
                 setModalVisible(true);
@@ -575,6 +572,7 @@ const BloodDonationManagement = () => {
             {/* Nếu chưa có phiếu sức khỏe */}
             {status === "none" && (
               <Button
+                className="management-action-btn primary"
                 type="primary"
                 onClick={() =>
                   (window.location.href = "/staff/create-health-forms")
@@ -586,7 +584,7 @@ const BloodDonationManagement = () => {
             {/* Nếu phiếu chờ duyệt */}
             {status === "pending" && (
               <>
-                <Button type="primary" onClick={handleApprove}>
+                <Button className="management-action-btn primary" type="primary" onClick={handleApprove}>
                   Duyệt
                 </Button>
                 <Popconfirm
@@ -595,7 +593,7 @@ const BloodDonationManagement = () => {
                   okText="Từ chối"
                   cancelText="Hủy"
                 >
-                  <Button danger>Từ chối</Button>
+                  <Button className="management-action-btn danger" danger>Từ chối</Button>
                 </Popconfirm>
               </>
             )}
@@ -606,8 +604,8 @@ const BloodDonationManagement = () => {
   ];
 
   return (
-    <div>
-      <h2>Quản lý yêu cầu hiến máu</h2>
+    <div className="blood-donation-management-container">
+      <h2 className="management-title">Quản lý yêu cầu hiến máu</h2>
       <Table
         rowKey="donationId"
         loading={loading}
@@ -634,10 +632,12 @@ const BloodDonationManagement = () => {
           </div>
         }
         footer={null}
-        bodyStyle={{
-          background: "#f8fafc",
-          borderRadius: "0 0 12px 12px",
-          padding: 0,
+        styles={{
+          body: {
+            background: "#f8fafc",
+            borderRadius: "0 0 12px 12px",
+            padding: 0,
+          }
         }}
         style={{ borderRadius: 16, overflow: "hidden", minWidth: 700 }}
       >

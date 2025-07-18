@@ -241,6 +241,17 @@ import {
         label: "TRANG CHỦ", 
         path: currentRole ? `/${currentRole}` : "/" 
       },
+      // Nút hiến máu bình thường
+      {
+        key: "blood-donation-register",
+        label: (
+          <>
+            <HeartOutlined style={{ fontSize: 15, marginRight: 4 }} />
+            Hiến máu
+          </>
+        ),
+        path: currentRole === 'member' ? "/member/blood-donation-register" : "/blood-donation-register"
+      },
       { 
         key: currentRole ? `/${currentRole}/faq` : "/faq", 
         label: "HỎI - ĐÁP", 

@@ -205,5 +205,15 @@ export const bloodManagementApi = {
       console.error('Error creating blood unit:', error);
       throw new Error(`Không thể tạo đơn vị máu: ${error.message}`);
     }
+  },
+
+  // Get total quantity by blood type
+  getQuantitiesByType: async () => {
+    try {
+      return await apiRequest('/BloodUnit/quantities-by-type');
+    } catch (error) {
+      console.error('Error getting quantities by type:', error);
+      throw new Error(`Không thể tải tổng lượng máu theo nhóm: ${error.message}`);
+    }
   }
 };
