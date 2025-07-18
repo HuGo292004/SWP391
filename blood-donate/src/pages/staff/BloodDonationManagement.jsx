@@ -77,18 +77,7 @@ const BloodDonationManagement = () => {
         ? healthCheckRes
         : [];
 
-      // Data validation: Check for inconsistent states
-      const inconsistentData = sortedDonations.filter((donation) => {
-        const donationStatus = (donation.status || "").toLowerCase();
-        if (donationStatus === "completed") {
-          const healthStatus = getHealthCheckStatusForValidation(
-            donation.donorId,
-            healthChecksData
-          );
-          return healthStatus !== "approved";
-        }
-        return false;
-      });
+      // Remove data validation to avoid confusing warning messages
 
       setDonations(sortedDonations);
       setDonors(
@@ -349,15 +338,6 @@ const BloodDonationManagement = () => {
       key: "healthCheck",
       render: (donorId, record) => {
         const status = getHealthCheckStatus(donorId);
-        // Logic validation: If donation is completed, health check must be approved
-        if (
-          record.status?.toLowerCase() === "completed" &&
-          status !== "approved"
-        ) {
-          console.warn(
-            `Inconsistent data: Donation ${record.donationId} is completed but health check is not approved`
-          );
-        }
 
         if (status === "approved")
           return <Tag color="green">PHIẾU ĐÃ DUYỆT</Tag>;
@@ -390,22 +370,7 @@ const BloodDonationManagement = () => {
         const s = (status || "").toLowerCase();
         const healthStatus = getHealthCheckStatus(record.donorId);
 
-        // Logic validation: If status is completed, health check should be approved
-        if (s === "completed" && healthStatus !== "approved") {
-          console.warn(
-            `Data inconsistency: Donation ${record.donationId} is completed but health check status is ${healthStatus}`
-          );
-          // Optionally show a warning in UI
-          return (
-            <div>
-              <Tag color="blue">ĐÃ HOÀN THÀNH</Tag>
-              <Tag color="orange" style={{ fontSize: "10px", marginLeft: 4 }}>
-                !
-              </Tag>
-            </div>
-          );
-        }
-
+        // Remove warning logic to avoid confusing messages
         if (s === "completed") return <Tag color="blue">ĐÃ HOÀN THÀNH</Tag>;
         if (s === "approved") return <Tag color="green">ĐÃ DUYỆT</Tag>;
         if (s === "pending") return <Tag color="orange">CHỜ DUYỆT</Tag>;
@@ -460,74 +425,34 @@ const BloodDonationManagement = () => {
               ""
             ).toLowerCase()
           : "none";
-        // Handler
+        // Handler - Only approve health check, not blood donation
         const handleApprove = async () => {
           try {
-            console.log("Starting approval process...");
+            console.log("Starting health check approval...");
             console.log("Health check to approve:", validHealthCheck);
-            console.log("Blood donation to approve:", record);
 
-            // Step 1: Approve health check
-            try {
-              await healthCheckApi.approveHealthCheck(
-                validHealthCheck.healthCheckId || validHealthCheck.id
-              );
-              console.log("Health check approved successfully");
-            } catch (healthCheckError) {
-              console.error("Health check approval failed:", healthCheckError);
-              // Check if it was already approved
-              if (
-                healthCheckError.message?.includes("already") ||
-                healthCheckError.message?.includes("đã")
-              ) {
-                console.log(
-                  "Health check may already be approved, continuing..."
-                );
-              } else {
-                throw healthCheckError; // Re-throw if it's a real error
-              }
-            }
+            // Only approve health check
+            await healthCheckApi.approveHealthCheck(
+              validHealthCheck.healthCheckId || validHealthCheck.id
+            );
+            console.log("Health check approved successfully");
 
-            // Step 2: Approve blood donation
-            try {
-              await bloodDonationApi.approveBloodDonation({
-                bloodDonationId: record.donationId,
-              });
-              console.log("Blood donation approved successfully");
-            } catch (bloodDonationError) {
-              console.error(
-                "Blood donation approval failed:",
-                bloodDonationError
-              );
-              // Check if it was already approved
-              if (
-                bloodDonationError.message?.includes("already") ||
-                bloodDonationError.message?.includes("đã")
-              ) {
-                console.log(
-                  "Blood donation may already be approved, continuing..."
-                );
-              } else {
-                throw bloodDonationError; // Re-throw if it's a real error
-              }
-            }
-
-            message.success("Duyệt phiếu sức khỏe và đơn hiến máu thành công!");
+            message.success("Duyệt phiếu sức khỏe thành công!");
             await fetchAllData();
           } catch (err) {
-            console.error("Approval process failed:", err);
+            console.error("Health check approval failed:", err);
 
             // Always reload data to check actual status
             await fetchAllData();
 
-            // More detailed error message
+            // Check if it was already approved
             const errorMessage = err.message || "Unknown error";
             if (
               errorMessage.includes("already") ||
               errorMessage.includes("đã duyệt") ||
               errorMessage.includes("đã")
             ) {
-              message.success("Phiếu sức khỏe và đơn hiến máu đã được xử lý!");
+              message.success("Phiếu sức khỏe đã được duyệt!");
             } else if (
               errorMessage.includes("401") ||
               errorMessage.includes("unauthorized")
@@ -539,11 +464,11 @@ const BloodDonationManagement = () => {
               errorMessage.includes("network") ||
               errorMessage.includes("fetch")
             ) {
-              message.warning(
+              message.error(
                 "Có lỗi kết nối. Vui lòng kiểm tra lại trạng thái sau khi reload trang."
               );
             } else {
-              message.error(`Duyệt phiếu thất bại: ${errorMessage}`);
+              message.error(`Duyệt phiếu sức khỏe thất bại: ${errorMessage}`);
             }
           }
         };
@@ -584,7 +509,11 @@ const BloodDonationManagement = () => {
             {/* Nếu phiếu chờ duyệt */}
             {status === "pending" && (
               <>
-                <Button className="management-action-btn primary" type="primary" onClick={handleApprove}>
+                <Button
+                  className="management-action-btn primary"
+                  type="primary"
+                  onClick={handleApprove}
+                >
                   Duyệt
                 </Button>
                 <Popconfirm
@@ -593,7 +522,9 @@ const BloodDonationManagement = () => {
                   okText="Từ chối"
                   cancelText="Hủy"
                 >
-                  <Button className="management-action-btn danger" danger>Từ chối</Button>
+                  <Button className="management-action-btn danger" danger>
+                    Từ chối
+                  </Button>
                 </Popconfirm>
               </>
             )}
@@ -637,7 +568,7 @@ const BloodDonationManagement = () => {
             background: "#f8fafc",
             borderRadius: "0 0 12px 12px",
             padding: 0,
-          }
+          },
         }}
         style={{ borderRadius: 16, overflow: "hidden", minWidth: 700 }}
       >
