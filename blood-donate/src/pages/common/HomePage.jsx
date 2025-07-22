@@ -1,3 +1,4 @@
+import EmergencyRequestsList from '../../components/ui/EmergencyRequestsList';
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Typography, Button as AntButton, Statistic, Space, Modal } from 'antd';
@@ -315,6 +316,11 @@ const bloodTypeData = [{
 const HomePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Xử lý khi bấm nút hỗ trợ khẩn cấp
+  const handleSupportEmergency = (requestId) => {
+    navigate(`/member/blood-donation-registration?emergencyRequestId=${requestId}`);
+  };
   
   // Lấy role từ localStorage trước, nếu không có thì từ path
   const getActualRole = () => {
@@ -493,12 +499,12 @@ const HomePage = () => {
                      'Phần mềm hỗ trợ hiến máu'}
                   </span>
                 </h1>
+
                 <p className="hero-banner-subtitle-red mb-5">
                   Nỗ lực nhỏ của bạn có thể cho người khác cơ hội thứ hai để sống.
                   <br />
                   Hãy gia nhập cộng đồng hiến máu nhân đạo, lan tỏa yêu thương.
                 </p>
-                
                 <div className="hero-banner-buttons-new">
                   {userRole !== 'staff' && (
                     <Button 
@@ -512,7 +518,7 @@ const HomePage = () => {
                       Đăng Ký Hiến Máu
                     </Button>
                   )}
-                    <Button 
+                  <Button 
                     variant="light" 
                     size="lg" 
                     onClick={scrollToBloodTypeSection}
@@ -533,6 +539,22 @@ const HomePage = () => {
           </Row>
         </Container>
       </section>
+
+      {/* Emergency Requests Section for member - placed after hero banner, before achievements */}
+      {userRole === 'member' && (
+        <section className="emergency-requests-section py-5 bg-white">
+          <Container>
+            <Row>
+              <Col lg={10} className="mx-auto">
+                <h3 className="mb-4 text-danger text-center">Các trường hợp khẩn cấp cần hỗ trợ</h3>
+                <EmergencyRequestsList onSupport={handleSupportEmergency} />
+              </Col>
+            </Row>
+          </Container>
+        </section>
+      )}
+                
+
 
       {/* Blood Donation Impact Section */}
       <section className="system-excellence-section py-5 bg-gradient-to-br from-blue-50 to-indigo-100">

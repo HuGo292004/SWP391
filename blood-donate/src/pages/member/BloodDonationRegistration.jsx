@@ -59,7 +59,7 @@ import {
   PhoneOutlined,
   MailOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -90,6 +90,17 @@ const BloodDonationRegistration = () => {
   const navigate = useNavigate();
   const [autoBloodType, setAutoBloodType] = useState("");
   const [autoAddress, setAutoAddress] = useState("");
+  const location = useLocation();
+  // Auto-fill emergencyRequestId from URL if present
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const emergencyRequestId = params.get("emergencyRequestId");
+    if (emergencyRequestId) {
+      form.setFieldsValue({ requestID: emergencyRequestId });
+      setFormData((prev) => ({ ...prev, requestID: emergencyRequestId }));
+    }
+    // eslint-disable-next-line
+  }, [location.search]);
 
   // Load blood types from API on component mount
   useEffect(() => {
