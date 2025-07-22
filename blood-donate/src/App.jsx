@@ -122,6 +122,7 @@ function App() {
                 <Route path="/member/support" element={<SupportPage />} />
                 <Route path="/member/profile" element={<Profile />} />
                 <Route path="/member/blood-donation-register" element={<BloodDonationRegistration />} />
+                <Route path="/member/blood-donation-registration" element={<BloodDonationRegistration />} />
                 <Route path="/member/blood-donation-profile" element={<BloodDonationProfile />} />
                 <Route path="/member/certificate" element={<Certificate />} />
 
