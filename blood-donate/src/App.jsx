@@ -5,18 +5,36 @@ import "./styles/App.css";
 
 // Pages - using new structure
 
-
 // Components
 import { MainLayout } from "./components/layout";
-
+import { AIChatbot } from "./components/ui";
 
 // Context
 
-import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage, Profile } from "./pages/common";
+import {
+  HomePage,
+  NotFoundPage,
+  FAQPage,
+  NewsPage,
+  SupportPage,
+  Profile,
+} from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
-import { UserManagement, CreateEmergencyRequest, CreateHealthForms, BloodInventory, BloodDonorManagement, BloodDonationManagement, EmergencyRequestManagement } from "./pages/staff";
-import { BloodDonationRegistration, BloodDonationProfile, Certificate } from "./pages/member";
+import {
+  UserManagement,
+  CreateEmergencyRequest,
+  CreateHealthForms,
+  BloodInventory,
+  BloodDonorManagement,
+  BloodDonationManagement,
+  EmergencyRequestManagement,
+} from "./pages/staff";
+import {
+  BloodDonationRegistration,
+  BloodDonationProfile,
+  Certificate,
+} from "./pages/member";
 
 // Y tế theme colors
 const healthTheme = {
@@ -70,73 +88,118 @@ function App() {
       </ConfigProvider>
     );
   }
-  return(
+  return (
     <ConfigProvider theme={healthTheme}>
       <Router>
         {/* <AuthProvider> - TODO: Import and setup authentication provider */}
-          <AntdApp>
-            <MainLayout>
-              <Routes>
-                {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/faq" element={<FAQPage />} />
-                <Route path="/news" element={<NewsPage />} />
-                <Route path="/support" element={<SupportPage />} />
-                <Route path="/profile" element={<Profile />} />
+        <AntdApp>
+          <MainLayout>
+            <Routes>
+              {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/news" element={<NewsPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/profile" element={<Profile />} />
+              {/* Auth routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              {/* Blood donation registration route - Public access */}
+              <Route
+                path="/blood-donation-register"
+                element={<BloodDonationRegistration />}
+              />{" "}
+              {/* Admin routes */}
+              <Route path="/admin" element={<HomePage />} />
+              <Route path="/admin/faq" element={<FAQPage />} />
+              <Route path="/admin/news" element={<NewsPage />} />
+              <Route path="/admin/support" element={<SupportPage />} />
+              <Route path="/admin/profile" element={<Profile />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route
+                path="/admin/user-management"
+                element={<UserManagement />}
+              />
+              <Route
+                path="/admin/create-emergency-request"
+                element={<CreateEmergencyRequest />}
+              />
+              <Route
+                path="/admin/create-health-forms"
+                element={<CreateHealthForms />}
+              />
+              <Route
+                path="/admin/blood-inventory"
+                element={<BloodInventory />}
+              />
+              <Route
+                path="/admin/blood-donation-management"
+                element={<BloodDonationManagement />}
+              />
+              {/* Staff routes */}
+              <Route path="/staff" element={<HomePage />} />
+              <Route path="/staff/faq" element={<FAQPage />} />
+              <Route path="/staff/news" element={<NewsPage />} />
+              <Route path="/staff/support" element={<SupportPage />} />
+              <Route path="/staff/profile" element={<Profile />} />
+              <Route
+                path="/staff/user-management"
+                element={<UserManagement />}
+              />
+              <Route
+                path="/staff/donor-management"
+                element={<BloodDonorManagement />}
+              />
+              <Route
+                path="/staff/create-emergency-request"
+                element={<CreateEmergencyRequest />}
+              />
+              <Route
+                path="/staff/create-health-forms"
+                element={<CreateHealthForms />}
+              />
+              <Route
+                path="/staff/emergency-request-management"
+                element={<EmergencyRequestManagement />}
+              />
+              <Route
+                path="/staff/blood-inventory"
+                element={<BloodInventory />}
+              />
+              <Route
+                path="/staff/blood-donation-management"
+                element={<BloodDonationManagement />}
+              />
+              {/* Member routes */}
+              <Route path="/member" element={<HomePage />} />
+              <Route path="/member/faq" element={<FAQPage />} />
+              <Route path="/member/news" element={<NewsPage />} />
+              <Route path="/member/support" element={<SupportPage />} />
+              <Route path="/member/profile" element={<Profile />} />
+              <Route
+                path="/member/blood-donation-register"
+                element={<BloodDonationRegistration />}
+              />
+              <Route
+                path="/member/blood-donation-registration"
+                element={<BloodDonationRegistration />}
+              />
+              <Route
+                path="/member/blood-donation-profile"
+                element={<BloodDonationProfile />}
+              />
+              <Route path="/member/certificate" element={<Certificate />} />
+              {/* 404 route */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </MainLayout>
 
-                {/* Auth routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                
-                {/* Blood donation registration route - Public access */}
-                <Route path="/blood-donation-register" element={<BloodDonationRegistration />} />                {/* Admin routes */}
-                <Route path="/admin" element={<HomePage />} />
-                <Route path="/admin/faq" element={<FAQPage />} />
-                <Route path="/admin/news" element={<NewsPage />} />
-                <Route path="/admin/support" element={<SupportPage />} />
-                <Route path="/admin/profile" element={<Profile />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/user-management" element={<UserManagement />} />
-                <Route path="/admin/create-emergency-request" element={<CreateEmergencyRequest />} />
-                <Route path="/admin/create-health-forms" element={<CreateHealthForms />} />
-                <Route path="/admin/blood-inventory" element={<BloodInventory />} />
-                <Route path="/admin/blood-donation-management" element={<BloodDonationManagement />} />
-
-                {/* Staff routes */}
-                <Route path="/staff" element={<HomePage />} />
-                <Route path="/staff/faq" element={<FAQPage />} />
-                <Route path="/staff/news" element={<NewsPage />} />
-                <Route path="/staff/support" element={<SupportPage />} />
-                <Route path="/staff/profile" element={<Profile />} />
-                <Route path="/staff/user-management" element={<UserManagement />} />
-                <Route path="/staff/donor-management" element={<BloodDonorManagement />} />
-                <Route path="/staff/create-emergency-request" element={<CreateEmergencyRequest />} />
-                <Route path="/staff/create-health-forms" element={<CreateHealthForms />} />
-
-                <Route path="/staff/emergency-request-management" element={<EmergencyRequestManagement />} />
-                <Route path="/staff/blood-inventory" element={<BloodInventory />} />
-                <Route path="/staff/blood-donation-management" element={<BloodDonationManagement />} />
-
-                {/* Member routes */}
-                <Route path="/member" element={<HomePage />} />
-                <Route path="/member/faq" element={<FAQPage />} />
-                <Route path="/member/news" element={<NewsPage />} />
-                <Route path="/member/support" element={<SupportPage />} />
-                <Route path="/member/profile" element={<Profile />} />
-                <Route path="/member/blood-donation-register" element={<BloodDonationRegistration />} />
-                <Route path="/member/blood-donation-registration" element={<BloodDonationRegistration />} />
-                <Route path="/member/blood-donation-profile" element={<BloodDonationProfile />} />
-                <Route path="/member/certificate" element={<Certificate />} />
-
-                {/* 404 route */}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </MainLayout>
-          </AntdApp>
+          {/* AI Chatbot - Available on all pages */}
+          <AIChatbot />
+        </AntdApp>
         {/* </AuthProvider> */}
       </Router>
     </ConfigProvider>
-  )
-
+  );
 }
 export default App;

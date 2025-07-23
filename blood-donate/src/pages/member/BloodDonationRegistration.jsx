@@ -580,7 +580,7 @@ const BloodDonationRegistration = () => {
               <DatePicker
                 placeholder="Chọn ngày hiến máu"
                 className="modern-input"
-                style={{ width: "100%" }}
+                style={{ width: "70%" }}
                 format="DD/MM/YYYY"
                 suffixIcon={<CalendarOutlined />}
               />
