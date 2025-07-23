@@ -102,8 +102,16 @@ const BloodInventory = () => {
       // Map response data to include derived fields for display
       const formattedUnits = response.map((unit, idx) => {
         const bloodType = bloodTypeMap[unit.bloodTypeId] || { name: `ID-${unit.bloodTypeId}`, description: '' };
+        // Nếu có requestId thì luôn là 'used', ngược lại chuẩn hóa status
+        let normalizedStatus = unit.status;
+        if (unit.requestId) {
+          normalizedStatus = 'used';
+        } else if (typeof normalizedStatus === 'string') {
+          normalizedStatus = normalizedStatus.toLowerCase();
+        }
         return {
           ...unit,
+          status: normalizedStatus,
           bloodTypeName: bloodType.name,
           bloodTypeDescription: bloodType.description,
           donorName: unit.donorName || 'Không có thông tin',
@@ -115,7 +123,6 @@ const BloodInventory = () => {
             : `row-${idx}`)
         };
       });
-      
       setBloodUnits(formattedUnits);
     } catch (error) {
       console.error('Error loading blood units:', error);
@@ -281,23 +288,88 @@ const BloodInventory = () => {
   const handleUpdateUnit = async (values) => {
     try {
       setLoading(true);
-      
+      // Nếu staff nhập requestId (gắn yêu cầu khẩn cấp)
+      if (values.requestId) {
+        // Lấy token xác thực từ localStorage (đồng bộ với authApi.js)
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+          message.error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại!');
+          setLoading(false);
+          return;
+        }
+        console.log('DEBUG TOKEN:', token);
+        // Lấy thông tin yêu cầu khẩn cấp
+        const reqRes = await fetch(`/api/BloodRequest/Get-Request-By-Id/${values.requestId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+          }
+        );
+        console.log('DEBUG RESPONSE STATUS:', reqRes.status);
+        if (reqRes.status === 401) {
+          message.error('Không có quyền truy cập API! Token không hợp lệ hoặc đã hết hạn.');
+          setLoading(false);
+          return;
+        }
+        const reqData = await reqRes.json();
+        const requiredQuantity = reqData?.quantityNeeded || 0;
+        if (!requiredQuantity) {
+          message.error('Không tìm thấy yêu cầu hoặc yêu cầu không hợp lệ!');
+          setLoading(false);
+          return;
+        }
+        // Tính tổng số lượng các BloodUnit đã gắn requestId này và status là used
+        const usedUnits = bloodUnits.filter(u => u.requestId === values.requestId && u.status === 'used');
+        let totalUsed = usedUnits.reduce((sum, u) => sum + (u.quantity || 0), 0);
+        // Nếu đang cập nhật đơn vị này và chuyển sang used, cộng thêm số lượng đơn vị này
+        if (values.status === 'used' && selectedUnit.status !== 'used') {
+          totalUsed += values.quantity || 0;
+        }
+        // Cho phép gán nếu tổng < requiredQuantity, chỉ cảnh báo nếu đã đủ hoặc vượt quá
+        if (totalUsed > requiredQuantity) {
+          message.error(`Tổng số lượng máu đã vượt quá yêu cầu! Đã gắn: ${totalUsed} / Cần: ${requiredQuantity} ml`);
+          setLoading(false);
+          return;
+        }
+        // Nếu đã đủ thì cảnh báo đã đủ, không cho gán thêm
+        if (totalUsed === requiredQuantity) {
+          message.warning(`Đã đủ số lượng máu cho yêu cầu này! Đã gắn: ${totalUsed} / Cần: ${requiredQuantity} ml`);
+          setLoading(false);
+          return;
+        }
+        // Nếu còn thiếu thì cho phép gán và trừ dần
+        // Không return ở đây, tiếp tục xử lý update
+      }
       // Prepare data for API
+      // Nếu có requestId thì luôn set status là 'used'
       const updateData = {
         ...values,
+        status: values.requestId ? 'used' : values.status,
         expiryDate: values.expiryDate ? values.expiryDate.format('YYYY-MM-DD') : values.expiryDate
       };
-      
       // Call API to update blood unit
       await bloodManagementApi.updateBloodUnit(selectedUnit.unitId, updateData);
-      
-      // Update local state
-      setBloodUnits(prev => prev.map(unit => 
-        unit.unitId === selectedUnit.unitId 
-          ? { ...unit, ...updateData }
-          : unit
-      ));
-      
+      // Nếu có requestId, luôn gọi API trừ số lượng máu còn thiếu của yêu cầu
+      if (values.requestId) {
+        await fetch('/api/BloodRequest/update-received-quantity', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requestId: values.requestId,
+            receivedQuantity: values.quantity
+          })
+        });
+      }
+      // Update local state, đảm bảo status mới được cập nhật đúng (ví dụ: chuyển sang 'used')
+      setBloodUnits(prev => prev.map(unit => {
+        if (unit.unitId === selectedUnit.unitId) {
+          // Nếu có requestId thì luôn là 'used'
+          return { ...unit, ...updateData, status: updateData.status };
+        }
+        return unit;
+      }));
       message.success('Cập nhật đơn vị máu thành công!');
       setUpdateVisible(false);
       form.resetFields();
@@ -805,12 +877,8 @@ const BloodInventory = () => {
               >
                 <Select placeholder="Chọn trạng thái">
                   <Option value="available">Có sẵn</Option>
-                  <Option value="reserved">Đã đặt trước</Option>
                   <Option value="used">Đã sử dụng</Option>
                   <Option value="expired">Hết hạn</Option>
-                  <Option value="quarantine">Cách ly</Option>
-                  <Option value="testing">Đang kiểm tra</Option>
-                  <Option value="damaged">Hư hỏng</Option>
                 </Select>
               </Form.Item>
             </Col>

@@ -1,3 +1,10 @@
+// Quy tắc chuyển trạng thái hợp lệ
+const STATUS_TRANSITIONS = {
+  Pending: ['Opened', 'Approved', 'Rejected', 'Done', 'Closed'],
+  Opened: ['Pending', 'Approved', 'Rejected', 'Done', 'Closed'],
+  Approved: ['Closed'],
+  Rejected: ['Closed'],
+};
 import React, { useEffect, useState } from 'react';
 import {
   Table,
@@ -40,6 +47,9 @@ const BLOOD_TYPE_MAP = {
 const STATUS_OPTIONS = [
   { value: 'Opened', label: 'Cần hỗ trợ' },
   { value: 'Pending', label: 'Chờ xử lý' },
+  { value: 'Approved', label: 'Đã duyệt' },
+  { value: 'Rejected', label: 'Từ chối' },
+  { value: 'Done', label: 'Hoàn thành' },
   { value: 'Closed', label: 'Đã đóng' },
 ];
 
@@ -314,7 +324,15 @@ const EmergencyRequestManagement = () => {
             name="status"
             rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
           >
-            <Select options={STATUS_OPTIONS} />
+            <Select
+              options={
+                STATUS_TRANSITIONS[editModal.data?.status]
+                  ? STATUS_TRANSITIONS[editModal.data.status]
+                      .filter((s) => s !== editModal.data.status && s !== 'Done' && s !== 'Approved' && s !== 'Rejected')
+                      .map((s) => STATUS_OPTIONS.find((opt) => opt.value === s)).filter(Boolean)
+                  : STATUS_OPTIONS.filter((opt) => opt.value !== 'Done' && opt.value !== 'Approved' && opt.value !== 'Rejected')
+              }
+            />
           </Form.Item>
         </Form>
       </Modal>
