@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -40,6 +41,8 @@ import '../../styles/BloodInventory.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+
+
 
 // Map bloodTypeID (UUID) to bloodTypeName and description
 const bloodTypeMap = {

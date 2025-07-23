@@ -33,7 +33,8 @@ import {
   getAllBloodRequests,
   getBloodTypeId,
   cleanupTokens,
-  refreshAuthToken 
+  refreshAuthToken,
+  getAvailableQuantityByBloodType
 } from '../../services/emergencyRequestApi';
 import '../../styles/EmergencyRequest.css';
 
@@ -178,7 +179,6 @@ const CreateEmergencyRequest = () => {
     // Validate required fields
     const requiredFields = ['patientName', 'email', 'userIdCard', 'phone', 'dateOfBirth', 'bloodTypeRequired', 'quantityNeeded'];
     const missingFields = requiredFields.filter(field => !formData[field]);
-    
     if (missingFields.length > 0) {
       setErrorMessage('Vui lòng điền đầy đủ các trường bắt buộc');
       setShowError(true);
@@ -188,27 +188,39 @@ const CreateEmergencyRequest = () => {
 
     setIsLoading(true);
     try {
-      // Prepare request data according to API structure
+      // 1. Lấy bloodTypeId và số lượng cần
+      const bloodTypeId = getBloodTypeId(formData.bloodTypeRequired);
+      const quantityNeeded = parseInt(formData.quantityNeeded);
+
+      // 2. Kiểm tra số lượng máu trong kho
+      const availableQuantity = await getAvailableQuantityByBloodType(bloodTypeId);
+
+      // 3. Xác định trạng thái
+      let status = 'Opened';
+      if (availableQuantity >= quantityNeeded) {
+        status = 'Pending';
+      }
+
+      // 4. Chuẩn bị dữ liệu gửi lên API
       const requestData = {
         patientName: formData.patientName,
         email: formData.email,
         userIdCard: formData.userIdCard,
         phone: formData.phone,
         dateOfBirth: formData.dateOfBirth,
-        bloodTypeRequired: getBloodTypeId(formData.bloodTypeRequired), // Convert to blood type ID
-        quantityNeeded: parseInt(formData.quantityNeeded),
-        urgencyLevel: 'HIGH', // Always set to HIGH for emergency requests
-        medicalCondition: formData.description, // Use description as medical condition
+        bloodTypeRequired: bloodTypeId, // Convert to blood type ID
+        quantityNeeded,
+        urgencyLevel: 'HIGH',
+        medicalCondition: formData.description,
         contactInfo: formData.phone,
-        description: formData.description
+        description: formData.description,
+        status // Thêm trạng thái vào request
       };
 
       const result = await createEmergencyRequest(requestData);
-      
       if (result) {
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
-
         // Reset form
         setFormData({
           patientName: '',
@@ -223,7 +235,6 @@ const CreateEmergencyRequest = () => {
           contactInfo: '',
           description: ''
         });
-
         setUserFound(null);
       }
     } catch (error) {
