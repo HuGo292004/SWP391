@@ -236,36 +236,54 @@ import {
     };
     // Navigation items cho thanh màu xanh đậm - hiển thị dựa vào vai trò
     const navItems = [
-      { 
-        key: currentRole ? `/${currentRole}` : "/", 
-        label: "TRANG CHỦ", 
-        path: currentRole ? `/${currentRole}` : "/" 
-      },
-      // Nút hiến máu bình thường
       {
-        key: "blood-donation-register",
-        label: (
-          <>
-            <HeartOutlined style={{ fontSize: 15, marginRight: 4 }} />
-            Hiến máu
-          </>
-        ),
-        path: currentRole === 'member' ? "/member/blood-donation-register" : "/blood-donation-register"
+        key: currentRole ? `/${currentRole}` : "/",
+        label: "TRANG CHỦ",
+        path: currentRole ? `/${currentRole}` : "/"
       },
-      { 
-        key: currentRole ? `/${currentRole}/faq` : "/faq", 
-        label: "HỎI - ĐÁP", 
-        path: currentRole ? `/${currentRole}/faq` : "/faq" 
+      // Nếu là staff thì hiện "Yêu cầu khẩn cấp" thay cho "Hiến máu"
+      ...(currentRole === 'staff'
+        ? [
+            {
+              key: 'emergency-request',
+              label: (
+                <>
+                  <AlertOutlined style={{ fontSize: 15, marginRight: 4 }} />
+                  Yêu cầu khẩn cấp
+                </>
+              ),
+              path: '/staff/emergency-request-management',
+            },
+          ]
+        : [
+            {
+              key: "blood-donation-register",
+              label: (
+                <>
+                  <HeartOutlined style={{ fontSize: 15, marginRight: 4 }} />
+                  Hiến máu
+                </>
+              ),
+              path:
+                currentRole === 'member'
+                  ? "/member/blood-donation-register"
+                  : "/blood-donation-register",
+            },
+          ]),
+      {
+        key: currentRole ? `/${currentRole}/faq` : "/faq",
+        label: "HỎI - ĐÁP",
+        path: currentRole ? `/${currentRole}/faq` : "/faq"
       },
-      { 
-        key: currentRole ? `/${currentRole}/news` : "/news", 
-        label: "TIN TỨC", 
-        path: currentRole ? `/${currentRole}/news` : "/news" 
+      {
+        key: currentRole ? `/${currentRole}/news` : "/news",
+        label: "TIN TỨC",
+        path: currentRole ? `/${currentRole}/news` : "/news"
       },
-      { 
-        key: currentRole ? `/${currentRole}/support` : "/support", 
-        label: "LIÊN HỆ", 
-        path: currentRole ? `/${currentRole}/support` : "/support" 
+      {
+        key: currentRole ? `/${currentRole}/support` : "/support",
+        label: "LIÊN HỆ",
+        path: currentRole ? `/${currentRole}/support` : "/support"
       },
     ];
     // Thêm submenu cho các chức năng - hiển thị tất cả chức năng cho cả guest

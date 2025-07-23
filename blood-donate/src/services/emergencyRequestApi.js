@@ -1,3 +1,37 @@
+// Cập nhật trạng thái yêu cầu khẩn cấp
+export const updateEmergencyRequestStatus = async (requestId, newStatus) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/BloodRequest/update-status/${requestId}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (!response.ok) throw new Error('Cập nhật trạng thái thất bại');
+    const responseText = await response.text();
+    return responseText?.trim() ? JSON.parse(responseText) : null;
+  } catch (error) {
+    throw error;
+  }
+};
+// Lấy tổng số lượng máu khả dụng theo bloodTypeId (dùng cho kiểm tra tồn kho trước khi tạo yêu cầu khẩn)
+export const getAvailableQuantityByBloodType = async (bloodTypeId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/BloodUnit/Get-BloodUnit-by-blood-type/${bloodTypeId}`, {
+      method: 'GET',
+      headers: getHeaders(),
+    });
+    if (response.ok) {
+      const responseText = await response.text();
+      const units = responseText?.trim() ? JSON.parse(responseText) : [];
+      // Chỉ tính các đơn vị máu có status === 'available'
+      const availableUnits = units.filter(unit => unit.status === 'available');
+      return availableUnits.reduce((sum, unit) => sum + (unit.quantity || 0), 0);
+    }
+    return 0;
+  } catch {
+    return 0;
+  }
+};
 // Emergency Request API - Production Version
 // Handles emergency blood requests, user search, and authentication
 

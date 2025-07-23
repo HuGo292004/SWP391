@@ -15,7 +15,7 @@ import { MainLayout } from "./components/layout";
 import { HomePage, NotFoundPage, FAQPage, NewsPage, SupportPage, Profile } from "./pages/common";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
-import { UserManagement, CreateEmergencyRequest, CreateHealthForms, BloodInventory, BloodDonorManagement, BloodDonationManagement } from "./pages/staff";
+import { UserManagement, CreateEmergencyRequest, CreateHealthForms, BloodInventory, BloodDonorManagement, BloodDonationManagement, EmergencyRequestManagement } from "./pages/staff";
 import { BloodDonationRegistration, BloodDonationProfile, Certificate } from "./pages/member";
 
 // Y tế theme colors
@@ -112,6 +112,8 @@ function App() {
                 <Route path="/staff/donor-management" element={<BloodDonorManagement />} />
                 <Route path="/staff/create-emergency-request" element={<CreateEmergencyRequest />} />
                 <Route path="/staff/create-health-forms" element={<CreateHealthForms />} />
+
+                <Route path="/staff/emergency-request-management" element={<EmergencyRequestManagement />} />
                 <Route path="/staff/blood-inventory" element={<BloodInventory />} />
                 <Route path="/staff/blood-donation-management" element={<BloodDonationManagement />} />
 
