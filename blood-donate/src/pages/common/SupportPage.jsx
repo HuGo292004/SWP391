@@ -1,13 +1,13 @@
-import React from 'react';
-import { Typography, Form, Input, Button, Card, Row, Col, Space } from 'antd';
+import React from "react";
+import { Typography, Form, Input, Button, Card, Row, Col, Space } from "antd";
 import {
   PhoneOutlined,
   MailOutlined,
   EnvironmentOutlined,
   ClockCircleOutlined,
   MessageOutlined,
-} from '@ant-design/icons';
-import '../../styles/SupportPage.css';
+} from "@ant-design/icons";
+import "../../styles/SupportPage.css";
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -16,7 +16,7 @@ const SupportPage = () => {
   const [form] = Form.useForm();
 
   const onFinish = (values) => {
-    console.log('Form values:', values);
+    console.log("Form values:", values);
     // Xử lý gửi form ở đây
     form.resetFields();
   };
@@ -26,26 +26,26 @@ const SupportPage = () => {
       icon: <PhoneOutlined />,
       title: "Đường dây nóng",
       content: ["1900 1234", "0123 456 789"],
-      iconClass: "phone"
+      iconClass: "phone",
     },
     {
       icon: <MailOutlined />,
       title: "Email",
       content: ["support@blooddonate.com", "info@blooddonate.com"],
-      iconClass: "email"
+      iconClass: "email",
     },
     {
       icon: <EnvironmentOutlined />,
       title: "Địa chỉ",
       content: ["123 Đường ABC, Quận XYZ", "Thành phố Hồ Chí Minh"],
-      iconClass: "location"
+      iconClass: "location",
     },
     {
       icon: <ClockCircleOutlined />,
       title: "Giờ làm việc",
       content: ["Thứ 2 - Thứ 6: 8:00 - 17:00", "Thứ 7: 8:00 - 12:00"],
-      iconClass: "clock"
-    }
+      iconClass: "clock",
+    },
   ];
 
   return (
@@ -54,11 +54,12 @@ const SupportPage = () => {
       <div className="support-header">
         <div className="support-header-content">
           <h1 className="support-title">
-            <MessageOutlined style={{ marginRight: '12px' }} />
+            <PhoneOutlined style={{ marginRight: "12px", color: "#ffffff" }} />
             Liên hệ & Hỗ trợ
           </h1>
           <p className="support-subtitle">
-            Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7. Hãy liên hệ với chúng tôi nếu bạn cần giúp đỡ.
+            Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7. Hãy liên hệ với chúng tôi
+            nếu bạn cần giúp đỡ.
           </p>
         </div>
       </div>
@@ -92,10 +93,11 @@ const SupportPage = () => {
                 <div className="form-header">
                   <h2 className="form-title">Gửi tin nhắn cho chúng tôi</h2>
                   <p className="form-description">
-                    Điền vào form bên dưới, chúng tôi sẽ phản hồi trong thời gian sớm nhất
+                    Điền vào form bên dưới, chúng tôi sẽ phản hồi trong thời
+                    gian sớm nhất
                   </p>
                 </div>
-                
+
                 <div className="form-content">
                   <Form
                     form={form}
@@ -107,18 +109,20 @@ const SupportPage = () => {
                       <Form.Item
                         name="name"
                         label={<span className="form-label">Họ và tên</span>}
-                        rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+                        rules={[
+                          { required: true, message: "Vui lòng nhập họ tên" },
+                        ]}
                         className="form-group"
                       >
                         <Input size="large" placeholder="Nhập họ và tên" />
                       </Form.Item>
-                      
+
                       <Form.Item
                         name="email"
                         label={<span className="form-label">Email</span>}
                         rules={[
-                          { required: true, message: 'Vui lòng nhập email' },
-                          { type: 'email', message: 'Email không hợp lệ' }
+                          { required: true, message: "Vui lòng nhập email" },
+                          { type: "email", message: "Email không hợp lệ" },
                         ]}
                         className="form-group"
                       >
@@ -129,7 +133,12 @@ const SupportPage = () => {
                     <Form.Item
                       name="phone"
                       label={<span className="form-label">Số điện thoại</span>}
-                      rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Vui lòng nhập số điện thoại",
+                        },
+                      ]}
                       className="form-group"
                     >
                       <Input size="large" placeholder="Nhập số điện thoại" />
@@ -138,7 +147,9 @@ const SupportPage = () => {
                     <Form.Item
                       name="subject"
                       label={<span className="form-label">Tiêu đề</span>}
-                      rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
+                      rules={[
+                        { required: true, message: "Vui lòng nhập tiêu đề" },
+                      ]}
                       className="form-group"
                     >
                       <Input size="large" placeholder="Nhập tiêu đề" />
@@ -147,7 +158,9 @@ const SupportPage = () => {
                     <Form.Item
                       name="message"
                       label={<span className="form-label">Nội dung</span>}
-                      rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
+                      rules={[
+                        { required: true, message: "Vui lòng nhập nội dung" },
+                      ]}
                       className="form-group"
                     >
                       <TextArea
@@ -158,9 +171,9 @@ const SupportPage = () => {
                     </Form.Item>
 
                     <Form.Item>
-                      <Button 
-                        type="primary" 
-                        htmlType="submit" 
+                      <Button
+                        type="primary"
+                        htmlType="submit"
                         size="large"
                         className="submit-btn"
                       >
@@ -174,7 +187,8 @@ const SupportPage = () => {
               <Col xs={24} lg={12}>
                 <div className="map-container">
                   <div className="map-placeholder">
-                    🗺️ Bản đồ Google Maps<br/>
+                    🗺️ Bản đồ Google Maps
+                    <br />
                     <small>Vị trí trung tâm hiến máu</small>
                   </div>
                 </div>
@@ -187,4 +201,4 @@ const SupportPage = () => {
   );
 };
 
-export default SupportPage; 
+export default SupportPage;
