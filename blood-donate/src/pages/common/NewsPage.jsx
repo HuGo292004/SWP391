@@ -12,9 +12,7 @@ import {
   Form,
   Input,
   Select,
-  Upload,
   message,
-  Spin,
   Popconfirm,
 } from "antd";
 import {
@@ -22,7 +20,6 @@ import {
   UserOutlined,
   RightOutlined,
   PlusOutlined,
-  UploadOutlined,
   SaveOutlined,
   FileTextOutlined,
   EditOutlined,
@@ -39,9 +36,8 @@ import {
 import { UserAPI } from "../../services/userApi";
 import "../../styles/NewsPage.css";
 
-const { Title, Paragraph, Text } = Typography;
-const { Meta } = Card;
-
+const { Title } = Typography;
+const { Option } = Select;
 const { TextArea } = Input;
 
 const NewsPage = () => {
@@ -53,7 +49,7 @@ const NewsPage = () => {
   const [pageLoading, setPageLoading] = useState(true);
   const [newsData, setNewsData] = useState([]);
   const [editingBlog, setEditingBlog] = useState(null);
-  const [userCache, setUserCache] = useState({}); // Cache để lưu thông tin user
+  const [userCache, setUserCache] = useState({});
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedNews, setSelectedNews] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(undefined);
@@ -61,7 +57,6 @@ const NewsPage = () => {
 
   // Kiểm tra role của user
   const userRole = localStorage.getItem("userRole");
-  // Ưu tiên userId từ API thực tế
   const currentUserID =
     localStorage.getItem("userId") ||
     localStorage.getItem("userID") ||
@@ -72,16 +67,6 @@ const NewsPage = () => {
     localStorage.getItem("name") ||
     localStorage.getItem("username");
   const canCreateNews = userRole === "Staff" || userRole === "Admin";
-
-  // Debug: Log user info
-  console.log("Current user info:", {
-    userRole,
-    currentUserID,
-    currentUserFullName,
-    localStorage_userID: localStorage.getItem("userID"),
-    localStorage_userId: localStorage.getItem("userId"),
-    localStorage_id: localStorage.getItem("id"),
-  });
 
   // Categories cho tin tức
   const categories = [
@@ -103,22 +88,13 @@ const NewsPage = () => {
   useEffect(() => {
     const loadUserInfo = async () => {
       const authorIDs = [...new Set(newsData.map((blog) => blog.authorID))];
-      console.log("Loading user info for authorIDs:", authorIDs);
-
       for (const authorID of authorIDs) {
-        // Skip if already cached or is current user
-        if (userCache[authorID] || authorID === currentUserID) {
-          continue;
-        }
-
+        if (userCache[authorID] || authorID === currentUserID) continue;
         try {
-          await getAuthorName(authorID); // This will cache the result
-        } catch (error) {
-          console.log("Failed to load user info for:", authorID, error);
-        }
+          await getAuthorName(authorID);
+        } catch (_) {}
       }
     };
-
     if (newsData.length > 0) {
       loadUserInfo();
     }
@@ -129,17 +105,10 @@ const NewsPage = () => {
     try {
       setPageLoading(true);
       const response = await getAllBlogs();
-      console.log("Raw API response:", response);
-
-      // Handle different response structures
       const blogs = Array.isArray(response)
         ? response
         : response?.data || response?.blogs || [];
-      console.log("Extracted blogs array:", blogs);
-
-      // Process and validate blog data with more field mappings
       const processedBlogs = (blogs || []).map((blog, index) => {
-        // Try multiple possible field names for ID
         const blogID =
           blog.blogID ||
           blog.id ||
@@ -147,8 +116,6 @@ const NewsPage = () => {
           blog.Id ||
           blog.ID ||
           `temp-${Date.now()}-${index}`;
-
-        // Try multiple possible field names for authorID - ưu tiên currentUserID nếu match
         const authorID =
           blog.authorID ||
           blog.authorId ||
@@ -159,8 +126,6 @@ const NewsPage = () => {
           blog.created_by ||
           currentUserID ||
           "UNKNOWN_AUTHOR";
-
-        // Try multiple possible field names for dates
         const publishDate =
           blog.publishDate ||
           blog.publish_date ||
@@ -169,11 +134,8 @@ const NewsPage = () => {
           blog.dateCreated ||
           blog.date_created ||
           new Date().toISOString();
-
-        // Try multiple possible field names for view count
         const viewCount = blog.viewCount || blog.view_count || blog.views || 0;
-
-        const processed = {
+        return {
           ...blog,
           blogID: blogID,
           authorID: authorID,
@@ -183,32 +145,15 @@ const NewsPage = () => {
           content: blog.content || "No content",
           category: blog.category || "Thông báo",
         };
-
-        console.log(`Blog ${index}:`, {
-          original: blog,
-          processed: processed,
-        });
-
-        return processed;
       });
-
-      // Filter out blogs with invalid IDs and log warnings
       const validBlogs = processedBlogs.filter((blog) => {
         const isValid =
           blog.blogID &&
           blog.blogID !== "undefined" &&
           !blog.blogID.startsWith("temp-");
-        if (!isValid) {
-          console.warn("Skipping blog with invalid ID:", blog);
-        }
         return isValid;
       });
-
-      console.log("Valid blogs after filtering:", validBlogs);
-
-      // If no valid blogs from API, add some sample data for testing
       if (validBlogs.length === 0) {
-        console.log("No valid blogs from API, using sample data");
         const sampleBlogs = [
           {
             blogID: "sample-1",
@@ -237,8 +182,6 @@ const NewsPage = () => {
       }
     } catch (error) {
       message.error("Không thể tải danh sách tin tức: " + error.message);
-      console.error("Error loading blogs:", error);
-      // Set sample data as fallback
       setNewsData([
         {
           blogID: "fallback-1",
@@ -255,7 +198,6 @@ const NewsPage = () => {
     }
   };
 
-  // Format date function
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN", {
@@ -265,7 +207,6 @@ const NewsPage = () => {
     });
   };
 
-  // Get summary from content
   const getSummary = (content, maxLength = 150) => {
     if (!content) return "";
     return content.length > maxLength
@@ -273,92 +214,59 @@ const NewsPage = () => {
       : content;
   };
 
-  // Get author name from authorID
   const getAuthorName = async (authorID) => {
-    console.log("Getting author name for authorID:", authorID);
-    console.log("Current user ID:", currentUserID);
-    console.log("Current user full name:", currentUserFullName);
-
-    // Nếu authorID trùng với current user, hiển thị tên đầy đủ từ localStorage
     if (authorID === currentUserID && currentUserFullName) {
-      console.log("Returning current user full name:", currentUserFullName);
       return currentUserFullName;
     }
-
-    // Kiểm tra cache trước
     if (userCache[authorID]) {
-      console.log("Returning cached user name:", userCache[authorID]);
       return userCache[authorID];
     }
-
-    // Thử gọi API để lấy thông tin user
     try {
       const userInfo = await UserAPI.getUserDetail(authorID);
-      console.log("User info from API:", userInfo);
-
       const fullName =
         userInfo?.fullName ||
         userInfo?.name ||
         userInfo?.userName ||
         `User ${authorID}`;
-
-      // Lưu vào cache
       setUserCache((prev) => ({
         ...prev,
         [authorID]: fullName,
       }));
-
-      console.log("Returning API user name:", fullName);
       return fullName;
-    } catch (error) {
-      console.log("Error fetching user info:", error);
-
-      // Fallback với mapping tạm thời
+    } catch {
       const authorMap = {
-        "28697d11-561a-4992-a7ca-9dbb158bca8b": "staff", // ID thực tế từ API
-        USER001: "Nguyễn Văn A", // Backup cho test
+        "28697d11-561a-4992-a7ca-9dbb158bca8b": "staff",
+        USER001: "Nguyễn Văn A",
         USER002: "Trần Thị B",
         USER003: "Lê Văn C",
         USER004: "Phạm Thị D",
         OTHER_USER: "Người dùng khác",
       };
-
       const authorName =
         authorMap[authorID] || `User ${authorID}` || "Tác giả không xác định";
-      console.log("Returning fallback author name:", authorName);
-
-      // Lưu vào cache để không gọi API lại
       setUserCache((prev) => ({
         ...prev,
         [authorID]: authorName,
       }));
-
       return authorName;
     }
   };
 
-  // Sync version for immediate rendering (sử dụng cache hoặc fallback)
   const getAuthorNameSync = (authorID) => {
-    // Nếu authorID trùng với current user
     if (authorID === currentUserID && currentUserFullName) {
       return currentUserFullName;
     }
-
-    // Kiểm tra cache
     if (userCache[authorID]) {
       return userCache[authorID];
     }
-
-    // Fallback mapping
     const authorMap = {
-      "28697d11-561a-4992-a7ca-9dbb158bca8b": "staff", // ID thực tế từ API
-      USER001: "Nguyễn Văn A", // Backup cho test
+      "28697d11-561a-4992-a7ca-9dbb158bca8b": "staff",
+      USER001: "Nguyễn Văn A",
       USER002: "Trần Thị B",
       USER003: "Lê Văn C",
       USER004: "Phạm Thị D",
       OTHER_USER: "Người dùng khác",
     };
-
     return (
       authorMap[authorID] || `User ${authorID}` || "Tác giả không xác định"
     );
@@ -367,69 +275,40 @@ const NewsPage = () => {
   const handleCreateNews = async (values) => {
     try {
       setLoading(true);
-
-      // Kiểm tra quyền tạo tin tức
       if (!canCreateNews) {
         message.error(
           "Bạn không có quyền tạo tin tức. Chỉ Staff và Admin mới có thể tạo tin tức."
         );
         return;
       }
-
-      // AuthorID phải là userID của tài khoản đang đăng nhập
       if (!currentUserID) {
         message.error(
           "Không thể tạo tin tức: Chưa đăng nhập hoặc không có thông tin user"
         );
-        console.error("Missing currentUserID:", {
-          currentUserID,
-          localStorage_userID: localStorage.getItem("userID"),
-          localStorage_userId: localStorage.getItem("userId"),
-          localStorage_id: localStorage.getItem("id"),
-        });
         return;
       }
-
-      const blogData = {
-        title: values.title,
-        content: values.content,
-        category: values.category,
-        publishDate: new Date().toISOString(),
-        authorID: currentUserID, // Luôn gửi authorID từ user hiện tại
-        viewCount: 0,
-      };
-
-      console.log("Creating blog with data:", blogData);
-      console.log("Current user info:", {
-        userID: currentUserID,
-        userFullName: currentUserFullName,
-        userRole: userRole,
-        canCreateNews: canCreateNews,
-      });
-
-      const newBlog = await createBlog(blogData);
-      console.log("Created blog response:", newBlog);
-
-      // Kiểm tra authorID trong response
-      if (newBlog && newBlog.authorID !== currentUserID) {
-        console.warn(
-          "Warning: Created blog authorID does not match current user!",
-          {
-            expected: currentUserID,
-            actual: newBlog.authorID,
-            createdBlog: newBlog,
-          }
-        );
+      const Title = (values.title || "").trim();
+      const Content = (values.content || "").trim();
+      const Category = (values.category || "").trim();
+      if (!Title || !Content || !Category) {
+        message.error("Vui lòng nhập đầy đủ Tiêu đề, Nội dung và Danh mục.");
+        setLoading(false);
+        return;
       }
-
-      // Reload blogs to get updated list
+      // Chú ý: Field tên phải đúng theo backend!
+      const blogData = {
+        Title,
+        Content,
+        Category,
+        publishDate: new Date().toISOString().slice(0, 10), // yyyy-MM-dd
+        authorId: currentUserID,
+      };
+      const newBlog = await createBlog(blogData);
       await loadBlogs();
-
       message.success("Tạo tin tức thành công!");
       setCreateModalVisible(false);
       createForm.resetFields();
     } catch (error) {
-      console.error("Error creating blog:", error);
       message.error(
         "Có lỗi xảy ra khi tạo tin tức: " +
           (error.response?.data?.message || error.message)
@@ -439,11 +318,9 @@ const NewsPage = () => {
     }
   };
 
-  // Handle edit blog
   const handleEditNews = async (values) => {
     try {
       setLoading(true);
-
       if (
         !editingBlog ||
         !editingBlog.blogID ||
@@ -452,71 +329,46 @@ const NewsPage = () => {
         message.error("Không thể chỉnh sửa: Blog ID không hợp lệ");
         return;
       }
-
       const blogData = {
         ...editingBlog,
         title: values.title,
         content: values.content,
         category: values.category,
       };
-
-      console.log(
-        "Updating blog with ID:",
-        editingBlog.blogID,
-        "Data:",
-        blogData
-      );
-
       await updateBlog(editingBlog.blogID, blogData);
-
-      // Reload blogs to get updated list
       await loadBlogs();
-
       message.success("Cập nhật tin tức thành công!");
       setEditModalVisible(false);
       setEditingBlog(null);
       editForm.resetFields();
     } catch (error) {
       message.error("Có lỗi xảy ra khi cập nhật tin tức: " + error.message);
-      console.error("Error updating blog:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle delete blog
   const handleDeleteNews = async (blogID) => {
     try {
       if (!blogID || blogID === "undefined") {
         message.error("Không thể xóa: Blog ID không hợp lệ");
         return;
       }
-
-      console.log("Deleting blog with ID:", blogID);
-
       await deleteBlog(blogID);
-
-      // Remove from local state
       setNewsData((prevData) =>
         prevData.filter((news) => news.blogID !== blogID)
       );
-
       message.success("Xóa tin tức thành công!");
     } catch (error) {
       message.error("Có lỗi xảy ra khi xóa tin tức: " + error.message);
-      console.error("Error deleting blog:", error);
     }
   };
 
-  // Open edit modal
   const openEditModal = (blog) => {
-    console.log("Opening edit modal for blog:", blog);
-
     if (!blog || !blog.blogID || blog.blogID === "undefined") {
       message.error("Không thể chỉnh sửa: Blog không hợp lệ");
       return;
     }
-
     setEditingBlog(blog);
     editForm.setFieldsValue({
       title: blog.title || "",
@@ -539,69 +391,39 @@ const NewsPage = () => {
     return colors[category] || "#1976D2";
   };
 
-  // Handle view news detail
   const handleViewNews = async (news) => {
     try {
-      // Tăng view count (chỉ tracking, không hiển thị)
       await incrementViewCount(news.blogID);
-
-      // Mở modal chi tiết
       setSelectedNews(news);
       setDetailModalVisible(true);
     } catch (error) {
-      console.error("Error incrementing view count:", error);
-      // Vẫn cho phép xem chi tiết dù lỗi tăng view count
       setSelectedNews(news);
       setDetailModalVisible(true);
     }
   };
 
-  // Check if current user can edit/delete a blog
   const canEditBlog = (blog) => {
-    // Lấy userID thực tế từ localStorage
     const realUserID =
       localStorage.getItem("userId") ||
       localStorage.getItem("userID") ||
       localStorage.getItem("id");
-
-    // Debug log để kiểm tra
-    console.log("Permission check:", {
-      userRole: userRole,
-      currentUserID: currentUserID,
-      realUserID: realUserID,
-      blogAuthorID: blog.authorID,
-      isOwner: blog.authorID === realUserID || blog.authorID === currentUserID,
-    });
-
-    // Admin có thể edit tất cả
     if (userRole === "Admin" || userRole === "admin") {
-      console.log("Can edit: Admin permissions");
       return true;
     }
-
-    // Staff có thể edit blog của chính mình
     if (userRole === "Staff" || userRole === "staff") {
       const isOwner =
         (realUserID && blog.authorID === realUserID) ||
         (currentUserID && blog.authorID === currentUserID);
-      console.log("Can edit (Staff):", isOwner);
       return isOwner;
     }
-
-    console.log("Can edit: false (no permissions)");
     return false;
   };
 
-  // Filter and sort logic
   const filteredAndSortedNews = useMemo(() => {
     let filtered = newsData || [];
-
-    // Filter by category
     if (selectedCategory) {
       filtered = filtered.filter((news) => news.category === selectedCategory);
     }
-
-    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "oldest":
@@ -611,32 +433,24 @@ const NewsPage = () => {
           return new Date(b.publishDate) - new Date(a.publishDate);
       }
     });
-
     return filtered;
   }, [newsData, selectedCategory, sortBy]);
 
   return (
     <div className="news-page">
-      {/* Header Section */}
       <div className="news-header">
         <div className="news-header-content">
           <h1 className="news-title">
-            <FileTextOutlined
-              style={{ marginRight: "12px", color: "#ffffff" }}
-            />
+            <FileTextOutlined style={{ marginRight: "12px", color: "#ffffff" }} />
             Tin tức & Sự kiện
           </h1>
           <p className="news-subtitle">
-            Cập nhật những tin tức mới nhất về hoạt động hiến máu và các sự kiện
-            sắp diễn ra
+            Cập nhật những tin tức mới nhất về hoạt động hiến máu và các sự kiện sắp diễn ra
           </p>
         </div>
       </div>
-
-      {/* Top Categories Section */}
       <div className="news-top-section">
         <div className="categories-container">
-          {/* Categories Section */}
           <div className="top-categories-section">
             <h3 className="section-title">
               <BookOutlined style={{ marginRight: "8px" }} />
@@ -672,11 +486,8 @@ const NewsPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
       <div className="news-container-new">
         <div className="news-main-content-full">
-          {/* Controls Section */}
           <div className="news-controls">
             <div className="news-filters">
               <div className="filter-group">
@@ -693,7 +504,6 @@ const NewsPage = () => {
                 </Select>
               </div>
             </div>
-
             {canCreateNews && (
               <Button
                 className="create-blog-btn"
@@ -705,8 +515,6 @@ const NewsPage = () => {
               </Button>
             )}
           </div>
-
-          {/* Blog List */}
           <div className="blog-list">
             {pageLoading ? (
               <div className="loading-container">
@@ -828,7 +636,6 @@ const NewsPage = () => {
           </div>
         </div>
       </div>
-
       {/* Modal tạo tin tức mới */}
       <Modal
         title={
@@ -882,7 +689,6 @@ const NewsPage = () => {
               </Form.Item>
             </Col>
           </Row>
-
           <Form.Item
             name="content"
             label={<span className="form-label">Nội dung</span>}
@@ -899,7 +705,6 @@ const NewsPage = () => {
               maxLength={5000}
             />
           </Form.Item>
-
           <Form.Item style={{ textAlign: "right", marginTop: "24px" }}>
             <Space>
               <Button
@@ -922,7 +727,6 @@ const NewsPage = () => {
           </Form.Item>
         </Form>
       </Modal>
-
       {/* Modal chỉnh sửa tin tức */}
       <Modal
         title={
@@ -977,7 +781,6 @@ const NewsPage = () => {
               </Form.Item>
             </Col>
           </Row>
-
           <Form.Item
             name="content"
             label={<span className="form-label">Nội dung</span>}
@@ -994,7 +797,6 @@ const NewsPage = () => {
               maxLength={5000}
             />
           </Form.Item>
-
           <Form.Item style={{ textAlign: "right", marginTop: "24px" }}>
             <Space>
               <Button
@@ -1018,7 +820,6 @@ const NewsPage = () => {
           </Form.Item>
         </Form>
       </Modal>
-
       {/* Modal xem chi tiết tin tức */}
       <Modal
         title={
@@ -1048,7 +849,6 @@ const NewsPage = () => {
       >
         {selectedNews && (
           <div>
-            {/* Header thông tin */}
             <div style={{ marginBottom: "24px" }}>
               <Tag
                 color={getCategoryColor(selectedNews.category)}
@@ -1059,7 +859,6 @@ const NewsPage = () => {
               <Title level={2} style={{ margin: "0 0 16px 0" }}>
                 {selectedNews.title}
               </Title>
-
               <Space
                 split={<Divider type="vertical" />}
                 style={{ fontSize: "14px", color: "#666" }}
@@ -1072,10 +871,7 @@ const NewsPage = () => {
                 </Space>
               </Space>
             </div>
-
             <Divider />
-
-            {/* Nội dung */}
             <div
               style={{
                 lineHeight: "1.8",
@@ -1086,8 +882,6 @@ const NewsPage = () => {
             >
               {selectedNews.content}
             </div>
-
-            {/* Actions cho admin/staff */}
             {canEditBlog(selectedNews) && (
               <div
                 style={{

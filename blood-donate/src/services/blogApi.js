@@ -1,13 +1,18 @@
 // Blog API service
-const API_BASE_URL = 'http://localhost:7262/api';
+// Ưu tiên lấy từ biến môi trường VITE_API_BASE_URL, fallback về localhost nếu chưa cấu hình
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api`
+  : 'http://localhost:7262/api';
 
 // Get auth token from localStorage
 const getAuthToken = () => {
   // Thử các tên token khác nhau
-  return localStorage.getItem('token') || 
-         localStorage.getItem('userToken') || 
-         localStorage.getItem('authToken') || 
-         localStorage.getItem('accessToken');
+  return (
+    localStorage.getItem('token') ||
+    localStorage.getItem('userToken') ||
+    localStorage.getItem('authToken') ||
+    localStorage.getItem('accessToken')
+  );
 };
 
 // Create headers with auth token
@@ -15,7 +20,7 @@ const createHeaders = () => {
   const token = getAuthToken();
   return {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
 };
 
@@ -24,28 +29,28 @@ const handleResponse = async (response) => {
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');
     let errorData = {};
-    
+
     try {
       errorData = JSON.parse(errorText);
     } catch {
       errorData = { message: errorText || `HTTP error! status: ${response.status}` };
     }
-    
+
     console.error('API Error Response:', {
       status: response.status,
       statusText: response.statusText,
       url: response.url,
-      errorData
+      errorData,
     });
-    
+
     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
   }
-  
+
   const responseText = await response.text();
   if (!responseText) {
     return null; // Handle empty response
   }
-  
+
   try {
     return JSON.parse(responseText);
   } catch (error) {
@@ -60,12 +65,12 @@ export const getAllBlogs = async () => {
     console.log('Fetching blogs from:', `${API_BASE_URL}/Blog`);
     const response = await fetch(`${API_BASE_URL}/Blog`, {
       method: 'GET',
-      headers: createHeaders()
+      headers: createHeaders(),
     });
-    
+
     console.log('Response status:', response.status);
     console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-    
+
     const data = await handleResponse(response);
     console.log('Parsed response data:', data);
     return data;
@@ -80,7 +85,7 @@ export const getBlogById = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/Blog/${id}`, {
       method: 'GET',
-      headers: createHeaders()
+      headers: createHeaders(),
     });
     return await handleResponse(response);
   } catch (error) {
@@ -92,24 +97,14 @@ export const getBlogById = async (id) => {
 // POST /api/Blog - Create new blog
 export const createBlog = async (blogData) => {
   try {
-    // Ensure authorID is set from current user if not provided
-    const currentUserId = localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('id');
-    const dataWithAuthor = {
-      ...blogData,
-      authorID: blogData.authorID || currentUserId
-    };
-    
-    console.log('Creating blog with data:', dataWithAuthor);
-    console.log('Current user ID:', currentUserId);
+    console.log('Creating blog with data (sent as-is):', blogData);
     console.log('Request URL:', `${API_BASE_URL}/Blog`);
     console.log('Request headers:', createHeaders());
-    
     const response = await fetch(`${API_BASE_URL}/Blog`, {
       method: 'POST',
       headers: createHeaders(),
-      body: JSON.stringify(dataWithAuthor)
+      body: JSON.stringify(blogData),
     });
-    
     console.log('Create response status:', response.status);
     const result = await handleResponse(response);
     console.log('Create response data:', result);
@@ -126,16 +121,16 @@ export const updateBlog = async (id, blogData) => {
     if (!id || id === 'undefined') {
       throw new Error('Invalid blog ID for update');
     }
-    
+
     console.log('Updating blog with ID:', id, 'Data:', blogData);
     console.log('Request URL:', `${API_BASE_URL}/Blog/${id}`);
-    
+
     const response = await fetch(`${API_BASE_URL}/Blog/${id}`, {
       method: 'PUT',
       headers: createHeaders(),
-      body: JSON.stringify(blogData)
+      body: JSON.stringify(blogData),
     });
-    
+
     console.log('Update response status:', response.status);
     const result = await handleResponse(response);
     console.log('Update response data:', result);
@@ -152,21 +147,21 @@ export const deleteBlog = async (id) => {
     if (!id || id === 'undefined') {
       throw new Error('Invalid blog ID for delete');
     }
-    
+
     console.log('Deleting blog with ID:', id);
     console.log('Request URL:', `${API_BASE_URL}/Blog/${id}`);
-    
+
     const response = await fetch(`${API_BASE_URL}/Blog/${id}`, {
       method: 'DELETE',
-      headers: createHeaders()
+      headers: createHeaders(),
     });
-    
+
     console.log('Delete response status:', response.status);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     // DELETE might return empty response
     const result = response.status === 204 ? { success: true } : await handleResponse(response);
     console.log('Delete response data:', result);
@@ -185,7 +180,7 @@ export const incrementViewCount = async (id) => {
     const blog = await getBlogById(id);
     const updatedBlog = {
       ...blog,
-      viewCount: blog.viewCount + 1
+      viewCount: blog.viewCount + 1,
     };
     return await updateBlog(id, updatedBlog);
   } catch (error) {
