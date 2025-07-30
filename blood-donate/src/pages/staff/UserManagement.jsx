@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Row, 
-  Col, 
-  Card, 
-  Table, 
-  Button, 
-  Form, 
-  Modal, 
-  Badge, 
+import React, { useState, useEffect } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Table,
+  Button,
+  Form,
+  Modal,
+  Badge,
   Alert,
   InputGroup,
   Dropdown,
@@ -17,49 +17,54 @@ import {
   Tabs,
   OverlayTrigger,
   Tooltip,
-  Spinner
-} from 'react-bootstrap';
-import { 
-  FaSearch, 
-  FaEdit, 
-  FaEye, 
-  FaUser, 
-  FaUsers, 
-  FaPhone, 
-  FaIdCard, 
-  FaCalendarAlt, 
-  FaHeart, 
+  Spinner,
+} from "react-bootstrap";
+import {
+  FaSearch,
+  FaEdit,
+  FaEye,
+  FaUser,
+  FaUsers,
+  FaPhone,
+  FaIdCard,
+  FaCalendarAlt,
+  FaHeart,
   FaUserMd,
   FaUserFriends,
   FaSync,
-  FaInfoCircle
-} from 'react-icons/fa';
-import '../../styles/UserManagementBootstrap.css';
-import { 
-  getAllUsers, 
-  getUsersByRole, 
-  searchUserByName, 
-  updateUser, 
+  FaInfoCircle,
+} from "react-icons/fa";
+import "../../styles/UserManagementBootstrap.css";
+import {
+  getAllUsers,
+  getUsersByRole,
+  searchUserByName,
+  updateUser,
   getUserDetail,
   formatUserData,
   formatUserDataForApi,
   mapRoleForApi,
   getCurrentUserRole,
   hasValidToken,
-  getDonorProfileByUserId
-} from '../../services/userManagementApi';
-import { donorApi } from '../../services/donorApi';
-import { donationHistoryApi } from '../../services/donationHistoryApi';
+  getDonorProfileByUserId,
+} from "../../services/userManagementApi";
+import { donorApi } from "../../services/donorApi";
+import { donationHistoryApi } from "../../services/donationHistoryApi";
 
 const UserManagement = () => {
-  const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]); // State lưu tất cả users cho thống kê
+  const [users, setUsers] = useState([]); // State lưu users hiển thị trong bảng
   const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [searchType, setSearchType] = useState('fullName');
-  const [filterRole, setFilterRole] = useState('all');
+  const [searchText, setSearchText] = useState("");
+  const [searchType, setSearchType] = useState("fullName");
+  const [filterRole, setFilterRole] = useState("all");
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [showAlert, setShowAlert] = useState({ show: false, message: '', type: 'success' });
+  const [showAlert, setShowAlert] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [viewingUser, setViewingUser] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -72,16 +77,16 @@ const UserManagement = () => {
   useEffect(() => {
     const role = getCurrentUserRole();
     setCurrentUserRole(role);
-    setCanEdit(role === 'Admin' || role === 'Staff');
+    setCanEdit(role === "Admin" || role === "Staff");
   }, []);
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, []); // Chỉ load một lần khi component mount
 
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!viewingUser || viewingUser.role !== 'Member') {
+      if (!viewingUser || viewingUser.role !== "Member") {
         setDonationHistory([]);
         return;
       }
@@ -89,13 +94,24 @@ const UserManagement = () => {
       try {
         let history = [];
         if (viewingUser.donorID) {
-          let raw = await donationHistoryApi.getDonationHistoryByDonor(viewingUser.donorID);
+          let raw = await donationHistoryApi.getDonationHistoryByDonor(
+            viewingUser.donorID
+          );
           history = (raw || []).filter(
-            d => d.donorId === viewingUser.donorID || d.donorID === viewingUser.donorID || d.userIdCard === viewingUser.userIdCard
+            (d) =>
+              d.donorId === viewingUser.donorID ||
+              d.donorID === viewingUser.donorID ||
+              d.userIdCard === viewingUser.userIdCard
           );
         } else if (viewingUser.userIdCard) {
-          const all = await donationHistoryApi.getAllDonationHistory ? await donationHistoryApi.getAllDonationHistory() : [];
-          history = all.filter(d => d.userIdCard === viewingUser.userIdCard || d.donorIdCard === viewingUser.userIdCard);
+          const all = (await donationHistoryApi.getAllDonationHistory)
+            ? await donationHistoryApi.getAllDonationHistory()
+            : [];
+          history = all.filter(
+            (d) =>
+              d.userIdCard === viewingUser.userIdCard ||
+              d.donorIdCard === viewingUser.userIdCard
+          );
         }
         setDonationHistory(Array.isArray(history) ? history : []);
       } catch (e) {
@@ -106,40 +122,68 @@ const UserManagement = () => {
     fetchHistory();
   }, [viewingUser]);
 
-  const showMessage = (message, type = 'success') => {
+  const showMessage = (message, type = "success") => {
     setShowAlert({ show: true, message, type });
-    setTimeout(() => setShowAlert({ show: false, message: '', type: 'success' }), 3000);
+    setTimeout(
+      () => setShowAlert({ show: false, message: "", type: "success" }),
+      3000
+    );
   };
 
   const loadUsers = async () => {
     setLoading(true);
     try {
-      let userData;
-      if (filterRole && filterRole !== 'all') {
-        const apiRole = mapRoleForApi(filterRole);
-        userData = await getUsersByRole(apiRole);
-      } else {
-        userData = await getAllUsers();
-      }
-      let usersArray = [];
-      if (Array.isArray(userData)) {
-        usersArray = userData;
-      } else if (userData && userData.users && Array.isArray(userData.users)) {
-        usersArray = userData.users;
-      } else if (userData && userData.data && Array.isArray(userData.data)) {
-        usersArray = userData.data;
-      } else if (userData && typeof userData === 'object') {
-        const possibleArrays = Object.values(userData).filter(val => Array.isArray(val));
+      // Luôn lấy tất cả users để tính thống kê
+      const allUserData = await getAllUsers();
+      let allUsersArray = [];
+      if (Array.isArray(allUserData)) {
+        allUsersArray = allUserData;
+      } else if (
+        allUserData &&
+        allUserData.users &&
+        Array.isArray(allUserData.users)
+      ) {
+        allUsersArray = allUserData.users;
+      } else if (
+        allUserData &&
+        allUserData.data &&
+        Array.isArray(allUserData.data)
+      ) {
+        allUsersArray = allUserData.data;
+      } else if (allUserData && typeof allUserData === "object") {
+        const possibleArrays = Object.values(allUserData).filter((val) =>
+          Array.isArray(val)
+        );
         if (possibleArrays.length > 0) {
-          usersArray = possibleArrays[0];
+          allUsersArray = possibleArrays[0];
         }
       }
-      const formattedUsers = usersArray.map(formatUserData);
-      const filteredUsers = formattedUsers.filter(user => user.role !== 'Admin');
-      setUsers(filteredUsers);
+
+      const formattedAllUsers = allUsersArray.map(formatUserData);
+      const filteredAllUsers = formattedAllUsers.filter(
+        (user) => user.role !== "Admin"
+      );
+
+      // Lưu tất cả users để tính thống kê
+      setAllUsers(filteredAllUsers);
+
+      // Filter users hiển thị theo role đã chọn
+      let displayUsers = filteredAllUsers;
+      if (filterRole && filterRole !== "all") {
+        displayUsers = filteredAllUsers.filter(
+          (user) => user.role === filterRole
+        );
+      }
+
+      // Lưu users hiển thị trong bảng
+      setUsers(displayUsers);
     } catch (error) {
-      console.error('Error loading users:', error);
-      showMessage(`Không thể tải danh sách người dùng: ${error.message}`, 'danger');
+      console.error("Error loading users:", error);
+      showMessage(
+        `Không thể tải danh sách người dùng: ${error.message}`,
+        "danger"
+      );
+      setAllUsers([]);
       setUsers([]);
     } finally {
       setLoading(false);
@@ -148,50 +192,83 @@ const UserManagement = () => {
 
   const performSearch = async (searchValue) => {
     if (!searchValue.trim()) {
-      loadUsers();
+      // Khi không có search, hiển thị lại tất cả users (hoặc theo filter role)
+      const filteredByRole =
+        filterRole === "all"
+          ? allUsers
+          : allUsers.filter((user) => user.role === filterRole);
+      setUsers(filteredByRole);
       return;
     }
     setLoading(true);
     try {
-      let userData;
-      if (searchType === 'fullName') {
-        userData = await searchUserByName(searchValue);
+      let searchResults;
+      if (searchType === "fullName") {
+        searchResults = await searchUserByName(searchValue);
       } else {
-        userData = await getAllUsers();
-      }
-      let usersArray = [];
-      if (Array.isArray(userData)) {
-        usersArray = userData;
-      } else if (userData && userData.users && Array.isArray(userData.users)) {
-        usersArray = userData.users;
-      } else if (userData && userData.data && Array.isArray(userData.data)) {
-        usersArray = userData.data;
-      } else if (userData && typeof userData === 'object') {
-        const possibleArrays = Object.values(userData).filter(val => Array.isArray(val));
-        if (possibleArrays.length > 0) {
-          usersArray = possibleArrays[0];
-        }
-      }
-      const formattedUsers = usersArray.map(formatUserData);
-      let filteredUsers = formattedUsers;
-      if (searchType !== 'fullName') {
-        filteredUsers = formattedUsers.filter(user => {
+        // Tìm kiếm trên allUsers thay vì gọi API lại
+        searchResults = allUsers.filter((user) => {
           switch (searchType) {
-            case 'username':
-              return user.username && user.username.toLowerCase().includes(searchValue.toLowerCase());
-            case 'userIdCard':
+            case "id":
+              return user.id.toString().includes(searchValue);
+            case "username":
+              return (
+                user.username &&
+                user.username.toLowerCase().includes(searchValue.toLowerCase())
+              );
+            case "userIdCard":
               return user.userIdCard && user.userIdCard.includes(searchValue);
             default:
               return true;
           }
         });
       }
-      filteredUsers = filteredUsers.filter(user => user.role !== 'Admin');
-      setUsers(filteredUsers);
+
+      let usersArray = [];
+      if (Array.isArray(searchResults)) {
+        usersArray = searchResults;
+      } else if (
+        searchResults &&
+        searchResults.users &&
+        Array.isArray(searchResults.users)
+      ) {
+        usersArray = searchResults.users;
+      } else if (
+        searchResults &&
+        searchResults.data &&
+        Array.isArray(searchResults.data)
+      ) {
+        usersArray = searchResults.data;
+      } else if (searchResults && typeof searchResults === "object") {
+        const possibleArrays = Object.values(searchResults).filter((val) =>
+          Array.isArray(val)
+        );
+        if (possibleArrays.length > 0) {
+          usersArray = possibleArrays[0];
+        }
+      }
+
+      // Nếu searchType là fullName (gọi API), format lại data
+      if (searchType === "fullName") {
+        const formattedUsers = usersArray.map(formatUserData);
+        usersArray = formattedUsers.filter((user) => user.role !== "Admin");
+      }
+
+      // Áp dụng filter role nếu có
+      const filteredByRole =
+        filterRole === "all"
+          ? usersArray
+          : usersArray.filter((user) => user.role === filterRole);
+      setUsers(filteredByRole);
     } catch (error) {
-      console.error('Error searching users:', error);
-      showMessage(`Lỗi tìm kiếm: ${error.message}`, 'danger');
-      setUsers([]);
+      console.error("Error searching users:", error);
+      showMessage(`Lỗi tìm kiếm: ${error.message}`, "danger");
+      // Nếu có lỗi, hiển thị users đã filter theo role
+      const filteredByRole =
+        filterRole === "all"
+          ? allUsers
+          : allUsers.filter((user) => user.role === filterRole);
+      setUsers(filteredByRole);
     } finally {
       setLoading(false);
     }
@@ -208,94 +285,113 @@ const UserManagement = () => {
   const handleSearchTypeChange = (type) => {
     setSearchType(type);
     if (searchText) {
-      setSearchText('');
-      performSearch('');
+      setSearchText("");
+      // Hiển thị lại users theo filter role hiện tại
+      const filteredByRole =
+        filterRole === "all"
+          ? allUsers
+          : allUsers.filter((user) => user.role === filterRole);
+      setUsers(filteredByRole);
     }
   };
 
   const handleRoleFilter = (value) => {
     setFilterRole(value);
-    setTimeout(() => {
-      loadUsers();
-    }, 100);
+    // Reset search khi đổi filter role
+    setSearchText("");
+
+    // Filter users từ allUsers thay vì load lại từ API
+    let displayUsers = allUsers;
+    if (value && value !== "all") {
+      displayUsers = allUsers.filter((user) => user.role === value);
+    }
+    setUsers(displayUsers);
   };
 
-  const filteredUsers = users.filter(user => {
-    let matchSearch = false;
-    if (searchText) {
-      switch (searchType) {
-        case 'id':
-          matchSearch = user.id.toString().includes(searchText);
-          break;
-        case 'fullName':
-          matchSearch = user.fullName.toLowerCase().includes(searchText.toLowerCase());
-          break;
-        case 'username':
-          matchSearch = user.username.toLowerCase().includes(searchText.toLowerCase());
-          break;
-        case 'userIdCard':
-          matchSearch = user.userIdCard && user.userIdCard.includes(searchText);
-          break;
-        default:
-          matchSearch = true;
-      }
-    } else {
-      matchSearch = true;
-    }
-    const matchRole = filterRole === 'all' || user.role === filterRole;
-    return matchSearch && matchRole;
-  });
+  // Không cần filter lại vì logic đã được xử lý trong performSearch và handleRoleFilter
+  const filteredUsers = users;
 
   const showUserDetail = async (user) => {
     setLoadingDetail(true);
     try {
       const detailData = await getUserDetail(user.id);
       let formattedDetail = formatUserData(detailData);
-      if (user.role === 'Member') {
+      if (user.role === "Member") {
         try {
           const donorProfile = await donorApi.getDonorProfileByUserId(user.id);
           if (donorProfile) {
             formattedDetail = {
               ...formattedDetail,
-              donorID: donorProfile.donorID || donorProfile.donorId || donorProfile.DonorID,
-              bloodTypeID: donorProfile.bloodTypeID || donorProfile.bloodTypeId || donorProfile.BloodTypeID,
-              isAvailable: donorProfile.isAvailable !== undefined ? donorProfile.isAvailable : 
-                          (donorProfile.IsAvailable !== undefined ? donorProfile.IsAvailable : true),
-              lastDonationDate: donorProfile.lastDonationDate || donorProfile.LastDonationDate,
-              nextEligibleDate: donorProfile.nextEligibleDate || donorProfile.NextEligibleDate,
+              donorID:
+                donorProfile.donorID ||
+                donorProfile.donorId ||
+                donorProfile.DonorID,
+              bloodTypeID:
+                donorProfile.bloodTypeID ||
+                donorProfile.bloodTypeId ||
+                donorProfile.BloodTypeID,
+              isAvailable:
+                donorProfile.isAvailable !== undefined
+                  ? donorProfile.isAvailable
+                  : donorProfile.IsAvailable !== undefined
+                  ? donorProfile.IsAvailable
+                  : true,
+              lastDonationDate:
+                donorProfile.lastDonationDate || donorProfile.LastDonationDate,
+              nextEligibleDate:
+                donorProfile.nextEligibleDate || donorProfile.NextEligibleDate,
               notes: donorProfile.notes || donorProfile.Notes,
               address: donorProfile.address || donorProfile.Address,
-              hasDonorProfile: true
+              hasDonorProfile: true,
             };
           } else {
             formattedDetail = {
               ...formattedDetail,
               donorID: null,
               isAvailable: false,
-              hasDonorProfile: false
+              hasDonorProfile: false,
             };
           }
         } catch (donorError) {
           try {
             const donorProfile = await getDonorProfileByUserId(user.id);
-            if (donorProfile && (donorProfile.donorID || donorProfile.donorId || donorProfile.DonorID)) {
+            if (
+              donorProfile &&
+              (donorProfile.donorID ||
+                donorProfile.donorId ||
+                donorProfile.DonorID)
+            ) {
               formattedDetail = {
                 ...formattedDetail,
-                donorID: donorProfile.donorID || donorProfile.donorId || donorProfile.DonorID,
-                bloodTypeID: donorProfile.bloodTypeID || donorProfile.bloodTypeId || donorProfile.BloodTypeID,
-                isAvailable: donorProfile.isAvailable !== undefined ? donorProfile.isAvailable : 
-                            (donorProfile.IsAvailable !== undefined ? donorProfile.IsAvailable : true),
-                lastDonationDate: donorProfile.lastDonationDate || donorProfile.LastDonationDate,
-                nextEligibleDate: donorProfile.nextEligibleDate || donorProfile.NextEligibleDate,
+                donorID:
+                  donorProfile.donorID ||
+                  donorProfile.donorId ||
+                  donorProfile.DonorID,
+                bloodTypeID:
+                  donorProfile.bloodTypeID ||
+                  donorProfile.bloodTypeId ||
+                  donorProfile.BloodTypeID,
+                isAvailable:
+                  donorProfile.isAvailable !== undefined
+                    ? donorProfile.isAvailable
+                    : donorProfile.IsAvailable !== undefined
+                    ? donorProfile.IsAvailable
+                    : true,
+                lastDonationDate:
+                  donorProfile.lastDonationDate ||
+                  donorProfile.LastDonationDate,
+                nextEligibleDate:
+                  donorProfile.nextEligibleDate ||
+                  donorProfile.NextEligibleDate,
                 notes: donorProfile.notes || donorProfile.Notes,
-                hasDonorProfile: true
+                hasDonorProfile: true,
               };
             } else {
               formattedDetail = {
                 ...formattedDetail,
                 donorID: null,
                 isAvailable: false,
-                hasDonorProfile: false
+                hasDonorProfile: false,
               };
             }
           } catch (fallbackError) {
@@ -303,7 +399,7 @@ const UserManagement = () => {
               ...formattedDetail,
               donorID: null,
               isAvailable: false,
-              hasDonorProfile: false
+              hasDonorProfile: false,
             };
           }
         }
@@ -311,15 +407,18 @@ const UserManagement = () => {
       setViewingUser(formattedDetail);
       setShowDetailModal(true);
     } catch (error) {
-      console.error('Error fetching user detail:', error);
-      showMessage(`Không thể tải chi tiết người dùng: ${error.message}`, 'danger');
+      console.error("Error fetching user detail:", error);
+      showMessage(
+        `Không thể tải chi tiết người dùng: ${error.message}`,
+        "danger"
+      );
       setViewingUser(user);
       setShowDetailModal(true);
     } finally {
       setLoadingDetail(false);
     }
   };
-  
+
   const handleDetailCancel = () => {
     setShowDetailModal(false);
     setViewingUser(null);
@@ -327,22 +426,34 @@ const UserManagement = () => {
 
   const showEditModal = async (user) => {
     if (!canEdit) {
-      showMessage('Bạn không có quyền chỉnh sửa thông tin người dùng. Chỉ Admin và Staff mới có thể thực hiện thao tác này.', 'danger');
+      showMessage(
+        "Bạn không có quyền chỉnh sửa thông tin người dùng. Chỉ Admin và Staff mới có thể thực hiện thao tác này.",
+        "danger"
+      );
       return;
     }
     if (!hasValidToken()) {
-      showMessage('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'danger');
+      showMessage(
+        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+        "danger"
+      );
       return;
     }
-    if (user.role === 'Staff') {
-      if (currentUserRole === 'Staff') {
-        showMessage('Staff không có quyền chỉnh sửa thông tin của Staff khác', 'warning');
+    if (user.role === "Staff") {
+      if (currentUserRole === "Staff") {
+        showMessage(
+          "Staff không có quyền chỉnh sửa thông tin của Staff khác",
+          "warning"
+        );
         return;
       }
     }
-    if (user.role === 'Admin') {
-      if (currentUserRole !== 'Admin') {
-        showMessage('Bạn không có quyền chỉnh sửa thông tin của Admin', 'warning');
+    if (user.role === "Admin") {
+      if (currentUserRole !== "Admin") {
+        showMessage(
+          "Bạn không có quyền chỉnh sửa thông tin của Admin",
+          "warning"
+        );
         return;
       }
     }
@@ -353,8 +464,11 @@ const UserManagement = () => {
       setEditingUser(formattedDetail);
       setShowModal(true);
     } catch (error) {
-      console.error('Error fetching user detail for edit:', error);
-      showMessage(`Không thể tải thông tin chi tiết: ${error.message}`, 'warning');
+      console.error("Error fetching user detail for edit:", error);
+      showMessage(
+        `Không thể tải thông tin chi tiết: ${error.message}`,
+        "warning"
+      );
       setEditingUser(user);
       setShowModal(true);
     } finally {
@@ -370,11 +484,17 @@ const UserManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canEdit) {
-      showMessage('Bạn không có quyền chỉnh sửa thông tin người dùng. Chỉ Admin và Staff mới có thể thực hiện thao tác này.', 'danger');
+      showMessage(
+        "Bạn không có quyền chỉnh sửa thông tin người dùng. Chỉ Admin và Staff mới có thể thực hiện thao tác này.",
+        "danger"
+      );
       return;
     }
     if (!hasValidToken()) {
-      showMessage('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'danger');
+      showMessage(
+        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+        "danger"
+      );
       return;
     }
     setUpdating(true);
@@ -383,13 +503,13 @@ const UserManagement = () => {
     try {
       const processedValues = formatUserDataForApi(values);
       await updateUser(editingUser.id, processedValues);
-      showMessage('Cập nhật thông tin người dùng thành công');
+      showMessage("Cập nhật thông tin người dùng thành công");
       await loadUsers();
       setShowModal(false);
       setEditingUser(null);
     } catch (error) {
-      console.error('Error updating user:', error);
-      showMessage(`Lỗi cập nhật: ${error.message}`, 'danger');
+      console.error("Error updating user:", error);
+      showMessage(`Lỗi cập nhật: ${error.message}`, "danger");
     } finally {
       setUpdating(false);
     }
@@ -397,49 +517,61 @@ const UserManagement = () => {
 
   const getRoleBadgeVariant = (role) => {
     switch (role) {
-      case 'Admin': return 'danger';
-      case 'Staff': return 'primary';
-      case 'Member': return 'success';
-      default: return 'secondary';
+      case "Admin":
+        return "danger";
+      case "Staff":
+        return "primary";
+      case "Member":
+        return "success";
+      default:
+        return "secondary";
     }
   };
 
   const getBloodTypeName = (bloodTypeID) => {
     if (!bloodTypeID) {
-      return 'Chưa xác định';
+      return "Chưa xác định";
     }
     const bloodTypeMap = {
-      '44C1A0F7-92B9-4E1B-A628-03447F5B86D7': 'O+ (Nhóm máu O Rh dương)',
-      '55B618E3-25CE-45D8-B980-03D532EC2293': 'B- (Nhóm máu B Rh âm)',
-      '11111111-1111-1111-1111-111111111001': 'A+ (Nhóm máu A Rh dương)',
-      '11111111-1111-1111-1111-111111111002': 'A- (Nhóm máu A Rh âm)',
-      '11111111-1111-1111-1111-111111111003': 'B+ (Nhóm máu B Rh dương)',
-      '11111111-1111-1111-1111-111111111004': 'B- (Nhóm máu B Rh âm)',
-      '11111111-1111-1111-1111-111111111005': 'AB+ (Nhóm máu AB Rh dương)',
-      '11111111-1111-1111-1111-111111111006': 'AB- (Nhóm máu AB Rh âm)',
-      '11111111-1111-1111-1111-111111111007': 'O+ (Nhóm máu O Rh dương)',
-      '11111111-1111-1111-1111-111111111008': 'O- (Nhóm máu O Rh âm)',
-      'FE6B963D-65ED-4681-96FF-213E2B9D7E9B': 'O- (Nhóm máu O Rh âm)',
-      'B0B93608-6EA7-4F3E-8B2A-37B66BF0CC82': 'A+ (Nhóm máu A Rh dương)',
-      'C07C228E-DA24-4DD8-B2B5-64CE22B674A3': 'B+ (Nhóm máu B Rh dương)',
-      '5060875F-D7D5-40FD-8FCD-75F843A71A32': 'AB- (Nhóm máu AB Rh âm)',
-      'A12373C7-3BFC-496E-8021-C0031B9BC0D8': 'A- (Nhóm máu A Rh âm)',
-      '5AE0C996-2594-48D2-8023-FD80676E4BCC': 'AB+ (Nhóm máu AB Rh dương)'
+      "44C1A0F7-92B9-4E1B-A628-03447F5B86D7": "O+ (Nhóm máu O Rh dương)",
+      "55B618E3-25CE-45D8-B980-03D532EC2293": "B- (Nhóm máu B Rh âm)",
+      "11111111-1111-1111-1111-111111111001": "A+ (Nhóm máu A Rh dương)",
+      "11111111-1111-1111-1111-111111111002": "A- (Nhóm máu A Rh âm)",
+      "11111111-1111-1111-1111-111111111003": "B+ (Nhóm máu B Rh dương)",
+      "11111111-1111-1111-1111-111111111004": "B- (Nhóm máu B Rh âm)",
+      "11111111-1111-1111-1111-111111111005": "AB+ (Nhóm máu AB Rh dương)",
+      "11111111-1111-1111-1111-111111111006": "AB- (Nhóm máu AB Rh âm)",
+      "11111111-1111-1111-1111-111111111007": "O+ (Nhóm máu O Rh dương)",
+      "11111111-1111-1111-1111-111111111008": "O- (Nhóm máu O Rh âm)",
+      "FE6B963D-65ED-4681-96FF-213E2B9D7E9B": "O- (Nhóm máu O Rh âm)",
+      "B0B93608-6EA7-4F3E-8B2A-37B66BF0CC82": "A+ (Nhóm máu A Rh dương)",
+      "C07C228E-DA24-4DD8-B2B5-64CE22B674A3": "B+ (Nhóm máu B Rh dương)",
+      "5060875F-D7D5-40FD-8FCD-75F843A71A32": "AB- (Nhóm máu AB Rh âm)",
+      "A12373C7-3BFC-496E-8021-C0031B9BC0D8": "A- (Nhóm máu A Rh âm)",
+      "5AE0C996-2594-48D2-8023-FD80676E4BCC": "AB+ (Nhóm máu AB Rh dương)",
     };
     const normalizedID = String(bloodTypeID).toUpperCase();
-    return bloodTypeMap[normalizedID] || 'Chưa xác định';
+    return bloodTypeMap[normalizedID] || "Chưa xác định";
   };
 
+  // Tính thống kê dựa trên allUsers thay vì users để giữ nguyên số liệu
   const stats = {
-    total: users.length,
-    staff: users.filter(u => u.role === 'Staff').length,
-    member: users.filter(u => u.role === 'Member').length,
+    total: allUsers.length,
+    staff: allUsers.filter((u) => u.role === "Staff").length,
+    member: allUsers.filter((u) => u.role === "Member").length,
   };
 
   return (
     <Container fluid className="user-management-container">
       {showAlert.show && (
-        <Alert variant={showAlert.type} className="mb-3" dismissible onClose={() => setShowAlert({ show: false, message: '', type: 'success' })}>
+        <Alert
+          variant={showAlert.type}
+          className="mb-3"
+          dismissible
+          onClose={() =>
+            setShowAlert({ show: false, message: "", type: "success" })
+          }
+        >
           {showAlert.message}
         </Alert>
       )}
@@ -490,35 +622,39 @@ const UserManagement = () => {
                 <DropdownButton
                   variant="outline-secondary"
                   title={
-                    searchType === 'id' ? 'ID' :
-                    searchType === 'fullName' ? 'Họ và tên' :
-                    searchType === 'username' ? 'Username' :
-                    searchType === 'userIdCard' ? 'CMND/CCCD' :
-                    'Chọn loại tìm kiếm'
+                    searchType === "id"
+                      ? "ID"
+                      : searchType === "fullName"
+                      ? "Họ và tên"
+                      : searchType === "username"
+                      ? "Username"
+                      : searchType === "userIdCard"
+                      ? "CMND/CCCD"
+                      : "Chọn loại tìm kiếm"
                   }
                   id="search-type-dropdown"
                 >
-                  <Dropdown.Item 
-                    onClick={() => handleSearchTypeChange('id')}
-                    active={searchType === 'id'}
+                  <Dropdown.Item
+                    onClick={() => handleSearchTypeChange("id")}
+                    active={searchType === "id"}
                   >
                     ID
                   </Dropdown.Item>
-                  <Dropdown.Item 
-                    onClick={() => handleSearchTypeChange('fullName')}
-                    active={searchType === 'fullName'}
+                  <Dropdown.Item
+                    onClick={() => handleSearchTypeChange("fullName")}
+                    active={searchType === "fullName"}
                   >
                     Họ và tên
                   </Dropdown.Item>
-                  <Dropdown.Item 
-                    onClick={() => handleSearchTypeChange('username')}
-                    active={searchType === 'username'}
+                  <Dropdown.Item
+                    onClick={() => handleSearchTypeChange("username")}
+                    active={searchType === "username"}
                   >
                     Username
                   </Dropdown.Item>
-                  <Dropdown.Item 
-                    onClick={() => handleSearchTypeChange('userIdCard')}
-                    active={searchType === 'userIdCard'}
+                  <Dropdown.Item
+                    onClick={() => handleSearchTypeChange("userIdCard")}
+                    active={searchType === "userIdCard"}
                   >
                     CMND/CCCD
                   </Dropdown.Item>
@@ -526,32 +662,53 @@ const UserManagement = () => {
                 <Form.Control
                   type="text"
                   placeholder={
-                    searchType === 'id' ? 'Nhập ID người dùng...' :
-                    searchType === 'fullName' ? 'Nhập họ và tên...' :
-                    searchType === 'username' ? 'Nhập username...' :
-                    searchType === 'userIdCard' ? 'Nhập số CMND/CCCD...' :
-                    'Nhập từ khóa tìm kiếm...'
+                    searchType === "id"
+                      ? "Nhập ID người dùng..."
+                      : searchType === "fullName"
+                      ? "Nhập họ và tên..."
+                      : searchType === "username"
+                      ? "Nhập username..."
+                      : searchType === "userIdCard"
+                      ? "Nhập số CMND/CCCD..."
+                      : "Nhập từ khóa tìm kiếm..."
                   }
                   value={searchText}
                   onChange={(e) => handleSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch(e.target.value)}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && handleSearch(e.target.value)
+                  }
                 />
-                <Button variant="primary" onClick={() => handleSearch(searchText)}>
+                <Button
+                  variant="primary"
+                  onClick={() => handleSearch(searchText)}
+                >
                   <FaSearch />
                 </Button>
               </InputGroup>
             </Col>
-            <Col lg={5} md={4} className="mb-3 mb-lg-0 d-flex gap-2 align-items-center">
-              <Button 
-                variant="outline-primary" 
+            <Col
+              lg={5}
+              md={4}
+              className="mb-3 mb-lg-0 d-flex gap-2 align-items-center"
+            >
+              <Button
+                variant="outline-primary"
                 onClick={loadUsers}
                 disabled={loading}
                 className="me-2"
                 title="Refresh danh sách"
               >
-                {loading ? <Spinner animation="border" size="sm" /> : <FaSync />}
+                {loading ? (
+                  <Spinner animation="border" size="sm" />
+                ) : (
+                  <FaSync />
+                )}
               </Button>
-              <Form.Select value={filterRole} onChange={(e) => handleRoleFilter(e.target.value)} style={{minWidth: '150px'}}>
+              <Form.Select
+                value={filterRole}
+                onChange={(e) => handleRoleFilter(e.target.value)}
+                style={{ minWidth: "150px" }}
+              >
                 <option value="all">Tất cả vai trò</option>
                 <option value="Staff">Staff</option>
                 <option value="Member">Member</option>
@@ -589,7 +746,7 @@ const UserManagement = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map(user => (
+                  filteredUsers.map((user) => (
                     <tr key={user.id}>
                       <td>{user.id}</td>
                       <td>
@@ -618,12 +775,20 @@ const UserManagement = () => {
                               <FaEye />
                             </Button>
                           </OverlayTrigger>
-                          {((user.role === 'Member') || 
-                            (user.role === 'Staff' && currentUserRole === 'Admin') ||
-                            (user.role === 'Admin' && currentUserRole === 'Admin')) && (
+                          {(user.role === "Member" ||
+                            (user.role === "Staff" &&
+                              currentUserRole === "Admin") ||
+                            (user.role === "Admin" &&
+                              currentUserRole === "Admin")) && (
                             <OverlayTrigger
                               placement="top"
-                              overlay={<Tooltip>{canEdit ? 'Chỉnh sửa' : 'Chỉ Admin và Staff có quyền chỉnh sửa'}</Tooltip>}
+                              overlay={
+                                <Tooltip>
+                                  {canEdit
+                                    ? "Chỉnh sửa"
+                                    : "Chỉ Admin và Staff có quyền chỉnh sửa"}
+                                </Tooltip>
+                              }
                             >
                               <Button
                                 variant="outline-warning"
@@ -650,7 +815,9 @@ const UserManagement = () => {
           <Modal.Title>
             <FaUser className="me-2" />
             Chi tiết người dùng
-            {loadingDetail && <Spinner animation="border" size="sm" className="ms-2" />}
+            {loadingDetail && (
+              <Spinner animation="border" size="sm" className="ms-2" />
+            )}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -659,158 +826,210 @@ const UserManagement = () => {
               <Spinner animation="border" />
               <p className="mt-2">Đang tải thông tin chi tiết...</p>
             </div>
-          ) : viewingUser && (
-            <Tabs defaultActiveKey="personal" id="user-detail-tabs">
-              <Tab eventKey="personal" title={
-                <span><FaUser className="me-2" />Thông tin cá nhân</span>
-              }>
-                <div className="mt-3">
-                  <Row>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Mã người dùng:</strong>
-                        <span>
-                          {viewingUser.role === 'Member' ? (viewingUser.userID || viewingUser.id) : 
-                            viewingUser.role === 'Staff' ? (viewingUser.staffID || viewingUser.id) :
-                            viewingUser.id}
-                        </span>
-                      </div>
-                    </Col>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Họ và tên:</strong>
-                        <span>{viewingUser.fullName}</span>
-                      </div>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Email:</strong>
-                        <span>{viewingUser.email}</span>
-                      </div>
-                    </Col>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>
-                          <FaPhone className="me-2" />
-                          Số điện thoại:
-                        </strong>
-                        <span>{viewingUser.phone || 'Chưa cập nhật'}</span>
-                      </div>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>
-                          <FaIdCard className="me-2" />
-                          CCCD/CMND:
-                        </strong>
-                        <span>{viewingUser.userIdCard || 'Chưa cập nhật'}</span>
-                      </div>
-                    </Col>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Ngày sinh:</strong>
-                        <span>{viewingUser.dateOfBirth || 'Chưa cập nhật'}</span>
-                      </div>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md={6}>
-                      <div className="info-item">
-                        <strong>Vai trò:</strong>
-                        <Badge bg={getRoleBadgeVariant(viewingUser.role)} className="ms-2">
-                          {viewingUser.role}
-                        </Badge>
-                      </div>
-                    </Col>
-                  </Row>
-                </div>
-              </Tab>
-              {viewingUser.role === 'Member' && (
-                <Tab eventKey="medical" title={
-                  <span><FaHeart className="me-2" />Hồ sơ hiến máu</span>
-                }>
+          ) : (
+            viewingUser && (
+              <Tabs defaultActiveKey="personal" id="user-detail-tabs">
+                <Tab
+                  eventKey="personal"
+                  title={
+                    <span>
+                      <FaUser className="me-2" />
+                      Thông tin cá nhân
+                    </span>
+                  }
+                >
                   <div className="mt-3">
-                    {viewingUser.hasDonorProfile ? (
-                      <>
-                        <Row>
-                          <Col md={6}>
-                            <Card className="h-100">
-                              <Card.Header className="bg-light">
-                                <h6 className="mb-0 text-primary">
-                                  <FaUser className="me-2" />
-                                  Thông tin cơ bản
-                                </h6>
-                              </Card.Header>
-                              <Card.Body>
-                                <div className="info-item mb-3">
-                                  <strong>Mã hồ sơ hiến máu:</strong>
-                                  <Badge bg="success" className="ms-2">
-                                    {viewingUser.donorID}
-                                  </Badge>
-                                </div>
-                                <div className="info-item mb-3">
-                                  <strong>Nhóm máu (bloodType):</strong>
-                                  <span className="ms-2">
-                                    {viewingUser.bloodTypeID ? getBloodTypeName(viewingUser.bloodTypeID) : 'Chưa xác định'}
-                                  </span>
-                                </div>
-                              </Card.Body>
-                            </Card>
-                          </Col>
-                          <Col md={6}>
-                            <Card className="h-100">
-                              <Card.Header className="bg-light">
-                                <h6 className="mb-0 text-info">
-                                  <FaCalendarAlt className="me-2" />
-                                  Lịch sử hiến máu
-                                </h6>
-                              </Card.Header>
-                              <Card.Body>
-                                {loadingHistory ? (
-                                  <div className="text-center"><Spinner animation="border" size="sm" /> Đang tải...</div>
-                                ) : donationHistory.length > 0 ? (
-                                  <Table striped bordered hover size="sm">
-                                    <thead>
-                                      <tr>
-                                        <th>Ngày hiến</th>
-                                        <th>Số lượng (ml)</th>
-                                        <th>Địa điểm</th>
-                                        <th>Ghi chú</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {donationHistory.map((item, idx) => (
-                                        <tr key={item.id || `${item.donationDate || 'nodate'}-${item.quantity || 'noqty'}-${idx}`}>
-                                          <td>{item.donationDate ? new Date(item.donationDate).toLocaleDateString() : ''}</td>
-                                          <td>{item.quantity || ''}</td>
-                                          <td>{item.location || ''}</td>
-                                          <td>{item.notes || ''}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </Table>
-                                ) : (
-                                  <div className="text-muted">Chưa có lịch sử hiến máu</div>
-                                )}
-                              </Card.Body>
-                            </Card>
-                          </Col>
-                        </Row>
-                      </>
-                    ) : (
-                      <div className="text-center p-5">
-                        <FaInfoCircle className="text-warning mb-3" size={48} />
-                        <h4 className="text-warning mb-3">Người dùng chưa có hồ sơ hiến máu</h4>
-                      </div>
-                    )}
+                    <Row>
+                      <Col md={6}>
+                        <div className="info-item">
+                          <strong>Mã người dùng:</strong>
+                          <span>
+                            {viewingUser.role === "Member"
+                              ? viewingUser.userID || viewingUser.id
+                              : viewingUser.role === "Staff"
+                              ? viewingUser.staffID || viewingUser.id
+                              : viewingUser.id}
+                          </span>
+                        </div>
+                      </Col>
+                      <Col md={6}>
+                        <div className="info-item">
+                          <strong>Họ và tên:</strong>
+                          <span>{viewingUser.fullName}</span>
+                        </div>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col md={6}>
+                        <div className="info-item">
+                          <strong>Email:</strong>
+                          <span>{viewingUser.email}</span>
+                        </div>
+                      </Col>
+                      <Col md={6}>
+                        <div className="info-item">
+                          <strong>
+                            <FaPhone className="me-2" />
+                            Số điện thoại:
+                          </strong>
+                          <span>{viewingUser.phone || "Chưa cập nhật"}</span>
+                        </div>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col md={6}>
+                        <div className="info-item">
+                          <strong>
+                            <FaIdCard className="me-2" />
+                            CCCD/CMND:
+                          </strong>
+                          <span>
+                            {viewingUser.userIdCard || "Chưa cập nhật"}
+                          </span>
+                        </div>
+                      </Col>
+                      <Col md={6}>
+                        <div className="info-item">
+                          <strong>Ngày sinh:</strong>
+                          <span>
+                            {viewingUser.dateOfBirth || "Chưa cập nhật"}
+                          </span>
+                        </div>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col md={6}>
+                        <div className="info-item">
+                          <strong>Vai trò:</strong>
+                          <Badge
+                            bg={getRoleBadgeVariant(viewingUser.role)}
+                            className="ms-2"
+                          >
+                            {viewingUser.role}
+                          </Badge>
+                        </div>
+                      </Col>
+                    </Row>
                   </div>
                 </Tab>
-              )}
-            </Tabs>
+                {viewingUser.role === "Member" && (
+                  <Tab
+                    eventKey="medical"
+                    title={
+                      <span>
+                        <FaHeart className="me-2" />
+                        Hồ sơ hiến máu
+                      </span>
+                    }
+                  >
+                    <div className="mt-3">
+                      {viewingUser.hasDonorProfile ? (
+                        <>
+                          <Row>
+                            <Col md={6}>
+                              <Card className="h-100">
+                                <Card.Header className="bg-light">
+                                  <h6 className="mb-0 text-primary">
+                                    <FaUser className="me-2" />
+                                    Thông tin cơ bản
+                                  </h6>
+                                </Card.Header>
+                                <Card.Body>
+                                  <div className="info-item mb-3">
+                                    <strong>Mã hồ sơ hiến máu:</strong>
+                                    <Badge bg="success" className="ms-2">
+                                      {viewingUser.donorID}
+                                    </Badge>
+                                  </div>
+                                  <div className="info-item mb-3">
+                                    <strong>Nhóm máu (bloodType):</strong>
+                                    <span className="ms-2">
+                                      {viewingUser.bloodTypeID
+                                        ? getBloodTypeName(
+                                            viewingUser.bloodTypeID
+                                          )
+                                        : "Chưa xác định"}
+                                    </span>
+                                  </div>
+                                </Card.Body>
+                              </Card>
+                            </Col>
+                            <Col md={6}>
+                              <Card className="h-100">
+                                <Card.Header className="bg-light">
+                                  <h6 className="mb-0 text-info">
+                                    <FaCalendarAlt className="me-2" />
+                                    Lịch sử hiến máu
+                                  </h6>
+                                </Card.Header>
+                                <Card.Body>
+                                  {loadingHistory ? (
+                                    <div className="text-center">
+                                      <Spinner animation="border" size="sm" />{" "}
+                                      Đang tải...
+                                    </div>
+                                  ) : donationHistory.length > 0 ? (
+                                    <Table striped bordered hover size="sm">
+                                      <thead>
+                                        <tr>
+                                          <th>Ngày hiến</th>
+                                          <th>Số lượng (ml)</th>
+                                          <th>Địa điểm</th>
+                                          <th>Ghi chú</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {donationHistory.map((item, idx) => (
+                                          <tr
+                                            key={
+                                              item.id ||
+                                              `${
+                                                item.donationDate || "nodate"
+                                              }-${
+                                                item.quantity || "noqty"
+                                              }-${idx}`
+                                            }
+                                          >
+                                            <td>
+                                              {item.donationDate
+                                                ? new Date(
+                                                    item.donationDate
+                                                  ).toLocaleDateString()
+                                                : ""}
+                                            </td>
+                                            <td>{item.quantity || ""}</td>
+                                            <td>{item.location || ""}</td>
+                                            <td>{item.notes || ""}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </Table>
+                                  ) : (
+                                    <div className="text-muted">
+                                      Chưa có lịch sử hiến máu
+                                    </div>
+                                  )}
+                                </Card.Body>
+                              </Card>
+                            </Col>
+                          </Row>
+                        </>
+                      ) : (
+                        <div className="text-center p-5">
+                          <FaInfoCircle
+                            className="text-warning mb-3"
+                            size={48}
+                          />
+                          <h4 className="text-warning mb-3">
+                            Người dùng chưa có hồ sơ hiến máu
+                          </h4>
+                        </div>
+                      )}
+                    </div>
+                  </Tab>
+                )}
+              </Tabs>
+            )
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -830,9 +1049,15 @@ const UserManagement = () => {
           <Modal.Body>
             {editingUser && (
               <Tabs defaultActiveKey="basic" id="edit-user-tabs">
-                <Tab eventKey="basic" title={
-                  <span><FaUser className="me-2" />Thông tin cơ bản</span>
-                }>
+                <Tab
+                  eventKey="basic"
+                  title={
+                    <span>
+                      <FaUser className="me-2" />
+                      Thông tin cơ bản
+                    </span>
+                  }
+                >
                   <div className="mt-3">
                     <Row>
                       <Col md={6}>
@@ -840,9 +1065,13 @@ const UserManagement = () => {
                           <Form.Label>Mã người dùng</Form.Label>
                           <Form.Control
                             type="text"
-                            value={editingUser.role === 'Member' ? (editingUser.userID || editingUser.id) : 
-                              editingUser.role === 'Staff' ? (editingUser.staffID || editingUser.id) :
-                              editingUser.id}
+                            value={
+                              editingUser.role === "Member"
+                                ? editingUser.userID || editingUser.id
+                                : editingUser.role === "Staff"
+                                ? editingUser.staffID || editingUser.id
+                                : editingUser.id
+                            }
                             disabled
                           />
                         </Form.Group>
@@ -877,7 +1106,7 @@ const UserManagement = () => {
                           <Form.Control
                             type="tel"
                             name="phone"
-                            defaultValue={editingUser.phone || ''}
+                            defaultValue={editingUser.phone || ""}
                             pattern="[0-9]{10,11}"
                           />
                         </Form.Group>
@@ -890,7 +1119,7 @@ const UserManagement = () => {
                           <Form.Control
                             type="text"
                             name="userIdCard"
-                            defaultValue={editingUser.userIdCard || ''}
+                            defaultValue={editingUser.userIdCard || ""}
                             pattern="[0-9]{9,12}"
                             disabled
                           />
@@ -902,7 +1131,7 @@ const UserManagement = () => {
                           <Form.Control
                             type="date"
                             name="dateOfBirth"
-                            defaultValue={editingUser.dateOfBirth || ''}
+                            defaultValue={editingUser.dateOfBirth || ""}
                           />
                         </Form.Group>
                       </Col>
@@ -911,7 +1140,11 @@ const UserManagement = () => {
                       <Col md={6}>
                         <Form.Group className="mb-3">
                           <Form.Label>Vai trò</Form.Label>
-                          <Form.Select name="role" defaultValue={editingUser.role} disabled>
+                          <Form.Select
+                            name="role"
+                            defaultValue={editingUser.role}
+                            disabled
+                          >
                             <option value="Member">Member</option>
                             <option value="Staff">Staff</option>
                           </Form.Select>
@@ -924,7 +1157,11 @@ const UserManagement = () => {
             )}
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={handleCancel} disabled={updating}>
+            <Button
+              variant="secondary"
+              onClick={handleCancel}
+              disabled={updating}
+            >
               Hủy
             </Button>
             <Button variant="primary" type="submit" disabled={updating}>
@@ -934,7 +1171,7 @@ const UserManagement = () => {
                   Đang cập nhật...
                 </>
               ) : (
-                'Lưu thay đổi'
+                "Lưu thay đổi"
               )}
             </Button>
           </Modal.Footer>
