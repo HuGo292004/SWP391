@@ -720,32 +720,15 @@ const NewsPage = () => {
                     key={`news-${news.blogID || index}`}
                     className="news-card-modern"
                     hoverable
-                    cover={
-                      <div className="news-card-image">
-                        <img
-                          src={
-                            news.imageUrl ||
-                            `https://picsum.photos/400/240?random=${index}`
-                          }
-                          alt={news.title}
-                          onError={(e) => {
-                            e.target.src = `https://via.placeholder.com/400x240/1976D2/white?text=${encodeURIComponent(
-                              news.category
-                            )}`;
-                          }}
-                        />
-                        <div className="news-card-overlay">
-                          <Tag
-                            className="news-card-category"
-                            color={getCategoryColor(news.category)}
-                          >
-                            {news.category}
-                          </Tag>
-                        </div>
-                      </div>
-                    }
                   >
                     <div className="news-card-content">
+                      <Tag
+                        className="news-card-category"
+                        color={getCategoryColor(news.category)}
+                        style={{ marginBottom: "8px" }}
+                      >
+                        {news.category}
+                      </Tag>
                       <h3 className="news-card-title">{news.title}</h3>
                       <p className="news-card-description">
                         {getSummary(news.content, 100)}

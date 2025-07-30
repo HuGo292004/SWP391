@@ -1,6 +1,5 @@
 import {
   AlertOutlined,
-  BellOutlined,
   CheckCircleFilled,
   ClockCircleFilled,
   DashboardOutlined,
@@ -12,7 +11,6 @@ import {
   SearchOutlined,
   TeamOutlined,
   UserOutlined,
-  CloseOutlined,
   SafetyCertificateOutlined,
   HomeOutlined,
   QuestionCircleOutlined,
@@ -21,7 +19,6 @@ import {
 } from "@ant-design/icons";
 import {
   Avatar,
-  Badge,
   Button,
   Divider,
   Drawer,
@@ -63,7 +60,6 @@ const AppHeader = () => {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [notificationVisible, setNotificationVisible] = useState(false);
 
   // Check if current page is login or register
   const isAuthPage =
@@ -114,45 +110,6 @@ const AppHeader = () => {
     navigate("/");
   };
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "info",
-      title: "Chiến dịch hiến máu mới",
-      message: 'Chiến dịch "Giọt máu tình người" sẽ diễn ra vào cuối tuần này',
-      time: "10 phút trước",
-      read: false,
-      icon: "💉",
-    },
-    {
-      id: 2,
-      type: "urgent",
-      title: "Cần máu khẩn cấp",
-      message: "Bệnh viện Chợ Rẫy cần gấp 5 đơn vị máu nhóm O+",
-      time: "30 phút trước",
-      read: false,
-      icon: "🚨",
-    },
-    {
-      id: 3,
-      type: "success",
-      title: "Hiến máu thành công",
-      message: "Cảm ơn bạn đã tham gia hiến máu tại trung tâm y tế",
-      time: "2 giờ trước",
-      read: true,
-      icon: "✅",
-    },
-    {
-      id: 4,
-      type: "reminder",
-      title: "Nhắc nhở lịch hẹn",
-      message: "Bạn có lịch hẹn hiến máu vào ngày mai lúc 9:00 AM",
-      time: "1 ngày trước",
-      read: false,
-      icon: "⏰",
-    },
-  ]);
-
   // Effect để theo dõi scroll và thay đổi header style
   useEffect(() => {
     const handleScroll = () => {
@@ -168,27 +125,6 @@ const AppHeader = () => {
     };
   }, [scrolled]);
 
-  // Effect để đóng notification khi click ra ngoài
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (notificationVisible) {
-        const notificationElement = event.target.closest(
-          ".notification-container"
-        );
-        const bellElement = event.target.closest(".modern-bell-button");
-
-        if (!notificationElement && !bellElement) {
-          setNotificationVisible(false);
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [notificationVisible]);
-
   const showDrawer = () => {
     setVisible(true);
   };
@@ -203,43 +139,16 @@ const AppHeader = () => {
     navigate("/"); // Chuyển hướng về homepage
   };
 
-  // Notification handlers
-  const toggleNotification = () => {
-    setNotificationVisible(!notificationVisible);
-  };
-
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
-  };
-
-  const removeNotification = (id) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-  };
-
-  const getUnreadCount = () => {
-    return notifications.filter((notif) => !notif.read).length;
-  };
-
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case "urgent":
-        return "#FF4D4F";
-      case "success":
-        return "#52C41A";
-      case "info":
-        return "#1890FF";
-      case "reminder":
-        return "#FA8C16";
-      default:
-        return "#1890FF";
+  // Function để xử lý navigation với check authentication
+  const handleNavigation = (path) => {
+    // Nếu path chứa "blood-donation" và chưa đăng nhập thì chuyển đến login
+    if (path.includes("blood-donation") && !isAuthenticated) {
+      navigate("/login");
+      return;
     }
+    navigate(path);
   };
+
   // Navigation items cho thanh màu xanh đậm - hiển thị dựa vào vai trò
   const navItems = [
     {
@@ -340,14 +249,19 @@ const AppHeader = () => {
                   currentRole
                 ),
                 label: (
-                  <Link
-                    to={createRoleBasedPath(
-                      "/blood-donation-register",
-                      currentRole
-                    )}
+                  <span
+                    onClick={() =>
+                      handleNavigation(
+                        createRoleBasedPath(
+                          "/blood-donation-register",
+                          currentRole
+                        )
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
                   >
                     Đăng ký hiến máu
-                  </Link>
+                  </span>
                 ),
               },
               {
@@ -458,206 +372,6 @@ const AppHeader = () => {
       : []),
   ];
 
-  // Modern Notification Component
-  const NotificationDropdown = () => (
-    <div
-      className="notification-container"
-      style={{
-        position: "absolute",
-        top: "100%",
-        right: 0,
-        width: "400px",
-        maxHeight: "500px",
-        backgroundColor: "white",
-        borderRadius: "12px",
-        boxShadow: "0 10px 40px rgba(0, 0, 0, 0.15)",
-        border: "1px solid #f0f0f0",
-        zIndex: 10000,
-        overflow: "hidden",
-        marginTop: "8px",
-        animation: "slideInDown 0.3s ease-out",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          padding: "16px 20px",
-          borderBottom: "1px solid #f0f0f0",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          backgroundColor: "#fafafa",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <BellOutlined
-            style={{ fontSize: "18px", color: healthThemeColors.primary }}
-          />
-          <Text strong style={{ fontSize: "16px" }}>
-            Thông báo
-          </Text>
-          {getUnreadCount() > 0 && (
-            <Badge
-              count={getUnreadCount()}
-              style={{ backgroundColor: healthThemeColors.accent }}
-            />
-          )}
-        </div>
-        <Button
-          type="link"
-          size="small"
-          onClick={markAllAsRead}
-          style={{ fontSize: "12px", padding: "0" }}
-        >
-          Đánh dấu tất cả đã đọc
-        </Button>
-      </div>
-
-      {/* Notifications List */}
-      <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-        {notifications.length === 0 ? (
-          <div
-            style={{
-              padding: "40px 20px",
-              textAlign: "center",
-              color: "#999",
-            }}
-          >
-            <BellOutlined style={{ fontSize: "32px", marginBottom: "8px" }} />
-            <div>Không có thông báo nào</div>
-          </div>
-        ) : (
-          notifications.map((notification) => (
-            <div
-              key={notification.id}
-              style={{
-                padding: "16px 20px",
-                borderBottom: "1px solid #f5f5f5",
-                backgroundColor: notification.read ? "white" : "#f6f8ff",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                position: "relative",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = notification.read
-                  ? "#fafafa"
-                  : "#e6f0ff";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = notification.read
-                  ? "white"
-                  : "#f6f8ff";
-              }}
-              onClick={() => markAsRead(notification.id)}
-            >
-              <div style={{ display: "flex", gap: "12px" }}>
-                <div
-                  style={{
-                    fontSize: "20px",
-                    marginTop: "2px",
-                  }}
-                >
-                  {notification.icon}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <Text
-                      strong
-                      style={{
-                        fontSize: "14px",
-                        color: getNotificationColor(notification.type),
-                        marginBottom: "4px",
-                        display: "block",
-                      }}
-                    >
-                      {notification.title}
-                    </Text>
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<CloseOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeNotification(notification.id);
-                      }}
-                      style={{
-                        width: "20px",
-                        height: "20px",
-                        minWidth: "unset",
-                        padding: 0,
-                        fontSize: "10px",
-                        color: "#999",
-                      }}
-                    />
-                  </div>
-                  <Text
-                    style={{
-                      fontSize: "13px",
-                      color: "#666",
-                      lineHeight: "1.4",
-                      display: "block",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    {notification.message}
-                  </Text>
-                  <Text type="secondary" style={{ fontSize: "11px" }}>
-                    {notification.time}
-                  </Text>
-                </div>
-              </div>
-              {!notification.read && (
-                <div
-                  style={{
-                    position: "absolute",
-                    right: "8px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    backgroundColor: healthThemeColors.accent,
-                  }}
-                />
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Footer */}
-      <div
-        style={{
-          padding: "12px 20px",
-          borderTop: "1px solid #f0f0f0",
-          textAlign: "center",
-          backgroundColor: "#fafafa",
-        }}
-      >
-        <Button
-          type="link"
-          onClick={() => {
-            setNotificationVisible(false);
-            navigate(createRoleBasedPath("/notifications", currentRole));
-          }}
-          style={{
-            color: healthThemeColors.primary,
-            fontWeight: "bold",
-            fontSize: "13px",
-          }}
-        >
-          Xem tất cả thông báo →
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <>
       {/* Header trên cùng */}
@@ -755,43 +469,7 @@ const AppHeader = () => {
             </div> */}{" "}
           {isAuthenticated ? (
             <>
-              {/* Modern Notification Bell */}
-              <div style={{ position: "relative" }}>
-                <Badge
-                  count={getUnreadCount()}
-                  size="small"
-                  style={{ backgroundColor: healthThemeColors.accent }}
-                  offset={[-2, 2]}
-                >
-                  <Button
-                    type="text"
-                    icon={
-                      <BellOutlined
-                        style={{ fontSize: "20px", color: "#FFFFFF" }}
-                      />
-                    }
-                    onClick={toggleNotification}
-                    style={{
-                      border: "none",
-                      background: "rgba(255, 255, 255, 0.1)",
-                      padding: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transition: "all 0.3s ease",
-                      borderRadius: "12px",
-                      backdropFilter: "blur(10px)",
-                      width: "44px",
-                      height: "44px",
-                    }}
-                    className="modern-bell-button"
-                  />
-                </Badge>
-
-                {/* Notification Dropdown */}
-                {notificationVisible && <NotificationDropdown />}
-              </div>{" "}
-              {/* User Info Display - Desktop - With Drawer */}{" "}
+              {/* User Info Display - Desktop - With Drawer */}
               <Dropdown
                 menu={{
                   items: [
@@ -1131,10 +809,10 @@ const AppHeader = () => {
             }}
           >
             {navItems.map((item, index) => (
-              <Link
+              <div
                 key={item.key}
-                to={item.path}
                 className="nav-item"
+                onClick={() => handleNavigation(item.path)}
                 style={{
                   color: "white",
                   padding: "0 20px",
@@ -1153,6 +831,7 @@ const AppHeader = () => {
                   fontWeight: "600",
                   fontSize: "13px",
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  cursor: "pointer",
                   flex: `1 1 ${100 / navItems.length}%`,
                   textAlign: "center",
                   whiteSpace: "nowrap",
@@ -1163,7 +842,7 @@ const AppHeader = () => {
                 }}
               >
                 {item.label}
-              </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -1339,7 +1018,11 @@ const AppHeader = () => {
               items={[
                 ...navItems.map((item) => ({
                   key: item.key,
-                  label: <Link to={item.path}>{item.label}</Link>,
+                  label: (
+                    <span onClick={() => handleNavigation(item.path)}>
+                      {item.label}
+                    </span>
+                  ),
                 })),
                 { type: "divider" },
                 ...menuItems,

@@ -63,6 +63,26 @@ const healthTheme = {
 };
 
 function App() {
+  // Check authentication status
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("userToken");
+      const username = localStorage.getItem("username");
+      const role = localStorage.getItem("userRole");
+      setIsAuthenticated(!!(token && username && role));
+    };
+
+    checkAuth();
+
+    // Listen for storage changes
+    window.addEventListener("storage", checkAuth);
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, []);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -194,8 +214,8 @@ function App() {
             </Routes>
           </MainLayout>
 
-          {/* AI Chatbot - Available on all pages */}
-          <AIChatbot />
+          {/* AI Chatbot - Only show when authenticated */}
+          {isAuthenticated && <AIChatbot />}
         </AntdApp>
         {/* </AuthProvider> */}
       </Router>

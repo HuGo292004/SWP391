@@ -417,6 +417,23 @@ const HomePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Kiểm tra trạng thái đăng nhập
+  const isAuthenticated = () => {
+    const token = localStorage.getItem("userToken");
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("userRole");
+    return !!(token && username && role);
+  };
+
+  // Function để xử lý navigation với check authentication
+  const handleBloodDonationNavigation = () => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+    navigate(createRoleBasedPath("/blood-donation-register", userRole));
+  };
+
   // Hàm xử lý khi người dùng bấm nút hỗ trợ khẩn cấp
   const handleSupportEmergency = (requestId) => {
     // Điều hướng đến trang đăng ký hiến máu với ID yêu cầu khẩn cấp
@@ -490,8 +507,7 @@ const HomePage = () => {
           <Button
             variant="primary"
             size="lg"
-            as={Link}
-            to={createRoleBasedPath("/blood-donation-register", userRole)}
+            onClick={handleBloodDonationNavigation}
             className="d-flex align-items-center gap-2 px-4 py-3"
           >
             <HeartOutlined style={{ fontSize: "18px" }} />
@@ -585,11 +601,7 @@ const HomePage = () => {
                     <Button
                       variant="danger"
                       size="lg"
-                      as={Link}
-                      to={createRoleBasedPath(
-                        "/blood-donation-register",
-                        userRole
-                      )}
+                      onClick={handleBloodDonationNavigation}
                       className="cta-button d-flex align-items-center justify-content-center gap-2 mx-auto"
                     >
                       <HeartOutlined style={{ fontSize: "18px" }} />
@@ -654,11 +666,7 @@ const HomePage = () => {
                     <Button
                       variant="danger"
                       size="lg"
-                      as={Link}
-                      to={createRoleBasedPath(
-                        "/blood-donation-register",
-                        userRole
-                      )}
+                      onClick={handleBloodDonationNavigation}
                       className="hero-cta-btn-new me-3 mb-3"
                     >
                       <HeartOutlined className="me-2" />
