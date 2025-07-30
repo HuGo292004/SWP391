@@ -30,6 +30,114 @@
   --border-color: rgba(25, 118, 210, 0.2);
 }
 
+/* ========================================
+   NEWS CARDS WITHOUT IMAGES
+   ======================================== */
+
+.news-card-modern {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-light);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+  overflow: hidden;
+}
+
+.news-card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-heavy);
+  border-color: var(--primary-color);
+}
+
+.news-card-content {
+  padding: 1.5rem;
+}
+
+.news-card-header {
+  margin-bottom: 1rem;
+}
+
+.news-card-category {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.news-card-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0.5rem 0 1rem 0;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+.news-card-modern:hover .news-card-title {
+  color: var(--primary-color);
+}
+
+.news-card-description {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.news-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.news-card-author,
+.news-card-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.news-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.news-detail-btn {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.news-detail-btn:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.news-admin-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.blog-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
 .news-page {
   min-height: 100vh;
   background: #ffffff;

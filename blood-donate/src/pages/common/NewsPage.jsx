@@ -441,11 +441,14 @@ const NewsPage = () => {
       <div className="news-header">
         <div className="news-header-content">
           <h1 className="news-title">
-            <FileTextOutlined style={{ marginRight: "12px", color: "#ffffff" }} />
+            <FileTextOutlined
+              style={{ marginRight: "12px", color: "#ffffff" }}
+            />
             Tin tức & Sự kiện
           </h1>
           <p className="news-subtitle">
-            Cập nhật những tin tức mới nhất về hoạt động hiến máu và các sự kiện sắp diễn ra
+            Cập nhật những tin tức mới nhất về hoạt động hiến máu và các sự kiện
+            sắp diễn ra
           </p>
         </div>
       </div>
@@ -528,32 +531,16 @@ const NewsPage = () => {
                     key={`news-${news.blogID || index}`}
                     className="news-card-modern"
                     hoverable
-                    cover={
-                      <div className="news-card-image">
-                        <img
-                          src={
-                            news.imageUrl ||
-                            `https://picsum.photos/400/240?random=${index}`
-                          }
-                          alt={news.title}
-                          onError={(e) => {
-                            e.target.src = `https://via.placeholder.com/400x240/1976D2/white?text=${encodeURIComponent(
-                              news.category
-                            )}`;
-                          }}
-                        />
-                        <div className="news-card-overlay">
-                          <Tag
-                            className="news-card-category"
-                            color={getCategoryColor(news.category)}
-                          >
-                            {news.category}
-                          </Tag>
-                        </div>
-                      </div>
-                    }
                   >
                     <div className="news-card-content">
+                      <div className="news-card-header">
+                        <Tag
+                          className="news-card-category"
+                          color={getCategoryColor(news.category)}
+                        >
+                          {news.category}
+                        </Tag>
+                      </div>
                       <h3 className="news-card-title">{news.title}</h3>
                       <p className="news-card-description">
                         {getSummary(news.content, 100)}

@@ -1,6 +1,6 @@
 // Import các component và thư viện cần thiết
 import EmergencyRequestsList from "../../components/ui/EmergencyRequestsList"; // Component danh sách yêu cầu khẩn cấp
-import React, { useState } from "react"; // React hooks
+import React, { useState, useEffect } from "react"; // React hooks
 import { useNavigate, useLocation, Link } from "react-router-dom"; // Router hooks và components
 import { Typography, Button as AntButton, Statistic, Space, Modal } from "antd"; // Ant Design components
 import { Card, Row, Col, Container, Badge, Button } from "react-bootstrap"; // Bootstrap components
@@ -417,12 +417,48 @@ const HomePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // State quản lý trạng thái đăng nhập
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Kiểm tra trạng thái đăng nhập khi component mount
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("userToken");
+      const username = localStorage.getItem("username");
+      const role = localStorage.getItem("userRole");
+
+      // Cập nhật trạng thái đăng nhập
+      setIsAuthenticated(!!(token && username && role));
+    };
+
+    checkAuth();
+
+    // Lắng nghe thay đổi localStorage
+    window.addEventListener("storage", checkAuth);
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, []);
+
   // Hàm xử lý khi người dùng bấm nút hỗ trợ khẩn cấp
   const handleSupportEmergency = (requestId) => {
     // Điều hướng đến trang đăng ký hiến máu với ID yêu cầu khẩn cấp
     navigate(
       `/member/blood-donation-registration?emergencyRequestId=${requestId}`
     );
+  };
+
+  // Hàm xử lý navigation với kiểm tra đăng nhập
+  const handleNavigation = (path) => {
+    // Kiểm tra nếu chưa đăng nhập thì chuyển đến trang login
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    // Nếu đã đăng nhập thì điều hướng bình thường
+    navigate(path);
   };
 
   // Hàm lấy vai trò thực tế của người dùng
@@ -490,8 +526,11 @@ const HomePage = () => {
           <Button
             variant="primary"
             size="lg"
-            as={Link}
-            to={createRoleBasedPath("/blood-donation-register", userRole)}
+            onClick={() =>
+              handleNavigation(
+                createRoleBasedPath("/blood-donation-register", userRole)
+              )
+            }
             className="d-flex align-items-center gap-2 px-4 py-3"
           >
             <HeartOutlined style={{ fontSize: "18px" }} />
@@ -585,11 +624,14 @@ const HomePage = () => {
                     <Button
                       variant="danger"
                       size="lg"
-                      as={Link}
-                      to={createRoleBasedPath(
-                        "/blood-donation-register",
-                        userRole
-                      )}
+                      onClick={() =>
+                        handleNavigation(
+                          createRoleBasedPath(
+                            "/blood-donation-register",
+                            userRole
+                          )
+                        )
+                      }
                       className="cta-button d-flex align-items-center justify-content-center gap-2 mx-auto"
                     >
                       <HeartOutlined style={{ fontSize: "18px" }} />
@@ -654,11 +696,14 @@ const HomePage = () => {
                     <Button
                       variant="danger"
                       size="lg"
-                      as={Link}
-                      to={createRoleBasedPath(
-                        "/blood-donation-register",
-                        userRole
-                      )}
+                      onClick={() =>
+                        handleNavigation(
+                          createRoleBasedPath(
+                            "/blood-donation-register",
+                            userRole
+                          )
+                        )
+                      }
                       className="hero-cta-btn-new me-3 mb-3"
                     >
                       <HeartOutlined className="me-2" />

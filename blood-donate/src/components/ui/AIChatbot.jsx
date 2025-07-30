@@ -38,6 +38,30 @@ const AIChatbot = () => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Kiểm tra trạng thái đăng nhập từ localStorage
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Kiểm tra authentication khi component mount và khi localStorage thay đổi
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("userToken");
+      const username = localStorage.getItem("username");
+      const role = localStorage.getItem("userRole");
+
+      // Chỉ hiển thị chat khi user đã đăng nhập (có đủ token, username và role)
+      setIsAuthenticated(!!(token && username && role));
+    };
+
+    checkAuth();
+
+    // Lắng nghe thay đổi trong localStorage (khi user đăng nhập/đăng xuất)
+    window.addEventListener("storage", checkAuth);
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, []);
+
   // Scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -169,6 +193,11 @@ const AIChatbot = () => {
 
   // Get suggested questions
   const suggestedQuestions = aiChatService.getSuggestedQuestions();
+
+  // Không hiển thị gì nếu user chưa đăng nhập
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <>
