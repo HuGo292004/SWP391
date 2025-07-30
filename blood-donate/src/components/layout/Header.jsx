@@ -65,20 +65,21 @@ const AppHeader = () => {
   const [scrolled, setScrolled] = useState(false);
   const [notificationVisible, setNotificationVisible] = useState(false);
 
-  // Check if current page is login or register
+  // Kiểm tra xem trang hiện tại có phải là trang đăng nhập hoặc đăng ký không
   const isAuthPage =
     location.pathname === "/login" || location.pathname === "/register";
 
-  // Authentication state from localStorage
+  // Trạng thái xác thực từ localStorage
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // Check authentication status on component mount and localStorage changes
+  // Kiểm tra trạng thái xác thực từ localStorage khi component mount và khi có thay đổi
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem("userToken");
       const username = localStorage.getItem("username");
       const role = localStorage.getItem("userRole");
 
+      // Cập nhật trạng thái đăng nhập dựa trên thông tin trong localStorage
       if (token && username && role) {
         setIsAuthenticated(true);
         setUser({ username, role });
@@ -90,7 +91,7 @@ const AppHeader = () => {
 
     checkAuth();
 
-    // Listen for storage changes (e.g., when user logs in from another tab)
+    // Lắng nghe sự kiện thay đổi localStorage (khi user đăng nhập/đăng xuất từ tab khác)
     window.addEventListener("storage", checkAuth);
 
     return () => {
@@ -98,9 +99,10 @@ const AppHeader = () => {
     };
   }, []);
 
-  // Get current role from URL or user object
+  // Lấy vai trò hiện tại từ URL hoặc đối tượng user
   const currentRole = getUserRoleFromPath(location.pathname) || user?.role;
 
+  // Hàm đăng xuất - xóa thông tin user khỏi localStorage và chuyển về trang chủ
   const logout = async () => {
     console.log("Header logout called");
     localStorage.removeItem("userToken");
@@ -114,6 +116,7 @@ const AppHeader = () => {
     navigate("/");
   };
 
+  // Danh sách thông báo mẫu (trong thực tế sẽ lấy từ API)
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -197,35 +200,41 @@ const AppHeader = () => {
     setVisible(false);
   };
 
+  // Hàm xử lý đăng xuất khi nhấn vào menu drawer
   const handleLogout = async () => {
     await logout();
     onClose(); // Đóng menu drawer
-    navigate("/"); // Chuyển hướng về homepage
+    navigate("/"); // Chuyển hướng về trang chủ
   };
 
-  // Notification handlers
+  // Các hàm xử lý thông báo
   const toggleNotification = () => {
     setNotificationVisible(!notificationVisible);
   };
 
+  // Đánh dấu một thông báo là đã đọc
   const markAsRead = (id) => {
     setNotifications((prev) =>
       prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
     );
   };
 
+  // Đánh dấu tất cả thông báo là đã đọc
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
   };
 
+  // Xóa một thông báo
   const removeNotification = (id) => {
     setNotifications((prev) => prev.filter((notif) => notif.id !== id));
   };
 
+  // Đếm số thông báo chưa đọc
   const getUnreadCount = () => {
     return notifications.filter((notif) => !notif.read).length;
   };
 
+  // Lấy màu sắc cho từng loại thông báo
   const getNotificationColor = (type) => {
     switch (type) {
       case "urgent":
@@ -239,6 +248,38 @@ const AppHeader = () => {
       default:
         return "#1890FF";
     }
+  };
+
+  // Hàm xử lý điều hướng với kiểm tra đăng nhập
+  const handleNavigation = (path) => {
+    // Các trang yêu cầu đăng nhập
+    const protectedPaths = [
+      "/blood-donation-register",
+      "/member/blood-donation-register",
+      "/blood-donation-registration",
+      "/member/blood-donation-registration",
+      "/donor-guide",
+      "/donor-benefits",
+      "/request-blood",
+      "/recipient-guide",
+      "/search-blood",
+      "/blood-banks",
+      "/emergency-request",
+      "/dashboard",
+    ];
+
+    // Kiểm tra nếu đường dẫn yêu cầu đăng nhập và user chưa đăng nhập
+    if (
+      protectedPaths.some((protectedPath) => path.includes(protectedPath)) &&
+      !isAuthenticated
+    ) {
+      // Chuyển hướng đến trang đăng nhập
+      navigate("/login");
+      return;
+    }
+
+    // Nếu đã đăng nhập hoặc không yêu cầu đăng nhập thì điều hướng bình thường
+    navigate(path);
   };
   // Navigation items cho thanh màu xanh đậm - hiển thị dựa vào vai trò
   const navItems = [
@@ -340,32 +381,49 @@ const AppHeader = () => {
                   currentRole
                 ),
                 label: (
-                  <Link
-                    to={createRoleBasedPath(
-                      "/blood-donation-register",
-                      currentRole
-                    )}
+                  <span
+                    onClick={() =>
+                      handleNavigation(
+                        createRoleBasedPath(
+                          "/blood-donation-register",
+                          currentRole
+                        )
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
                   >
                     Đăng ký hiến máu
-                  </Link>
+                  </span>
                 ),
               },
               {
                 key: createRoleBasedPath("/donor-guide", currentRole),
                 label: (
-                  <Link to={createRoleBasedPath("/donor-guide", currentRole)}>
+                  <span
+                    onClick={() =>
+                      handleNavigation(
+                        createRoleBasedPath("/donor-guide", currentRole)
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
                     Hướng dẫn hiến máu
-                  </Link>
+                  </span>
                 ),
               },
               {
                 key: createRoleBasedPath("/donor-benefits", currentRole),
                 label: (
-                  <Link
-                    to={createRoleBasedPath("/donor-benefits", currentRole)}
+                  <span
+                    onClick={() =>
+                      handleNavigation(
+                        createRoleBasedPath("/donor-benefits", currentRole)
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
                   >
                     Quyền lợi người hiến máu
-                  </Link>
+                  </span>
                 ),
               },
             ],
@@ -383,19 +441,31 @@ const AppHeader = () => {
               {
                 key: createRoleBasedPath("/request-blood", currentRole),
                 label: (
-                  <Link to={createRoleBasedPath("/request-blood", currentRole)}>
+                  <span
+                    onClick={() =>
+                      handleNavigation(
+                        createRoleBasedPath("/request-blood", currentRole)
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
                     Đăng ký nhận máu
-                  </Link>
+                  </span>
                 ),
               },
               {
                 key: createRoleBasedPath("/recipient-guide", currentRole),
                 label: (
-                  <Link
-                    to={createRoleBasedPath("/recipient-guide", currentRole)}
+                  <span
+                    onClick={() =>
+                      handleNavigation(
+                        createRoleBasedPath("/recipient-guide", currentRole)
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
                   >
                     Hướng dẫn nhận máu
-                  </Link>
+                  </span>
                 ),
               },
             ],
@@ -413,17 +483,31 @@ const AppHeader = () => {
               {
                 key: createRoleBasedPath("/search-blood", currentRole),
                 label: (
-                  <Link to={createRoleBasedPath("/search-blood", currentRole)}>
+                  <span
+                    onClick={() =>
+                      handleNavigation(
+                        createRoleBasedPath("/search-blood", currentRole)
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
                     Tìm nhóm máu
-                  </Link>
+                  </span>
                 ),
               },
               {
                 key: createRoleBasedPath("/blood-banks", currentRole),
                 label: (
-                  <Link to={createRoleBasedPath("/blood-banks", currentRole)}>
+                  <span
+                    onClick={() =>
+                      handleNavigation(
+                        createRoleBasedPath("/blood-banks", currentRole)
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
                     Ngân hàng máu
-                  </Link>
+                  </span>
                 ),
               },
             ],
@@ -436,9 +520,16 @@ const AppHeader = () => {
             key: createRoleBasedPath("/emergency-request", currentRole),
             icon: <AlertOutlined />,
             label: (
-              <Link to={createRoleBasedPath("/emergency-request", currentRole)}>
+              <span
+                onClick={() =>
+                  handleNavigation(
+                    createRoleBasedPath("/emergency-request", currentRole)
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              >
                 Yêu cầu khẩn cấp
-              </Link>
+              </span>
             ),
           },
         ]
@@ -449,9 +540,16 @@ const AppHeader = () => {
             key: createRoleBasedPath("/dashboard", currentRole),
             icon: <DashboardOutlined />,
             label: (
-              <Link to={createRoleBasedPath("/dashboard", currentRole)}>
+              <span
+                onClick={() =>
+                  handleNavigation(
+                    createRoleBasedPath("/dashboard", currentRole)
+                  )
+                }
+                style={{ cursor: "pointer" }}
+              >
                 Dashboard
-              </Link>
+              </span>
             ),
           },
         ]
@@ -755,7 +853,6 @@ const AppHeader = () => {
             </div> */}{" "}
           {isAuthenticated ? (
             <>
-
               {/* User Info Display - Desktop - With Drawer */}{" "}
               <Dropdown
                 menu={{
@@ -1096,9 +1193,8 @@ const AppHeader = () => {
             }}
           >
             {navItems.map((item, index) => (
-              <Link
+              <div
                 key={item.key}
-                to={item.path}
                 className="nav-item"
                 style={{
                   color: "white",
@@ -1125,10 +1221,12 @@ const AppHeader = () => {
                   letterSpacing: "0.5px",
                   textTransform: "uppercase",
                   position: "relative",
+                  cursor: "pointer",
                 }}
+                onClick={() => handleNavigation(item.path)}
               >
                 {item.label}
-              </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -1302,14 +1400,24 @@ const AppHeader = () => {
               mode="vertical"
               selectedKeys={[location.pathname]}
               items={[
+                // Áp dụng handleNavigation cho các navigation items trong drawer
                 ...navItems.map((item) => ({
                   key: item.key,
-                  label: <Link to={item.path}>{item.label}</Link>,
+                  label: (
+                    <span
+                      onClick={() => {
+                        handleNavigation(item.path);
+                        onClose(); // Đóng drawer sau khi navigate
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {item.label}
+                    </span>
+                  ),
                 })),
                 { type: "divider" },
                 ...menuItems,
               ]}
-              onClick={onClose}
               style={{ borderRight: "none", fontSize: "16px" }}
             />
           </>
