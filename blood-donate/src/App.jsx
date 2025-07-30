@@ -19,7 +19,7 @@ import {
   SupportPage,
   Profile,
 } from "./pages/common";
-import { LoginPage, RegisterPage } from "./pages/auth";
+import { LoginPage, RegisterPage, ForgotPasswordPage } from "./pages/auth";
 import { AdminDashboard } from "./pages/admin";
 import {
   UserManagement,
@@ -104,6 +104,7 @@ function App() {
               {/* Auth routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               {/* Blood donation registration route - Public access */}
               <Route
                 path="/blood-donation-register"

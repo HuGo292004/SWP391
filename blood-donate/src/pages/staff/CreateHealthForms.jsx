@@ -49,7 +49,12 @@ const CreateHealthForms = () => {
   const [form] = Form.useForm();
   useEffect(() => {
     const cccd = new URLSearchParams(window.location.search).get("cccd");
-    if (cccd && typeof cccd === "string" && cccd.trim() !== "" && cccd.length >= 9) {
+    if (
+      cccd &&
+      typeof cccd === "string" &&
+      cccd.trim() !== "" &&
+      cccd.length >= 9
+    ) {
       form.setFieldsValue({ userIdCard: cccd });
       handleSearchDonor(cccd);
     } else {
@@ -484,7 +489,7 @@ const CreateHealthForms = () => {
           setApiError(true);
         } else {
           message.warning(
-            "Phiếu sức khỏe đã được tạo. Dữ liệu sẽ được đồng bộ sau."
+            "Hồ sơ sức khỏe đã được tạo. Dữ liệu sẽ được đồng bộ sau."
           );
           form.resetFields();
           setSelectedDonor(null);
@@ -547,19 +552,18 @@ const CreateHealthForms = () => {
           }}
         >
           <div
-  style={{
-    width: "100%",
-    maxWidth: "100vw", // hoặc "unset", hoặc 1800, 2000, v.v.
-    background: "#fff",
-    borderRadius: 18,
-    boxShadow: "0 4px 24px 0 rgba(0,0,0,0.07)",
-    padding: "32px 32px 24px 32px",
-    margin: "32px 0",
-    minHeight: 0,
-  }}
->
+            style={{
+              width: "100%",
+              maxWidth: "100vw", // hoặc "unset", hoặc 1800, 2000, v.v.
+              background: "#fff",
+              borderRadius: 18,
+              boxShadow: "0 4px 24px 0 rgba(0,0,0,0.07)",
+              padding: "32px 32px 24px 32px",
+              margin: "32px 0",
+              minHeight: 0,
+            }}
+          >
             <Card
-              
               bordered={false}
               style={{
                 background: "#fff",
@@ -640,8 +644,7 @@ const CreateHealthForms = () => {
                             }
                           }}
                           onPressEnter={() => {
-                            const userIdCard =
-                              form.getFieldValue("userIdCard");
+                            const userIdCard = form.getFieldValue("userIdCard");
                             if (userIdCard) {
                               handleSearchDonor(userIdCard);
                             }
@@ -754,9 +757,7 @@ const CreateHealthForms = () => {
                               </p>
                               <p>
                                 <strong>Nhóm máu:</strong>{" "}
-                                <Tag color="red">
-                                  {selectedDonor.bloodType}
-                                </Tag>
+                                <Tag color="red">{selectedDonor.bloodType}</Tag>
                               </p>
                             </Col>
                           </Row>
@@ -786,9 +787,7 @@ const CreateHealthForms = () => {
                                   </Tag>
                                 </Text>
                                 {selectedDonor.donationDate && (
-                                  <Text
-                                    style={{ fontSize: 12, marginLeft: 8 }}
-                                  >
+                                  <Text style={{ fontSize: 12, marginLeft: 8 }}>
                                     | Ngày hiến máu:{" "}
                                     {selectedDonor.donationDate}
                                   </Text>
@@ -1048,9 +1047,7 @@ const CreateHealthForms = () => {
                     <Button onClick={handlePreview} icon={<EyeOutlined />}>
                       Xem trước
                     </Button>
-                    <Button onClick={() => form.resetFields()}>
-                      Làm mới
-                    </Button>
+                    <Button onClick={() => form.resetFields()}>Làm mới</Button>
                   </Space>
                 </Form.Item>
               </Form>
@@ -1061,7 +1058,7 @@ const CreateHealthForms = () => {
           title={
             <span>
               <FileTextOutlined style={{ marginRight: "8px" }} />
-              Xem trước phiếu sức khỏe
+              Xem trước hồ sơ sức khỏe
             </span>
           }
           open={previewVisible}

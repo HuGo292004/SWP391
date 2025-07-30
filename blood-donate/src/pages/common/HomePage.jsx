@@ -710,22 +710,24 @@ const HomePage = () => {
                       Đăng Ký Hiến Máu
                     </Button>
                   )}
-                  {/* Nút tìm kiếm nhóm máu */}
-                  <Button
-                    variant="light"
-                    size="lg"
-                    onClick={scrollToBloodTypeSection}
-                    className="hero-cta-btn-new hero-cta-btn-white mb-3"
-                    style={{
-                      backgroundColor: "white",
-                      color: "#dc3545",
-                      border: "2px solid white",
-                      fontWeight: "600",
-                    }}
-                  >
-                    <SearchOutlined className="me-2" />
-                    Tìm Kiếm Nhóm Máu
-                  </Button>
+                  {/* Nút tìm kiếm nhóm máu - ẩn với nhân viên */}
+                  {userRole !== "staff" && (
+                    <Button
+                      variant="light"
+                      size="lg"
+                      onClick={scrollToBloodTypeSection}
+                      className="hero-cta-btn-new hero-cta-btn-white mb-3"
+                      style={{
+                        backgroundColor: "white",
+                        color: "#dc3545",
+                        border: "2px solid white",
+                        fontWeight: "600",
+                      }}
+                    >
+                      <SearchOutlined className="me-2" />
+                      Tìm Kiếm Nhóm Máu
+                    </Button>
+                  )}
                 </div>
               </div>
             </Col>
@@ -1030,276 +1032,282 @@ const HomePage = () => {
           </Row>
         </Container>
       </section>
-      {/* Phần thông tin nhóm máu - Thiết kế sạch sẽ */}
-      <section
-        id="blood-type-section"
-        style={{
-          padding: "4rem 0",
-          background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-        }}
-      >
-        <Container>
-          {/* Header phần nhóm máu */}
-          <Row className="text-center mb-4">
-            <Col lg={8} className="mx-auto">
-              <div style={{ marginBottom: "2rem" }}>
-                {/* Icon chính */}
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "80px",
-                    height: "80px",
-                    background:
-                      "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-                    borderRadius: "50%",
-                    margin: "0 auto 1rem auto",
-                    boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)",
-                  }}
-                >
-                  <MedicineBoxOutlined
+      {/* Phần thông tin nhóm máu - Thiết kế sạch sẽ - ẩn với nhân viên */}
+      {userRole !== "staff" && (
+        <section
+          id="blood-type-section"
+          style={{
+            padding: "4rem 0",
+            background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+          }}
+        >
+          <Container>
+            {/* Header phần nhóm máu */}
+            <Row className="text-center mb-4">
+              <Col lg={8} className="mx-auto">
+                <div style={{ marginBottom: "2rem" }}>
+                  {/* Icon chính */}
+                  <div
                     style={{
-                      fontSize: "48px",
-                      color: "white",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "80px",
+                      height: "80px",
+                      background:
+                        "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                      borderRadius: "50%",
+                      margin: "0 auto 1rem auto",
+                      boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)",
                     }}
-                  />
+                  >
+                    <MedicineBoxOutlined
+                      style={{
+                        fontSize: "48px",
+                        color: "white",
+                      }}
+                    />
+                  </div>
+                  {/* Tiêu đề */}
+                  <h2
+                    style={{
+                      color: "#1e40af",
+                      fontWeight: "700",
+                      fontSize: "2.5rem",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    Thông Tin Nhóm Máu
+                  </h2>
+                  {/* Mô tả */}
+                  <p
+                    style={{
+                      fontSize: "1.1rem",
+                      color: "#475569",
+                      lineHeight: "1.6",
+                      maxWidth: "600px",
+                      margin: "0 auto",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Hiểu rõ về các nhóm máu ABO và khả năng tương thích để hiến
+                    máu hiệu quả
+                  </p>
                 </div>
-                {/* Tiêu đề */}
-                <h2
-                  style={{
-                    color: "#1e40af",
-                    fontWeight: "700",
-                    fontSize: "2.5rem",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  Thông Tin Nhóm Máu
-                </h2>
-                {/* Mô tả */}
-                <p
-                  style={{
-                    fontSize: "1.1rem",
-                    color: "#475569",
-                    lineHeight: "1.6",
-                    maxWidth: "600px",
-                    margin: "0 auto",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Hiểu rõ về các nhóm máu ABO và khả năng tương thích để hiến
-                  máu hiệu quả
-                </p>
-              </div>
-            </Col>
-          </Row>
-
-          {/* Cards hiển thị các nhóm máu */}
-          <Row className="g-3 mb-4">
-            {bloodTypeData.map((bloodType, index) => (
-              <Col lg={6} xl={3} md={6} key={index}>
-                <Card className="blood-type-card-simple h-100 border-0 shadow-sm">
-                  <Card.Body className="p-3 text-center">
-                    {/* Icon nhóm máu */}
-                    <div
-                      className="blood-type-icon-simple mb-2"
-                      style={{ background: bloodType.gradient }}
-                    >
-                      <span className="blood-type-letter-simple">
-                        {bloodType.type}
-                      </span>
-                    </div>
-
-                    {/* Tên nhóm máu */}
-                    <h5 className="blood-type-name-simple mb-2">
-                      Nhóm {bloodType.type}
-                    </h5>
-
-                    {/* Tỷ lệ dân số */}
-                    <div className="percentage-display mb-2">
-                      <span className="percentage-number">
-                        {bloodType.percentage}
-                      </span>
-                      <span className="percentage-label">dân số</span>
-                    </div>
-
-                    {/* Nút xem chi tiết */}
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="detail-btn"
-                      onClick={() => showBloodTypeDetails(bloodType)}
-                    >
-                      <InfoCircleOutlined className="me-1" />
-                      Chi tiết
-                    </Button>
-                  </Card.Body>
-                </Card>
               </Col>
-            ))}
-          </Row>
-        </Container>
-      </section>
-      {/* Modal chi tiết nhóm máu */}
-      <Modal
-        title={null}
-        open={isModalVisible}
-        onCancel={handleCloseModal}
-        footer={null}
-        width={700}
-        className="blood-type-modal"
-        closeIcon={
-          <CloseOutlined style={{ fontSize: "16px", color: "#595959" }} />
-        }
-      >
-        {selectedBloodType && (
-          <div className="blood-type-detail-content">
-            {/* Header của modal */}
-            <div
-              className="modal-header-gradient mb-4"
-              style={{ background: selectedBloodType.gradient }}
-            >
-              {/* Icon nhóm máu trong modal */}
-              <div className="modal-blood-icon">
-                <span className="modal-blood-letter">
-                  {selectedBloodType.type}
-                </span>
-              </div>
-              {/* Tiêu đề modal */}
-              <h3 className="modal-blood-title">
-                Nhóm Máu {selectedBloodType.type}
-              </h3>
-              {/* Tỷ lệ dân số */}
-              <div className="modal-percentage">
-                {selectedBloodType.percentage} dân số Việt Nam
-              </div>
-            </div>
+            </Row>
 
-            {/* Nội dung chính của modal */}
-            <div className="modal-body-content">
-              <Row className="g-4">
-                {/* Thông tin cơ bản */}
-                <Col md={6}>
-                  <div className="info-section">
-                    <h5 className="info-section-title">
-                      <UserOutlined className="me-2" />
-                      Thông Tin Cơ Bản
-                    </h5>
-                    <div className="info-item">
-                      <span className="info-label">Tỷ lệ dân số:</span>
-                      <span className="info-value">
-                        {selectedBloodType.population}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Mức độ hiếm:</span>
-                      <span className="info-value">
-                        {selectedBloodType.rareLevel}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Đặc điểm:</span>
-                      <span className="info-value">
-                        {selectedBloodType.specialNote}
-                      </span>
-                    </div>
-                  </div>
-                </Col>
-
-                {/* Khả năng tương thích */}
-                <Col md={6}>
-                  <div className="info-section">
-                    <h5 className="info-section-title">
-                      <HeartOutlined className="me-2" />
-                      Khả Năng Tương Thích
-                    </h5>
-                    <div className="compatibility-detail">
-                      {/* Có thể hiến cho */}
-                      <div className="compatibility-group donate-group">
-                        <div className="compatibility-group-label">
-                          <HeartOutlined className="me-1" />
-                          Có thể hiến cho:
-                        </div>
-                        <div className="blood-tags-modal">
-                          {selectedBloodType.canDonateTo.map((type, idx) => (
-                            <span
-                              key={idx}
-                              className="blood-tag-modal donate-tag-modal"
-                            >
-                              {type}
-                            </span>
-                          ))}
-                        </div>
+            {/* Cards hiển thị các nhóm máu */}
+            <Row className="g-3 mb-4">
+              {bloodTypeData.map((bloodType, index) => (
+                <Col lg={6} xl={3} md={6} key={index}>
+                  <Card className="blood-type-card-simple h-100 border-0 shadow-sm">
+                    <Card.Body className="p-3 text-center">
+                      {/* Icon nhóm máu */}
+                      <div
+                        className="blood-type-icon-simple mb-2"
+                        style={{ background: bloodType.gradient }}
+                      >
+                        <span className="blood-type-letter-simple">
+                          {bloodType.type}
+                        </span>
                       </div>
 
-                      {/* Có thể nhận từ */}
-                      <div className="compatibility-group receive-group">
-                        <div className="compatibility-group-label">
-                          <MedicineBoxOutlined className="me-1" />
-                          Có thể nhận từ:
-                        </div>
-                        <div className="blood-tags-modal">
-                          {selectedBloodType.canReceiveFrom.map((type, idx) => (
-                            <span
-                              key={idx}
-                              className="blood-tag-modal receive-tag-modal"
-                            >
-                              {type}
-                            </span>
-                          ))}
-                        </div>
+                      {/* Tên nhóm máu */}
+                      <h5 className="blood-type-name-simple mb-2">
+                        Nhóm {bloodType.type}
+                      </h5>
+
+                      {/* Tỷ lệ dân số */}
+                      <div className="percentage-display mb-2">
+                        <span className="percentage-number">
+                          {bloodType.percentage}
+                        </span>
+                        <span className="percentage-label">dân số</span>
                       </div>
-                    </div>
-                  </div>
+
+                      {/* Nút xem chi tiết */}
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="detail-btn"
+                        onClick={() => showBloodTypeDetails(bloodType)}
+                      >
+                        <InfoCircleOutlined className="me-1" />
+                        Chi tiết
+                      </Button>
+                    </Card.Body>
+                  </Card>
                 </Col>
-              </Row>{" "}
-              {/* Thông tin y khoa chi tiết */}
-              <div className="medical-info-section mt-4">
-                <h5 className="info-section-title">
-                  <ExperimentOutlined className="me-2" />
-                  Thông Tin Y Khoa Chi Tiết
-                </h5>
-                <Row className="g-3">
+              ))}
+            </Row>
+          </Container>
+        </section>
+      )}
+      {/* Modal chi tiết nhóm máu - ẩn với nhân viên */}
+      {userRole !== "staff" && (
+        <Modal
+          title={null}
+          open={isModalVisible}
+          onCancel={handleCloseModal}
+          footer={null}
+          width={700}
+          className="blood-type-modal"
+          closeIcon={
+            <CloseOutlined style={{ fontSize: "16px", color: "#595959" }} />
+          }
+        >
+          {selectedBloodType && (
+            <div className="blood-type-detail-content">
+              {/* Header của modal */}
+              <div
+                className="modal-header-gradient mb-4"
+                style={{ background: selectedBloodType.gradient }}
+              >
+                {/* Icon nhóm máu trong modal */}
+                <div className="modal-blood-icon">
+                  <span className="modal-blood-letter">
+                    {selectedBloodType.type}
+                  </span>
+                </div>
+                {/* Tiêu đề modal */}
+                <h3 className="modal-blood-title">
+                  Nhóm Máu {selectedBloodType.type}
+                </h3>
+                {/* Tỷ lệ dân số */}
+                <div className="modal-percentage">
+                  {selectedBloodType.percentage} dân số Việt Nam
+                </div>
+              </div>
+
+              {/* Nội dung chính của modal */}
+              <div className="modal-body-content">
+                <Row className="g-4">
+                  {/* Thông tin cơ bản */}
                   <Col md={6}>
-                    <div className="medical-card">
-                      <div className="medical-item">
-                        <strong>Kháng nguyên:</strong>{" "}
-                        {selectedBloodType.medicalInfo.antigens}
+                    <div className="info-section">
+                      <h5 className="info-section-title">
+                        <UserOutlined className="me-2" />
+                        Thông Tin Cơ Bản
+                      </h5>
+                      <div className="info-item">
+                        <span className="info-label">Tỷ lệ dân số:</span>
+                        <span className="info-value">
+                          {selectedBloodType.population}
+                        </span>
                       </div>
-                      <div className="medical-item">
-                        <strong>Kháng thể:</strong>{" "}
-                        {selectedBloodType.medicalInfo.antibodies}
+                      <div className="info-item">
+                        <span className="info-label">Mức độ hiếm:</span>
+                        <span className="info-value">
+                          {selectedBloodType.rareLevel}
+                        </span>
                       </div>
-                      <div className="medical-item">
-                        <strong>Yếu tố Rh:</strong>{" "}
-                        {selectedBloodType.medicalInfo.rhFactor}
+                      <div className="info-item">
+                        <span className="info-label">Đặc điểm:</span>
+                        <span className="info-value">
+                          {selectedBloodType.specialNote}
+                        </span>
                       </div>
                     </div>
                   </Col>
+
+                  {/* Khả năng tương thích */}
                   <Col md={6}>
-                    <div className="medical-card">
-                      <div className="medical-item">
-                        <strong>Tần suất hiến:</strong>{" "}
-                        {selectedBloodType.medicalInfo.donationFrequency}
-                      </div>
-                      <div className="medical-item">
-                        <strong>Thời gian bảo quản:</strong>{" "}
-                        {selectedBloodType.medicalInfo.storageTime}
+                    <div className="info-section">
+                      <h5 className="info-section-title">
+                        <HeartOutlined className="me-2" />
+                        Khả Năng Tương Thích
+                      </h5>
+                      <div className="compatibility-detail">
+                        {/* Có thể hiến cho */}
+                        <div className="compatibility-group donate-group">
+                          <div className="compatibility-group-label">
+                            <HeartOutlined className="me-1" />
+                            Có thể hiến cho:
+                          </div>
+                          <div className="blood-tags-modal">
+                            {selectedBloodType.canDonateTo.map((type, idx) => (
+                              <span
+                                key={idx}
+                                className="blood-tag-modal donate-tag-modal"
+                              >
+                                {type}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Có thể nhận từ */}
+                        <div className="compatibility-group receive-group">
+                          <div className="compatibility-group-label">
+                            <MedicineBoxOutlined className="me-1" />
+                            Có thể nhận từ:
+                          </div>
+                          <div className="blood-tags-modal">
+                            {selectedBloodType.canReceiveFrom.map(
+                              (type, idx) => (
+                                <span
+                                  key={idx}
+                                  className="blood-tag-modal receive-tag-modal"
+                                >
+                                  {type}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </Col>
-                </Row>
-              </div>
-              {/* Thành phần máu và ứng dụng */}
-              <div className="components-section mt-4">
-                <h5 className="info-section-title">
-                  <MedicineBoxOutlined className="me-2" />
-                  Thành Phần Máu & Ứng Dụng
-                </h5>
-                <Row className="g-3">
-                  {/* Map qua các thành phần máu */}
-                  {Object.entries(selectedBloodType.medicalInfo.components).map(
-                    ([key, value], idx) => (
+                </Row>{" "}
+                {/* Thông tin y khoa chi tiết */}
+                <div className="medical-info-section mt-4">
+                  <h5 className="info-section-title">
+                    <ExperimentOutlined className="me-2" />
+                    Thông Tin Y Khoa Chi Tiết
+                  </h5>
+                  <Row className="g-3">
+                    <Col md={6}>
+                      <div className="medical-card">
+                        <div className="medical-item">
+                          <strong>Kháng nguyên:</strong>{" "}
+                          {selectedBloodType.medicalInfo.antigens}
+                        </div>
+                        <div className="medical-item">
+                          <strong>Kháng thể:</strong>{" "}
+                          {selectedBloodType.medicalInfo.antibodies}
+                        </div>
+                        <div className="medical-item">
+                          <strong>Yếu tố Rh:</strong>{" "}
+                          {selectedBloodType.medicalInfo.rhFactor}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={6}>
+                      <div className="medical-card">
+                        <div className="medical-item">
+                          <strong>Tần suất hiến:</strong>{" "}
+                          {selectedBloodType.medicalInfo.donationFrequency}
+                        </div>
+                        <div className="medical-item">
+                          <strong>Thời gian bảo quản:</strong>{" "}
+                          {selectedBloodType.medicalInfo.storageTime}
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+                {/* Thành phần máu và ứng dụng */}
+                <div className="components-section mt-4">
+                  <h5 className="info-section-title">
+                    <MedicineBoxOutlined className="me-2" />
+                    Thành Phần Máu & Ứng Dụng
+                  </h5>
+                  <Row className="g-3">
+                    {/* Map qua các thành phần máu */}
+                    {Object.entries(
+                      selectedBloodType.medicalInfo.components
+                    ).map(([key, value], idx) => (
                       <Col md={6} key={idx}>
                         <div className="component-card">
                           <div className="component-icon">
@@ -1320,195 +1328,197 @@ const HomePage = () => {
                           </div>
                         </div>
                       </Col>
-                    )
-                  )}
-                </Row>
-              </div>
-              {/* Xét nghiệm bắt buộc */}
-              <div className="testing-section mt-4">
-                <h5 className="info-section-title">
-                  <SafetyCertificateOutlined className="me-2" />
-                  Xét Nghiệm Bắt Buộc
-                </h5>
-                <div className="testing-grid">
-                  {/* Map qua các xét nghiệm bắt buộc */}
-                  {selectedBloodType.medicalInfo.testingRequired.map(
-                    (test, idx) => (
-                      <div key={idx} className="test-item">
-                        <div className="test-icon">
-                          <SafetyCertificateOutlined />
-                        </div>
-                        <span>{test}</span>
-                      </div>
-                    )
-                  )}
+                    ))}
+                  </Row>
                 </div>
-              </div>
-              {/* Ứng dụng y khoa */}
-              <div className="uses-section mt-4">
-                <h5 className="info-section-title">
-                  <MedicineBoxOutlined className="me-2" />
-                  Ứng Dụng Y Khoa
-                </h5>
-                <div className="uses-list">
-                  {/* Map qua các ứng dụng y khoa */}
-                  {selectedBloodType.medicalInfo.uses.map((use, idx) => (
-                    <div key={idx} className="use-item">
-                      <div className="use-bullet"></div>
-                      <span>{use}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Quy trình chuẩn bị hiến máu */}
-              <div className="preparation-section mt-4">
-                <h5 className="info-section-title">
-                  <ClockCircleOutlined className="me-2" />
-                  Quy Trình Hiến Máu
-                </h5>
-                <Row className="g-3">
-                  {/* Trước khi hiến */}
-                  <Col md={4}>
-                    <div className="prep-card prep-before">
-                      <h6 className="prep-title">Trước khi hiến</h6>
-                      <p className="prep-content">
-                        {selectedBloodType.medicalInfo.preparation.before}
-                      </p>
-                    </div>
-                  </Col>
-                  {/* Trong quá trình hiến */}
-                  <Col md={4}>
-                    <div className="prep-card prep-during">
-                      <h6 className="prep-title">Trong quá trình</h6>
-                      <p className="prep-content">
-                        {selectedBloodType.medicalInfo.preparation.during}
-                      </p>
-                    </div>
-                  </Col>
-                  {/* Sau khi hiến */}
-                  <Col md={4}>
-                    <div className="prep-card prep-after">
-                      <h6 className="prep-title">Sau khi hiến</h6>
-                      <p className="prep-content">
-                        {selectedBloodType.medicalInfo.preparation.after}
-                      </p>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-              {/* Health Tips */}
-              <div className="health-tips-section mt-4">
-                <h5 className="info-section-title">
-                  <HeartOutlined className="me-2" />
-                  Lời Khuyên Sức Khỏe
-                </h5>
-                <div className="tips-grid">
-                  {selectedBloodType.healthTips.map((tip, idx) => (
-                    <div key={idx} className="tip-item">
-                      <ThunderboltOutlined className="tip-icon" />
-                      <span>{tip}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Nutrition Advice */}
-              {selectedBloodType.nutritionAdvice && (
-                <div className="nutrition-section mt-4">
+                {/* Xét nghiệm bắt buộc */}
+                <div className="testing-section mt-4">
                   <h5 className="info-section-title">
-                    <StarOutlined className="me-2" />
-                    Dinh Dưỡng Khuyến Nghị
+                    <SafetyCertificateOutlined className="me-2" />
+                    Xét Nghiệm Bắt Buộc
                   </h5>
-                  <div className="nutrition-grid">
-                    {selectedBloodType.nutritionAdvice.map((advice, idx) => (
-                      <div key={idx} className="nutrition-item">
-                        <div className="nutrition-icon">
-                          <StarOutlined />
+                  <div className="testing-grid">
+                    {/* Map qua các xét nghiệm bắt buộc */}
+                    {selectedBloodType.medicalInfo.testingRequired.map(
+                      (test, idx) => (
+                        <div key={idx} className="test-item">
+                          <div className="test-icon">
+                            <SafetyCertificateOutlined />
+                          </div>
+                          <span>{test}</span>
                         </div>
-                        <span>{advice}</span>
+                      )
+                    )}
+                  </div>
+                </div>
+                {/* Ứng dụng y khoa */}
+                <div className="uses-section mt-4">
+                  <h5 className="info-section-title">
+                    <MedicineBoxOutlined className="me-2" />
+                    Ứng Dụng Y Khoa
+                  </h5>
+                  <div className="uses-list">
+                    {/* Map qua các ứng dụng y khoa */}
+                    {selectedBloodType.medicalInfo.uses.map((use, idx) => (
+                      <div key={idx} className="use-item">
+                        <div className="use-bullet"></div>
+                        <span>{use}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-              {/* Thống kê quan trọng */}
-              {selectedBloodType.statistics && (
-                <div className="statistics-section mt-4">
+                {/* Quy trình chuẩn bị hiến máu */}
+                <div className="preparation-section mt-4">
                   <h5 className="info-section-title">
-                    <BarChartOutlined className="me-2" />
-                    Thống Kê Quan Trọng
+                    <ClockCircleOutlined className="me-2" />
+                    Quy Trình Hiến Máu
                   </h5>
                   <Row className="g-3">
-                    <Col md={6}>
-                      <div className="stat-card">
-                        <div className="stat-item">
-                          <span className="stat-label">Tỷ lệ toàn cầu:</span>
-                          <span className="stat-value">
-                            {selectedBloodType.statistics.globalPercentage}
-                          </span>
-                        </div>
-                        <div className="stat-item">
-                          <span className="stat-label">Tỷ lệ châu Á:</span>
-                          <span className="stat-value">
-                            {selectedBloodType.statistics.asianPercentage}
-                          </span>
-                        </div>
+                    {/* Trước khi hiến */}
+                    <Col md={4}>
+                      <div className="prep-card prep-before">
+                        <h6 className="prep-title">Trước khi hiến</h6>
+                        <p className="prep-content">
+                          {selectedBloodType.medicalInfo.preparation.before}
+                        </p>
                       </div>
                     </Col>
-                    <Col md={6}>
-                      <div className="stat-card">
-                        <div className="stat-item">
-                          <span className="stat-label">Nhu cầu hiến máu:</span>
-                          <span className="stat-value">
-                            {selectedBloodType.statistics.donationDemand}
-                          </span>
-                        </div>
-                        <div className="stat-item">
-                          <span className="stat-label">Tầm quan trọng:</span>
-                          <span className="stat-value">
-                            {selectedBloodType.statistics.emergencyUse}
-                          </span>
-                        </div>
+                    {/* Trong quá trình hiến */}
+                    <Col md={4}>
+                      <div className="prep-card prep-during">
+                        <h6 className="prep-title">Trong quá trình</h6>
+                        <p className="prep-content">
+                          {selectedBloodType.medicalInfo.preparation.during}
+                        </p>
+                      </div>
+                    </Col>
+                    {/* Sau khi hiến */}
+                    <Col md={4}>
+                      <div className="prep-card prep-after">
+                        <h6 className="prep-title">Sau khi hiến</h6>
+                        <p className="prep-content">
+                          {selectedBloodType.medicalInfo.preparation.after}
+                        </p>
                       </div>
                     </Col>
                   </Row>
                 </div>
-              )}
-              {/* Đặc điểm sinh học */}
-              <div className="characteristics-section mt-4">
-                <h5 className="info-section-title">
-                  <StarOutlined className="me-2" />
-                  Đặc Điểm Sinh Học
-                </h5>
-                <div className="characteristics-list">
-                  {/* Map qua các đặc điểm */}
-                  {selectedBloodType.characteristics.map((char, idx) => (
-                    <div key={idx} className="characteristic-item">
-                      <div className="characteristic-bullet"></div>
-                      <span>{char}</span>
-                    </div>
-                  ))}
+                {/* Health Tips */}
+                <div className="health-tips-section mt-4">
+                  <h5 className="info-section-title">
+                    <HeartOutlined className="me-2" />
+                    Lời Khuyên Sức Khỏe
+                  </h5>
+                  <div className="tips-grid">
+                    {selectedBloodType.healthTips.map((tip, idx) => (
+                      <div key={idx} className="tip-item">
+                        <ThunderboltOutlined className="tip-icon" />
+                        <span>{tip}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              {/* Những điều thú vị */}
-              <div className="fun-facts-section mt-4">
-                <h5 className="info-section-title">
-                  <BulbOutlined className="me-2" />
-                  Những Điều Thú Vị
-                </h5>
-                <div className="facts-grid">
-                  {/* Map qua các sự thật thú vị */}
-                  {selectedBloodType.funFacts.map((fact, idx) => (
-                    <div key={idx} className="fact-item">
-                      <div className="fact-number">{idx + 1}</div>
-                      <span>{fact}</span>
+                {/* Nutrition Advice */}
+                {selectedBloodType.nutritionAdvice && (
+                  <div className="nutrition-section mt-4">
+                    <h5 className="info-section-title">
+                      <StarOutlined className="me-2" />
+                      Dinh Dưỡng Khuyến Nghị
+                    </h5>
+                    <div className="nutrition-grid">
+                      {selectedBloodType.nutritionAdvice.map((advice, idx) => (
+                        <div key={idx} className="nutrition-item">
+                          <div className="nutrition-icon">
+                            <StarOutlined />
+                          </div>
+                          <span>{advice}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                )}
+                {/* Thống kê quan trọng */}
+                {selectedBloodType.statistics && (
+                  <div className="statistics-section mt-4">
+                    <h5 className="info-section-title">
+                      <BarChartOutlined className="me-2" />
+                      Thống Kê Quan Trọng
+                    </h5>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <div className="stat-card">
+                          <div className="stat-item">
+                            <span className="stat-label">Tỷ lệ toàn cầu:</span>
+                            <span className="stat-value">
+                              {selectedBloodType.statistics.globalPercentage}
+                            </span>
+                          </div>
+                          <div className="stat-item">
+                            <span className="stat-label">Tỷ lệ châu Á:</span>
+                            <span className="stat-value">
+                              {selectedBloodType.statistics.asianPercentage}
+                            </span>
+                          </div>
+                        </div>
+                      </Col>
+                      <Col md={6}>
+                        <div className="stat-card">
+                          <div className="stat-item">
+                            <span className="stat-label">
+                              Nhu cầu hiến máu:
+                            </span>
+                            <span className="stat-value">
+                              {selectedBloodType.statistics.donationDemand}
+                            </span>
+                          </div>
+                          <div className="stat-item">
+                            <span className="stat-label">Tầm quan trọng:</span>
+                            <span className="stat-value">
+                              {selectedBloodType.statistics.emergencyUse}
+                            </span>
+                          </div>
+                        </div>
+                      </Col>
+                    </Row>
+                  </div>
+                )}
+                {/* Đặc điểm sinh học */}
+                <div className="characteristics-section mt-4">
+                  <h5 className="info-section-title">
+                    <StarOutlined className="me-2" />
+                    Đặc Điểm Sinh Học
+                  </h5>
+                  <div className="characteristics-list">
+                    {/* Map qua các đặc điểm */}
+                    {selectedBloodType.characteristics.map((char, idx) => (
+                      <div key={idx} className="characteristic-item">
+                        <div className="characteristic-bullet"></div>
+                        <span>{char}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Những điều thú vị */}
+                <div className="fun-facts-section mt-4">
+                  <h5 className="info-section-title">
+                    <BulbOutlined className="me-2" />
+                    Những Điều Thú Vị
+                  </h5>
+                  <div className="facts-grid">
+                    {/* Map qua các sự thật thú vị */}
+                    {selectedBloodType.funFacts.map((fact, idx) => (
+                      <div key={idx} className="fact-item">
+                        <div className="fact-number">{idx + 1}</div>
+                        <span>{fact}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </Modal>{" "}
+          )}
+        </Modal>
+      )}
       {/* Phần tiêu chuẩn hiến máu */}
       <section className="donation-standards-section bg-gradient-light mt-5">
         <Container>
