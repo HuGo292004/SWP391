@@ -251,54 +251,65 @@ const CreateEmergencyRequest = () => {
   return (
     <Container fluid className="p-4">
       {/* Header */}
-      <Row className="mb-4">
+      <Row justify="center" className="mb-4">
         <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 className="text-danger mb-2">
-                <FaExclamationTriangle className="me-2" />
-                Tạo Yêu Cầu Hiến Máu Khẩn Cấp
-              </h2>
-              <p className="text-muted mb-0">Tạo yêu cầu hiến máu khẩn cấp cho các trường hợp cần máu gấp</p>
-            </div>
+          <div style={{ textAlign: "center" }}>
+            <h2 className="text-danger mb-2">
+              <FaExclamationTriangle className="me-2" />
+              Tạo Yêu Cầu Hiến Máu Khẩn Cấp
+            </h2>
+            <p className="text-muted mb-0">
+              Tạo yêu cầu hiến máu khẩn cấp cho các trường hợp cần máu gấp
+            </p>
           </div>
         </Col>
       </Row>
 
       {/* Success Alert */}
       {showSuccess && (
-        <Alert variant="success" dismissible onClose={() => setShowSuccess(false)}>
+        <Alert
+          variant="success"
+          dismissible
+          onClose={() => setShowSuccess(false)}
+        >
           <FaHeart className="me-2" />
-          {userFound ? 'Đã tìm thấy thông tin người dùng và tự động điền vào form!' : 'Yêu cầu khẩn cấp đã được tạo thành công!'}
+          {userFound
+            ? "Đã tìm thấy thông tin người dùng và tự động điền vào form!"
+            : "Yêu cầu khẩn cấp đã được tạo thành công!"}
         </Alert>
       )}
 
       {/* Error Alert */}
       {showError && (
-        <Alert variant="warning" dismissible onClose={() => setShowError(false)}>
+        <Alert
+          variant="warning"
+          dismissible
+          onClose={() => setShowError(false)}
+        >
           <FaExclamationTriangle className="me-2" />
           {errorMessage}
         </Alert>
       )}
 
       {/* Info Alert for Authentication */}
-      {authStatus === 'unauthenticated' && (
+      {authStatus === "unauthenticated" && (
         <Alert variant="warning" className="mb-4">
           <FaExclamationTriangle className="me-2" />
-          <strong>Cảnh báo:</strong> Bạn chưa đăng nhập hoặc token không hợp lệ. Vui lòng đăng nhập lại.
+          <strong>Cảnh báo:</strong> Bạn chưa đăng nhập hoặc token không hợp lệ.
+          Vui lòng đăng nhập lại.
           <div className="mt-2">
-            <Button 
-              variant="outline-success" 
-              size="sm" 
+            <Button
+              variant="outline-success"
+              size="sm"
               className="me-2"
               onClick={handleRefreshAuth}
             >
               <FaHeart className="me-1" />
               Làm mới Token
             </Button>
-            <Button 
-              variant="outline-primary" 
-              size="sm" 
+            <Button
+              variant="outline-primary"
+              size="sm"
               className="me-2"
               onClick={() => {
                 cleanupTokens();
@@ -307,8 +318,8 @@ const CreateEmergencyRequest = () => {
             >
               Làm sạch Token
             </Button>
-            <Button 
-              variant="outline-secondary" 
+            <Button
+              variant="outline-secondary"
               size="sm"
               onClick={() => window.location.reload()}
             >
@@ -377,7 +388,7 @@ const CreateEmergencyRequest = () => {
                             placeholder="Nhập số CCCD hoặc CMND"
                             required
                           />
-                          <Button 
+                          <Button
                             variant="outline-primary"
                             onClick={handleSearchUser}
                             disabled={isSearchingUser || !formData.userIdCard}
@@ -499,11 +510,15 @@ const CreateEmergencyRequest = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="d-flex gap-3">
+                <div className="d-flex justify-content-end gap-3">
                   <Button variant="danger" type="submit" disabled={isLoading}>
                     {isLoading ? (
                       <>
-                        <Spinner animation="border" size="sm" className="me-2" />
+                        <Spinner
+                          animation="border"
+                          size="sm"
+                          className="me-2"
+                        />
                         Đang tạo yêu cầu...
                       </>
                     ) : (
@@ -517,9 +532,9 @@ const CreateEmergencyRequest = () => {
               </Form>
 
               {/* Xem trước ngoài form */}
-              <div className="mt-3 d-flex gap-2">
-                <Button 
-                  variant="outline-info" 
+              <div className="mt-3 d-flex justify-content-end gap-2">
+                <Button
+                  variant="outline-info"
                   type="button"
                   onClick={() => setShowPreview(true)}
                 >
@@ -554,28 +569,55 @@ const CreateEmergencyRequest = () => {
           <div className="p-3">
             <h5 className="text-danger mb-3">Thông tin yêu cầu khẩn cấp</h5>
             <div className="mb-3">
-              <strong>Họ tên bệnh nhân:</strong> {formData.patientName || <span className="text-muted">(Chưa nhập)</span>}
+              <strong>Họ tên bệnh nhân:</strong>{" "}
+              {formData.patientName || (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
             </div>
             <div className="mb-3">
-              <strong>Email:</strong> {formData.email || <span className="text-muted">(Chưa nhập)</span>}
+              <strong>Email:</strong>{" "}
+              {formData.email || (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
             </div>
             <div className="mb-3">
-              <strong>Số điện thoại:</strong> {formData.phone || <span className="text-muted">(Chưa nhập)</span>}
+              <strong>Số điện thoại:</strong>{" "}
+              {formData.phone || (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
             </div>
             <div className="mb-3">
-              <strong>Ngày sinh:</strong> {formData.dateOfBirth || <span className="text-muted">(Chưa nhập)</span>}
+              <strong>Ngày sinh:</strong>{" "}
+              {formData.dateOfBirth || (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
             </div>
             <div className="mb-3">
-              <strong>Nhóm máu cần:</strong> {formData.bloodTypeRequired || <span className="text-muted">(Chưa chọn)</span>}
+              <strong>Nhóm máu cần:</strong>{" "}
+              {formData.bloodTypeRequired || (
+                <span className="text-muted">(Chưa chọn)</span>
+              )}
             </div>
             <div className="mb-3">
-              <strong>Số lượng cần:</strong> {formData.quantityNeeded ? `${formData.quantityNeeded} ml (≈ ${Math.round(formData.quantityNeeded / 450)} đơn vị)` : <span className="text-muted">(Chưa nhập)</span>}
+              <strong>Số lượng cần:</strong>{" "}
+              {formData.quantityNeeded ? (
+                `${formData.quantityNeeded} ml (≈ ${Math.round(
+                  formData.quantityNeeded / 450
+                )} đơn vị)`
+              ) : (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
             </div>
             <div className="mb-3">
               <strong>Mức độ khẩn cấp:</strong> <Badge bg="danger">HIGH</Badge>
             </div>
             <div className="mb-3">
-              <strong>Mô tả chi tiết:</strong> {formData.description ? <span>{formData.description}</span> : <span className="text-muted">(Không có)</span>}
+              <strong>Mô tả chi tiết:</strong>{" "}
+              {formData.description ? (
+                <span>{formData.description}</span>
+              ) : (
+                <span className="text-muted">(Không có)</span>
+              )}
             </div>
           </div>
         </Modal.Body>

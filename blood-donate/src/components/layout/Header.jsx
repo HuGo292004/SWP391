@@ -755,42 +755,7 @@ const AppHeader = () => {
             </div> */}{" "}
           {isAuthenticated ? (
             <>
-              {/* Modern Notification Bell */}
-              <div style={{ position: "relative" }}>
-                <Badge
-                  count={getUnreadCount()}
-                  size="small"
-                  style={{ backgroundColor: healthThemeColors.accent }}
-                  offset={[-2, 2]}
-                >
-                  <Button
-                    type="text"
-                    icon={
-                      <BellOutlined
-                        style={{ fontSize: "20px", color: "#FFFFFF" }}
-                      />
-                    }
-                    onClick={toggleNotification}
-                    style={{
-                      border: "none",
-                      background: "rgba(255, 255, 255, 0.1)",
-                      padding: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transition: "all 0.3s ease",
-                      borderRadius: "12px",
-                      backdropFilter: "blur(10px)",
-                      width: "44px",
-                      height: "44px",
-                    }}
-                    className="modern-bell-button"
-                  />
-                </Badge>
 
-                {/* Notification Dropdown */}
-                {notificationVisible && <NotificationDropdown />}
-              </div>{" "}
               {/* User Info Display - Desktop - With Drawer */}{" "}
               <Dropdown
                 menu={{
@@ -897,7 +862,7 @@ const AppHeader = () => {
                                 style={{ color: healthThemeColors.accent }}
                               />
                             ),
-                            label: "Phiếu sức khỏe",
+                            label: "Tạo hồ sơ sức khỏe",
                             onClick: () => {
                               navigate(
                                 createRoleBasedPath(
@@ -947,7 +912,7 @@ const AppHeader = () => {
                                 style={{ color: "#faad14" }}
                               />
                             ),
-                            label: "Chứng chỉ & Giấy khen",
+                            label: "Chứng chỉ hiến máu",
                             onClick: () => {
                               navigate("/member/certificate");
                             },
@@ -1273,7 +1238,7 @@ const AppHeader = () => {
                         ),
                         label: (
                           <Link to="/member/certificate">
-                            Chứng chỉ & Giấy khen
+                            Chứng chỉ hiến máu
                           </Link>
                         ),
                       },

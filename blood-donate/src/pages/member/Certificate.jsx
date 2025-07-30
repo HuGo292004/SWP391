@@ -38,54 +38,13 @@ const Certificate = () => {
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [previewVisible, setPreviewVisible] = useState(false);
 
-  // Mock user data - in real app, get from auth context
-  const userInfo = {
-    fullName: localStorage.getItem("userFullName") || "Nguyễn Văn An",
-    userId: localStorage.getItem("userId") || "USER001",
-    memberSince: "2023-01-15",
-  };
 
-  // Mock certificates data - replace with API call
-  const mockCertificates = [
-    {
-      id: "CERT001",
-      donationId: "DON001",
-      donationDate: "2024-01-15",
-      bloodType: "A+",
-      volume: 450,
-      location: "Trung tâm Hiến máu Quận 1",
-      certificateNumber: "HM2024001",
-      status: "issued",
-      issueDate: "2024-01-16",
-      validUntil: "2026-01-16",
-      type: "donation",
-    },
-    {
-      id: "CERT002",
-      donationId: "DON005",
-      donationDate: "2024-03-20",
-      bloodType: "A+",
-      volume: 450,
-      location: "Bệnh viện Chợ Rẫy",
-      certificateNumber: "HM2024005",
-      status: "issued",
-      issueDate: "2024-03-21",
-      validUntil: "2026-03-21",
-      type: "donation",
-    },
-    {
-      id: "CERT003",
-      achievementType: "milestone",
-      title: "Người hiến máu tình nguyện xuất sắc",
-      description: "Đã hiến máu 5 lần trong năm 2024",
-      donationCount: 5,
-      certificateNumber: "KT2024001",
-      status: "issued",
-      issueDate: "2024-12-01",
-      validUntil: "permanent",
-      type: "achievement",
-    },
-  ];
+  // User info: get from localStorage or API only (no mock)
+  const userInfo = {
+    fullName: localStorage.getItem("userFullName") || "",
+    userId: localStorage.getItem("userId") || "",
+    memberSince: localStorage.getItem("memberSince") || "",
+  };
 
   useEffect(() => {
     loadCertificates();
@@ -181,7 +140,7 @@ const Certificate = () => {
     }
   };
 
-  const getTypeText = (type) => "Chứng nhận đăng ký hiến máu";
+  const getTypeText = (type) => "Chứng chỉ đăng ký hiến máu";
 
   const handleDownload = (certificate) => {
     // Simulate certificate download
@@ -370,94 +329,14 @@ Hiệu lực đến: ${
           <SafetyCertificateOutlined
             style={{ marginRight: "12px", color: "#1890ff" }}
           />
-          Chứng nhận đăng ký hiến máu
+          Chứng chỉ đăng ký hiến máu
         </Title>
         <Text type="secondary">
-          Quản lý các chứng nhận hiến máu và giấy khen của bạn
+          Quản lý các chứng chỉ hiến máu của bạn
         </Text>
       </div>
 
-      {/* Stats */}
-      <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
-        <Col xs={24} sm={8}>
-          <Card>
-            <div style={{ textAlign: "center" }}>
-              <FileTextOutlined
-                style={{
-                  fontSize: "24px",
-                  color: "#1890ff",
-                  marginBottom: "8px",
-                }}
-              />
-              <div
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                  color: "#1890ff",
-                }}
-              >
-                {certificates.filter((c) => c.type === "donation").length}
-              </div>
-              <div style={{ color: "#666" }}>Chứng nhận hiến máu</div>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <div style={{ textAlign: "center" }}>
-              <TrophyOutlined
-                style={{
-                  fontSize: "24px",
-                  color: "#faad14",
-                  marginBottom: "8px",
-                }}
-              />
-              <div
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                  color: "#faad14",
-                }}
-              >
-                {certificates.filter((c) => c.type === "achievement").length}
-              </div>
-              <div style={{ color: "#666" }}>Giấy khen</div>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <div style={{ textAlign: "center" }}>
-              <SafetyCertificateOutlined
-                style={{
-                  fontSize: "24px",
-                  color: "#52c41a",
-                  marginBottom: "8px",
-                }}
-              />
-              <div
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                  color: "#52c41a",
-                }}
-              >
-                {certificates.filter((c) => c.status === "issued").length}
-              </div>
-              <div style={{ color: "#666" }}>Đã cấp</div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
 
-      {/* Info Alert */}
-      <Alert
-        message="Thông tin quan trọng"
-        description="Các chứng nhận sẽ được tự động tạo sau khi bạn hoàn thành hiến máu. Bạn có thể tải xuống và in chứng nhận để lưu trữ."
-        type="info"
-        showIcon
-        style={{ marginBottom: "24px" }}
-      />
 
       {/* Certificates List */}
       <Card title="Danh sách chứng chỉ" loading={loading}>
@@ -576,10 +455,6 @@ Hiệu lực đến: ${
                       <Text type="secondary" style={{ fontSize: "12px" }}>
                         Cấp ngày:{" "}
                         {dayjs(certificate.issueDate).format("DD/MM/YYYY")}
-                        {certificate.validUntil !== "permanent" &&
-                          ` • Hết hạn: ${dayjs(certificate.validUntil).format(
-                            "DD/MM/YYYY"
-                          )}`}
                       </Text>
                     </div>
                   }

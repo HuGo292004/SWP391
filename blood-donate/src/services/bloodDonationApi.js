@@ -199,17 +199,27 @@ export const bloodDonationApi = {
         if (errorText.includes("already") || errorText.includes("đã duyệt")) {
           console.log("Blood donation already approved");
           return { success: true, message: "Blood donation already approved" };
+        } else {
+          // Trả về lỗi conflict khác
+          return { success: false, message: errorText, status: 409 };
         }
       }
 
-      const result = await handleResponse(response);
-      console.log("Blood donation approval result:", result);
-      return result;
+      // Nếu response không phải JSON, handleResponse sẽ trả về object hợp lệ
+      if (response.ok) {
+        const result = await handleResponse(response);
+        console.log("Blood donation approval result:", result);
+        return result;
+      } else {
+        // Nếu không ok và không phải 409, trả về lỗi chung
+        const errorText = await response.text();
+        return { success: false, message: errorText, status: response.status };
+      }
     } catch (error) {
       console.error("Error approving blood donation:", error);
 
       // Re-throw with more specific error message
-      if (error.message.includes("already") || error.message.includes("đã")) {
+      if (error.message && (error.message.includes("already") || error.message.includes("đã"))) {
         // Already approved - this is actually success
         console.log("Blood donation was already approved");
         return { success: true, message: "Blood donation already approved" };

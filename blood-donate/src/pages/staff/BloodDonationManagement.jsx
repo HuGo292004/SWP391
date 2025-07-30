@@ -54,7 +54,12 @@ const BloodDonationManagement = () => {
         ? donationRes
         : [];
 
-      const sortedDonations = donationsData.sort((a, b) => {
+      // Filter out all donations with status 'completed'
+      const filteredDonations = donationsData.filter(
+        (donation) => (donation.status || '').toLowerCase() !== 'completed'
+      );
+
+      const sortedDonations = filteredDonations.sort((a, b) => {
         // Try multiple date field names that might exist
         const aDate =
           a.donationDate || a.registrationDate || a.createdAt || a.dateCreated;
@@ -69,15 +74,13 @@ const BloodDonationManagement = () => {
         return new Date(bDate) - new Date(aDate);
       });
 
-      console.log("Sorted donations (most recent first):", sortedDonations);
+      console.log("Sorted donations (most recent first, excluding completed):", sortedDonations);
 
       const healthChecksData = Array.isArray(healthCheckRes?.data)
         ? healthCheckRes.data
         : Array.isArray(healthCheckRes)
         ? healthCheckRes
         : [];
-
-      // Remove data validation to avoid confusing warning messages
 
       setDonations(sortedDonations);
       setDonors(
@@ -363,46 +366,6 @@ const BloodDonationManagement = () => {
         getHealthCheckStatus(record.donorId) === value,
     },
     {
-      title: "Trạng thái đơn",
-      dataIndex: "status",
-      key: "status",
-      render: (status, record) => {
-        const s = (status || "").toLowerCase();
-        const healthStatus = getHealthCheckStatus(record.donorId);
-
-        // Remove warning logic to avoid confusing messages
-        if (s === "completed") return <Tag color="blue">ĐÃ HOÀN THÀNH</Tag>;
-        if (s === "approved") return <Tag color="green">ĐÃ DUYỆT</Tag>;
-        if (s === "pending") return <Tag color="orange">CHỜ DUYỆT</Tag>;
-        if (s === "rejected") return <Tag color="red">BỊ TỪ CHỐI</Tag>;
-        return <Tag color="default">KHÁC</Tag>;
-      },
-      sorter: (a, b) => {
-        const statusA = (a.status || "").toLowerCase();
-        const statusB = (b.status || "").toLowerCase();
-
-        // Define sort order: completed > approved > pending > rejected > other
-        const order = { completed: 5, approved: 4, pending: 3, rejected: 2 };
-        return (order[statusB] || 1) - (order[statusA] || 1);
-      },
-      filters: [
-        { text: "Đã hoàn thành", value: "completed" },
-        { text: "Đã duyệt", value: "approved" },
-        { text: "Chờ duyệt", value: "pending" },
-        { text: "Bị từ chối", value: "rejected" },
-        { text: "Khác", value: "other" },
-      ],
-      onFilter: (value, record) => {
-        const status = (record.status || "").toLowerCase();
-        if (value === "other") {
-          return !["completed", "approved", "pending", "rejected"].includes(
-            status
-          );
-        }
-        return status === value;
-      },
-    },
-    {
       title: "Thao tác",
       key: "action",
       render: (_, record) => {
@@ -425,7 +388,35 @@ const BloodDonationManagement = () => {
               ""
             ).toLowerCase()
           : "none";
-        // Handler - Only approve health check, not blood donation
+
+        // Helper lấy userIdCard ưu tiên theo thứ tự: record, donor, user
+        const getUserIdCardForCreate = () => {
+          // Ưu tiên lấy trực tiếp từ record nếu có
+          let cccd = record.userIdCard || record.idCard || record.donorIdCard || record.cccd || "";
+          if (cccd) return cccd;
+          // Nếu không có, lấy từ donor
+          const donor = getDonor(donorId);
+          cccd = donor.userIdCard || donor.idCard || donor.donorIdCard || donor.cccd || "";
+          if (cccd) return cccd;
+          // Nếu vẫn không có, lấy từ user
+          let user = null;
+          if (donor.userId) {
+            user = getUser(donor.userId);
+          } else if (donor.userIdCard) {
+            user = users.find(u => u.userIdCard === donor.userIdCard);
+          }
+          if (user && (user.userIdCard || user.idCard || user.cccd)) {
+            cccd = user.userIdCard || user.idCard || user.cccd;
+            if (cccd) return cccd;
+          }
+          // Nếu vẫn không có, thử lấy từ selectedDonation (nếu có)
+          if (selectedDonation) {
+            cccd = selectedDonation.userIdCard || selectedDonation.idCard || selectedDonation.donorIdCard || selectedDonation.cccd || "";
+            if (cccd) return cccd;
+          }
+          return "";
+        };
+
         const handleApprove = async () => {
           try {
             console.log("Starting health check approval...");
@@ -499,11 +490,16 @@ const BloodDonationManagement = () => {
               <Button
                 className="management-action-btn primary"
                 type="primary"
-                onClick={() =>
-                  (window.location.href = "/staff/create-health-forms")
-                }
+                onClick={() => {
+                  const cccd = getUserIdCardForCreate();
+                  if (!cccd) {
+                    message.warning("Không tìm thấy CCCD/CMND của người hiến máu!");
+                    return;
+                  }
+                  window.location.href = `/staff/create-health-forms?cccd=${encodeURIComponent(cccd)}`;
+                }}
               >
-                Tạo phiếu sức khỏe
+                Tạo hồ sơ sức khỏe
               </Button>
             )}
             {/* Nếu phiếu chờ duyệt */}
@@ -625,6 +621,20 @@ const BloodDonationManagement = () => {
                   return hc.donorId === donorId && status !== "used";
                 });
                 if (!validHealthCheck) {
+                  // Lấy CCCD/CMND từ donor, nếu không có thì lấy từ user
+                  const donor = getDonor(donorId);
+                  let cccd = donor.userIdCard || donor.idCard || donor.donorIdCard || donor.cccd || "";
+                  if (!cccd) {
+                    let user = null;
+                    if (donor.userId) {
+                      user = getUser(donor.userId);
+                    } else if (donor.userIdCard) {
+                      user = users.find(u => u.userIdCard === donor.userIdCard);
+                    }
+                    if (user && (user.userIdCard || user.idCard || user.cccd)) {
+                      cccd = user.userIdCard || user.idCard || user.cccd;
+                    }
+                  }
                   return (
                     <div
                       style={{
@@ -642,9 +652,9 @@ const BloodDonationManagement = () => {
                       <Button
                         type="primary"
                         style={{ marginTop: 16 }}
-                        onClick={() =>
-                          (window.location.href = "/staff/create-health-forms")
-                        }
+                        onClick={() => {
+                          window.location.href = `/staff/create-health-forms?cccd=${encodeURIComponent(cccd)}`;
+                        }}
                       >
                         Tạo phiếu sức khỏe
                       </Button>
