@@ -156,7 +156,7 @@ ${
       )}
 Nhóm máu: ${certificate.bloodType}
 Thể tích: ${certificate.volume}ml
-Địa điểm: ${certificate.address}`
+Địa chỉ: ${certificate.address}`
     : `Thành tích: ${certificate.title}
 Mô tả: ${certificate.description}
 Số lần hiến máu: ${certificate.donationCount}`
@@ -257,7 +257,7 @@ Hiệu lực đến: ${
               </Col>
               <Col span={12}>
                 <Text style={{ color: "rgba(255,255,255,0.8)" }}>
-                  Địa điểm:
+                  Địa chỉ:
                 </Text>
                 <br />
                 <Text strong style={{ color: "white", fontSize: "14px" }}>
@@ -467,12 +467,7 @@ Hiệu lực đến: ${
 
       {/* Preview Modal */}
       <Modal
-        title={
-          <span>
-            <FileTextOutlined style={{ marginRight: "8px" }} />
-            Xem trước chứng chỉ
-          </span>
-        }
+        
         open={previewVisible}
         onCancel={() => setPreviewVisible(false)}
         width={800}

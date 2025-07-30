@@ -208,8 +208,9 @@ const BloodInventory = () => {
     return expiry.diff(today, 'day') <= 7 && unit.status === 'available';
   }).length;
 
-  // Lọc dữ liệu
+  // Lọc dữ liệu, ẩn các bloodUnit có trạng thái 'used'
   const filteredData = bloodUnits.filter(unit => {
+    if (unit.status === 'used') return false; // Ẩn các đơn vị đã sử dụng
     const matchesSearch = (unit.unitId && unit.unitId.toLowerCase().includes(searchText.toLowerCase())) ||
                          (unit.donationId && unit.donationId.toLowerCase().includes(searchText.toLowerCase())) ||
                          (unit.bloodTypeName && unit.bloodTypeName.toLowerCase().includes(searchText.toLowerCase())) ||
@@ -569,18 +570,9 @@ const BloodInventory = () => {
             <DatabaseOutlined style={{ marginRight: '12px', color: '#1890ff' }} />
             Quản Lý Kho Máu
           </Title>
-          <Text type="secondary" className="blood-inventory-subtitle">Quản lý đơn vị máu theo database BloodUnit</Text>
+      
         </div>
-        <Button
-          type="primary"
-          size="large"
-          icon={<PlusOutlined />}
-          onClick={() => setAddVisible(true)}
-          style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
-          disabled={error && bloodUnits.length === 0}
-        >
-          Thêm đơn vị máu
-        </Button>
+        
       </div>
 
       {/* Statistics */}
@@ -818,7 +810,6 @@ const BloodInventory = () => {
           <Descriptions bordered column={2} size="small">
             <Descriptions.Item label="Mã đơn vị">{selectedUnit.unitId}</Descriptions.Item>
             <Descriptions.Item label="Mã hiến máu">{selectedUnit.donationId}</Descriptions.Item>
-            <Descriptions.Item label="ID nhóm máu">{selectedUnit.bloodTypeId}</Descriptions.Item>
             <Descriptions.Item label="Nhóm máu">
               <Tag color="blue">{selectedUnit.bloodTypeName}</Tag>
             </Descriptions.Item>
@@ -841,9 +832,6 @@ const BloodInventory = () => {
             </Descriptions.Item>
             <Descriptions.Item label="Người hiến máu" span={2}>
               {selectedUnit.donorName}
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngày hiến máu" span={2}>
-              {dayjs(selectedUnit.donationDate).format('DD/MM/YYYY')}
             </Descriptions.Item>
           </Descriptions>
         )}
@@ -889,6 +877,24 @@ const BloodInventory = () => {
                 rules={[{ required: true, message: 'Vui lòng chọn ngày hết hạn' }]}
               >
                 <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="componentType"
+                label="Thành phần máu"
+                rules={[{ required: true, message: 'Vui lòng chọn thành phần máu' }]}
+              >
+                <Select placeholder="Chọn thành phần máu">
+                  <Option value="321FC094-8CBA-4351-8F21-167D8D974DF2">Bạch cầu</Option>
+                  <Option value="80BFD932-0D38-46DA-AD65-176CA398B66F">Huyết tương</Option>
+                  <Option value="EEC9ADCB-1189-4647-8763-32FCE9A628C6">Máu toàn phần</Option>
+                  <Option value="349DBBD3-C98C-4D03-93A2-6692E07E3A25">Hồng cầu</Option>
+                  <Option value="2086DB63-1BA1-4AD5-9BEA-7EF69F1C1F67">Tủa lạnh</Option>
+                  <Option value="6CDE6913-37CA-41F2-B7D8-F88E8CB23E93">Tiểu cầu</Option>
+                </Select>
               </Form.Item>
             </Col>
           </Row>

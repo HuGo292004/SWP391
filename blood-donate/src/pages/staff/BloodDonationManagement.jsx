@@ -468,10 +468,10 @@ const BloodDonationManagement = () => {
             await healthCheckApi.rejectHealthCheck(
               validHealthCheck.healthCheckId || validHealthCheck.id
             );
-            message.success("Từ chối phiếu sức khỏe thành công!");
+            message.success("Từ chối hồ sơ sức khỏe thành công!");
             fetchAllData();
           } catch (err) {
-            message.error("Từ chối phiếu sức khỏe thất bại!");
+            message.error("Từ chối  hồ sơ sức khỏe thất bại!");
           }
         };
         return (
@@ -513,7 +513,7 @@ const BloodDonationManagement = () => {
                   Duyệt
                 </Button>
                 <Popconfirm
-                  title="Bạn chắc chắn muốn từ chối phiếu sức khỏe này?"
+                  title="Bạn chắc chắn muốn từ chối phiếu hồ sơ sức khỏe này?"
                   onConfirm={handleReject}
                   okText="Từ chối"
                   cancelText="Hủy"

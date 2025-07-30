@@ -990,13 +990,13 @@ const BloodDonationProfile = () => {
                     currentDonation.healthCheckStatus === "approved") && (
                     <div className="status-notification success">
                       <Text strong style={{ color: "#52c41a", fontSize: 16 }}>
-                        ✅ Phiếu sức khỏe đã được tạo
+                        ✅ Hồ sơ sức khỏe đã được tạo
                       </Text>
                       <br />
                       <Text style={{ color: "#389e0d", marginTop: 8, display: "block" }}>
                         {currentDonation.healthCheckStatus === "pending"
-                          ? "Phiếu sức khỏe của bạn đang được xem xét."
-                          : "Phiếu sức khỏe của bạn đã được duyệt, đủ điều kiện hiến máu."}
+                          ? "Hồ sơ sức khỏe của bạn đang được xem xét."
+                          : "Hồ sơ sức khỏe của bạn đã được duyệt, đủ điều kiện hiến máu."}
                       </Text>
                     </div>
                   )}

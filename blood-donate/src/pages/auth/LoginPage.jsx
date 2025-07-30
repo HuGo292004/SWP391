@@ -163,36 +163,11 @@ const LoginPage = () => {
         <div className="login-form-container">
           <div className="form-header">
             <Title level={2} className="form-title">Đăng nhập</Title>
-            <Text className="form-subtitle">Chào mừng bạn trở lại hệ thống BloodDonate</Text>
+            <Text className="form-subtitle">Chào mừng bạn trở lại hệ thống Blood Donation</Text>
           </div>
 
-          {/* Quick Access Demo Accounts */}
-          <div className="quick-access">
-            <Text className="quick-title">Truy cập nhanh:</Text>
-            <Space size="small" wrap>
-              <Button 
-                size="small" 
-                onClick={() => fillDemoAccount('member')}
-                className="quick-btn member-quick"
-              >
-                Member
-              </Button>
-              <Button 
-                size="small" 
-                onClick={() => fillDemoAccount('staff')}
-                className="quick-btn staff-quick"
-              >
-                Staff
-              </Button>
-              <Button 
-                size="small" 
-                onClick={() => fillDemoAccount('admin')}
-                className="quick-btn admin-quick"
-              >
-                Admin
-              </Button>
-            </Space>
-          </div>
+          
+          
 
           <Form
             name="login"
@@ -266,14 +241,6 @@ const LoginPage = () => {
                 <Link to="/register" className="register-link">Đăng ký ngay</Link>
               </Text>
             </div>
-            
-            <div className="footer-terms">
-              <Text type="secondary" className="footer-terms-text">
-                Bằng việc đăng nhập, bạn đồng ý với{' '}
-                <a href="#terms">Điều khoản sử dụng</a> và{' '}
-                <a href="#privacy">Chính sách bảo mật</a>
-              </Text>
-            </div>
           </div>
         </div>
       </div>
@@ -284,7 +251,7 @@ const LoginPage = () => {
           <div className="brand-logo">
             <HeartFilled className="brand-heart" />
           </div>
-          <Title level={1} className="brand-title">BloodDonate</Title>
+          <Title level={1} className="brand-title">Blood Donation</Title>
           <Paragraph className="brand-subtitle">
             Kết nối yêu thương - Cứu sống hy vọng
           </Paragraph>
@@ -314,28 +281,7 @@ const LoginPage = () => {
           </div>
         </div>
         
-        <div className="stats-section">
-          <Row gutter={24}>
-            <Col span={8}>
-              <div className="stat-item">
-                <div className="stat-number">12,500+</div>
-                <div className="stat-label">Người hiến máu</div>
-              </div>
-            </Col>
-            <Col span={8}>
-              <div className="stat-item">
-                <div className="stat-number">45,000+</div>
-                <div className="stat-label">Đơn vị máu</div>
-              </div>
-            </Col>
-            <Col span={8}>
-              <div className="stat-item">
-                <div className="stat-number">99.9%</div>
-                <div className="stat-label">Độ tin cậy</div>
-              </div>
-            </Col>
-          </Row>
-        </div>
+        
       </div>
     </div>
   );

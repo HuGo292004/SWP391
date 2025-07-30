@@ -979,7 +979,7 @@ const CreateHealthForms = () => {
                     }}
                   >
                     <MedicineBoxOutlined style={{ marginRight: "8px" }} />
-                    Thông tin y tế
+                    Tiền sử y khoa
                   </Title>
                   <Form.Item
                     name="medicalHistory"

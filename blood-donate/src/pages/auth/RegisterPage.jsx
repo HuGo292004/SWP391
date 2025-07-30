@@ -277,7 +277,7 @@ const RegisterPage = () => {
           <div className="brand-logo">
             <HeartFilled className="brand-heart" />
           </div>
-          <Title level={1} className="brand-title">BloodDonate</Title>
+          <Title level={1} className="brand-title">Blood Donation</Title>
           <Paragraph className="brand-subtitle">
             Mỗi giọt máu - Một sự sống
           </Paragraph>
@@ -293,28 +293,7 @@ const RegisterPage = () => {
           </div>
         </div>
         
-        <div className="stats-section">
-          <Row gutter={24}>
-            <Col span={8}>
-              <div className="stat-item">
-                <div className="stat-number">15,000+</div>
-                <div className="stat-label">Người đăng ký</div>
-              </div>
-            </Col>
-            <Col span={8}>
-              <div className="stat-item">
-                <div className="stat-number">50,000+</div>
-                <div className="stat-label">Đơn vị máu</div>
-              </div>
-            </Col>
-            <Col span={8}>
-              <div className="stat-item">
-                <div className="stat-number">100%</div>
-                <div className="stat-label">An toàn</div>
-              </div>
-            </Col>
-          </Row>
-        </div>
+        
       </div>
     </div>
   );

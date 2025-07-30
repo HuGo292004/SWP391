@@ -91,6 +91,8 @@ const BloodDonationRegistration = () => {
   const [autoBloodType, setAutoBloodType] = useState("");
   const [autoAddress, setAutoAddress] = useState("");
   const location = useLocation();
+  // Business rule: minimum 12 weeks between donations
+  const [minNextDonationDate, setMinNextDonationDate] = useState(null);
   // Auto-fill emergencyRequestId from URL if present
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -110,7 +112,52 @@ const BloodDonationRegistration = () => {
     loadBloodTypes();
     // Check if user already has pending/approved donation
     checkExistingDonation();
+    // Check last successful donation for 12-week rule
+    fetchLastSuccessfulDonation();
   }, []);
+
+  // Lấy lần hiến máu thành công gần nhất để tính ngày có thể đăng ký tiếp theo
+  const fetchLastSuccessfulDonation = async () => {
+    try {
+      // Ưu tiên lấy donorId từ profile nếu có
+      let donorId = null;
+      try {
+        const donorProfile = await donorApi.checkDonorProfile(true);
+        if (donorProfile && donorProfile.exists && donorProfile.donorID) {
+          donorId = donorProfile.donorID;
+        }
+      } catch (e) {}
+
+      let data = [];
+      if (donorId) {
+        // Đúng chuẩn API: lấy theo donorId
+        data = await bloodDonationApi.getBloodDonationsByDonor(donorId);
+      } else {
+        // Fallback: lấy theo userId nếu chưa có donorId
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+        data = await bloodDonationApi.getBloodDonationsByDonor(userId);
+      }
+      // Tìm lần hiến máu gần nhất có status là 'completed' hoặc 'success'
+      const completedDonations = data
+        .filter((donation) =>
+          ["completed", "success", "thành công", "hoàn thành"].includes(
+            (donation.status || "").toLowerCase()
+          )
+        )
+        .sort((a, b) => new Date(b.donationDate) - new Date(a.donationDate));
+      if (completedDonations.length > 0) {
+        const lastDonationDate = new Date(completedDonations[0].donationDate);
+        // Cộng thêm 12 tuần (84 ngày)
+        const nextAllowed = new Date(lastDonationDate.getTime() + 84 * 24 * 60 * 60 * 1000);
+        setMinNextDonationDate(nextAllowed);
+      } else {
+        setMinNextDonationDate(null);
+      }
+    } catch (error) {
+      setMinNextDonationDate(null);
+    }
+  };
 
   // useEffect để auto fill khi user đã đăng nhập
   useEffect(() => {
@@ -557,8 +604,13 @@ const BloodDonationRegistration = () => {
     setError("");
   };
 
+  // Chặn chọn ngày hiến máu vi phạm quy tắc 12 tuần
   const disabledDate = (current) => {
-    // Allow all dates - no restrictions
+    if (!current) return false;
+    if (minNextDonationDate) {
+      // Chỉ cho phép chọn ngày >= minNextDonationDate
+      return current && current.startOf("day") < dayjs(minNextDonationDate).startOf("day");
+    }
     return false;
   };
 
@@ -583,6 +635,7 @@ const BloodDonationRegistration = () => {
                 style={{ width: "70%" }}
                 format="DD/MM/YYYY"
                 suffixIcon={<CalendarOutlined />}
+                disabledDate={disabledDate}
               />
             </Form.Item>
             <Form.Item
@@ -965,10 +1018,19 @@ const BloodDonationRegistration = () => {
           size="large"
           onFinish={onFinish}
           onFinishFailed={onFinishFailed}
-          // initialValues={initialValues} // Đảm bảo KHÔNG có initialValues ở <Form> bên dưới (nếu có, hãy xóa đi)
           autoComplete="off"
         >
           <div className="form-content">{renderStepContent()}</div>
+
+          {minNextDonationDate && (
+            <Alert
+              message={`Bạn chỉ có thể đăng ký hiến máu sau ngày ${dayjs(minNextDonationDate).format("DD/MM/YYYY")}. (Khoảng cách tối thiểu giữa hai lần hiến là 12 tuần)`}
+              type="info"
+              showIcon
+              className="alert-message"
+              style={{ marginBottom: 16 }}
+            />
+          )}
 
           {(error || success) && (
             <Alert
@@ -1005,10 +1067,6 @@ const BloodDonationRegistration = () => {
                     );
                     return;
                   }
-
-                  // Use stored form data for submission
-
-                  // Call onFinish directly with stored form data
                   onFinish(formData);
                 }}
                 loading={loading}
