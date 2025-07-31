@@ -1,28 +1,33 @@
+// Import các thư viện React và hooks cần thiết
 import React, { useState, useEffect } from "react";
+
+// Import các component từ Ant Design
 import {
-  Card,
-  Row,
-  Col,
-  Typography,
-  Button,
-  List,
-  Tag,
-  Space,
-  Divider,
-  Modal,
-  Badge,
-  Alert,
-  Spin,
-  Empty,
+  Card, // Component card container
+  Row, // Component hàng grid
+  Col, // Component cột grid
+  Typography, // Component typography
+  Button, // Component nút bấm
+  List, // Component danh sách
+  Tag, // Component tag
+  Space, // Component khoảng cách
+  Divider, // Component phân cách
+  Modal, // Component modal
+  Badge, // Component badge
+  Alert, // Component thông báo
+  Spin, // Component loading spinner
+  Empty, // Component hiển thị khi không có dữ liệu
 } from "antd";
+
+// Import các icon từ Ant Design
 import {
-  DownloadOutlined,
-  EyeOutlined,
-  CalendarOutlined,
-  HeartOutlined,
-  UserOutlined,
-  SafetyCertificateOutlined,
-  TrophyOutlined,
+  DownloadOutlined, // Icon tải xuống
+  EyeOutlined, // Icon xem
+  CalendarOutlined, // Icon lịch
+  HeartOutlined, // Icon trái tim
+  UserOutlined, // Icon người dùng
+  SafetyCertificateOutlined, // Icon chứng chỉ
+  TrophyOutlined, // Icon cúp
   PrinterOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
@@ -37,7 +42,6 @@ const Certificate = () => {
   const [certificates, setCertificates] = useState([]);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [previewVisible, setPreviewVisible] = useState(false);
-
 
   // User info: get from localStorage or API only (no mock)
   const userInfo = {
@@ -256,9 +260,7 @@ Hiệu lực đến: ${
                 </Text>
               </Col>
               <Col span={12}>
-                <Text style={{ color: "rgba(255,255,255,0.8)" }}>
-                  Địa chỉ:
-                </Text>
+                <Text style={{ color: "rgba(255,255,255,0.8)" }}>Địa chỉ:</Text>
                 <br />
                 <Text strong style={{ color: "white", fontSize: "14px" }}>
                   {selectedCertificate.address}
@@ -331,12 +333,8 @@ Hiệu lực đến: ${
           />
           Chứng chỉ đăng ký hiến máu
         </Title>
-        <Text type="secondary">
-          Quản lý các chứng chỉ hiến máu của bạn
-        </Text>
+        <Text type="secondary">Quản lý các chứng chỉ hiến máu của bạn</Text>
       </div>
-
-
 
       {/* Certificates List */}
       <Card title="Danh sách chứng chỉ" loading={loading}>
@@ -467,7 +465,6 @@ Hiệu lực đến: ${
 
       {/* Preview Modal */}
       <Modal
-        
         open={previewVisible}
         onCancel={() => setPreviewVisible(false)}
         width={800}

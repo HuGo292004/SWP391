@@ -1,37 +1,68 @@
+// Import các thư viện React và hooks cần thiết
 import React, { useEffect, useState } from "react";
+
+// Import các component từ Ant Design
 import {
-  Table,
-  Button,
-  Tag,
-  Modal,
-  message,
-  Tabs,
-  Empty,
-  Popconfirm,
-  Input,
-  Select,
+  Table, // Component bảng dữ liệu
+  Button, // Component nút bấm
+  Tag, // Component tag hiển thị trạng thái
+  Modal, // Component modal popup
+  message, // Service hiển thị thông báo
+  Tabs, // Component tab
+  Empty, // Component hiển thị khi không có dữ liệu
+  Popconfirm, // Component xác nhận hành động
+  Input, // Component input
+  Select, // Component select dropdown
 } from "antd";
+
+// Import các API services
 import donorApi from "../../services/donorApi";
 import HealthCheckApi from "../../services/healthCheckApi";
 import { UserAPI } from "../../services/userApi";
 import bloodDonationApi from "../../services/bloodDonationApi";
+
+// Import CSS styles
 import "./BloodDonationManagement.css";
 
+// Khởi tạo instance API cho health check
 const healthCheckApi = new HealthCheckApi();
 
+/**
+ * Component Quản Lý Yêu Cầu Hiến Máu
+ * Cho phép staff xem, quản lý và xử lý các yêu cầu hiến máu
+ * Bao gồm quản lý hồ sơ sức khỏe và duyệt/từ chối yêu cầu
+ */
 const BloodDonationManagement = () => {
+  // State quản lý trạng thái loading
   const [loading, setLoading] = useState(false);
+
+  // State lưu trữ danh sách các đơn hiến máu
   const [donations, setDonations] = useState([]);
+
+  // State lưu trữ danh sách người hiến máu
   const [donors, setDonors] = useState([]);
+
+  // State lưu trữ danh sách người dùng
   const [users, setUsers] = useState([]);
+
+  // State lưu trữ danh sách hồ sơ sức khỏe
   const [healthChecks, setHealthChecks] = useState([]);
+
+  // State lưu trữ đơn hiến máu được chọn để xem chi tiết
   const [selectedDonation, setSelectedDonation] = useState(null);
+
+  // State quản lý hiển thị modal chi tiết
   const [modalVisible, setModalVisible] = useState(false);
 
+  // Effect chạy khi component mount để load dữ liệu
   useEffect(() => {
     fetchAllData();
   }, []);
 
+  /**
+   * Hàm fetch tất cả dữ liệu cần thiết
+   * Bao gồm: donations, donors, users, health checks
+   */
   const fetchAllData = async () => {
     setLoading(true);
     try {

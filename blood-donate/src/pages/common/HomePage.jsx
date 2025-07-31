@@ -576,7 +576,7 @@ const HomePage = () => {
         );
 
       case "admin":
-        // Phần CTA dành cho quản trị viên
+        // Phần CTA dành cho quản trị viên - ẩn nút
         return (
           <section className="cta-section bg-white">
             <Container>
@@ -587,18 +587,9 @@ const HomePage = () => {
                       Quản lý hệ thống hiến máu
                     </h2>
                     <p className="cta-description">
-                      Truy cập bảng điều khiển quản trị để giám sát và quản lý
-                      toàn bộ hệ thống hiến máu.
+                      Chào mừng bạn đến với bảng điều khiển quản trị hệ thống
+                      hiến máu. Sử dụng menu để truy cập các chức năng quản lý.
                     </p>
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={scrollToBloodTypeSection}
-                      className="cta-button d-flex align-items-center gap-2 mx-auto"
-                    >
-                      <SearchOutlined style={{ fontSize: "18px" }} />
-                      Tìm kiếm nhóm máu
-                    </Button>
                   </div>
                 </Col>
               </Row>
@@ -691,8 +682,8 @@ const HomePage = () => {
 
                 {/* Các nút hành động */}
                 <div className="hero-banner-buttons-new">
-                  {/* Nút đăng ký hiến máu - ẩn với nhân viên */}
-                  {userRole !== "staff" && (
+                  {/* Nút đăng ký hiến máu - ẩn với nhân viên và admin */}
+                  {userRole !== "staff" && userRole !== "admin" && (
                     <Button
                       variant="danger"
                       size="lg"
@@ -710,8 +701,8 @@ const HomePage = () => {
                       Đăng Ký Hiến Máu
                     </Button>
                   )}
-                  {/* Nút tìm kiếm nhóm máu - ẩn với nhân viên */}
-                  {userRole !== "staff" && (
+                  {/* Nút tìm kiếm nhóm máu - ẩn với nhân viên và admin */}
+                  {userRole !== "staff" && userRole !== "admin" && (
                     <Button
                       variant="light"
                       size="lg"

@@ -1,23 +1,28 @@
+// Import React và hooks cần thiết
 import React, { useState, useEffect, useMemo } from "react";
+
+// Import components từ Ant Design
 import {
-  Typography,
-  Card,
-  Row,
-  Col,
-  Tag,
-  Space,
-  Button,
-  Divider,
-  Modal,
-  Form,
-  Input,
-  Select,
-  message,
-  Popconfirm,
+  Typography, // Typography components
+  Card, // Card component để hiển thị tin tức
+  Row, // Row cho grid layout
+  Col, // Column cho grid layout
+  Tag, // Tag component cho categories
+  Space, // Space component cho spacing
+  Button, // Button component
+  Divider, // Divider component
+  Modal, // Modal component cho popup
+  Form, // Form component
+  Input, // Input component
+  Select, // Select component
+  message, // Message notification
+  Popconfirm, // Popconfirm component
 } from "antd";
+
+// Import icons từ Ant Design
 import {
-  CalendarOutlined,
-  UserOutlined,
+  CalendarOutlined, // Icon lịch
+  UserOutlined, // Icon người dùng
   RightOutlined,
   PlusOutlined,
   SaveOutlined,

@@ -1,26 +1,53 @@
+// Import các thư viện React cần thiết
 import React from "react";
-import { Typography, Form, Input, Button, Card, Row, Col, Space } from "antd";
+
+// Import các component từ Ant Design
 import {
-  PhoneOutlined,
-  MailOutlined,
-  EnvironmentOutlined,
-  ClockCircleOutlined,
-  MessageOutlined,
+  Typography, // Component typography
+  Form, // Component form
+  Input, // Component input
+  Button, // Component button
+  Card, // Component card
+  Row, // Component hàng grid
+  Col, // Component cột grid
+  Space, // Component khoảng cách
+} from "antd";
+
+// Import các icon từ Ant Design
+import {
+  PhoneOutlined, // Icon điện thoại
+  MailOutlined, // Icon email
+  EnvironmentOutlined, // Icon địa điểm
+  ClockCircleOutlined, // Icon đồng hồ
+  MessageOutlined, // Icon tin nhắn
 } from "@ant-design/icons";
+
+// Import CSS styles
 import "../../styles/SupportPage.css";
 
+// Destructure Typography components
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
+/**
+ * Trang Hỗ Trợ
+ * Hiển thị thông tin liên hệ và form gửi câu hỏi hỗ trợ
+ */
 const SupportPage = () => {
+  // Khởi tạo form instance
   const [form] = Form.useForm();
 
+  /**
+   * Xử lý khi submit form
+   * @param {Object} values - Dữ liệu form
+   */
   const onFinish = (values) => {
     console.log("Form values:", values);
     // Xử lý gửi form ở đây
     form.resetFields();
   };
 
+  // Dữ liệu thông tin liên hệ
   const contactInfo = [
     {
       icon: <PhoneOutlined />,
