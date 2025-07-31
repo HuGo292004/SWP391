@@ -1,27 +1,44 @@
+// Import các thư viện React và hooks cần thiết
 import React, { useState } from "react";
+
+// Import các component từ Ant Design
 import {
-  Card,
-  Form,
-  Input,
-  Button,
-  Typography,
-  message,
-  Space,
-  Result,
+  Card, // Component card container
+  Form, // Component form
+  Input, // Component input
+  Button, // Component button
+  Typography, // Component typography
+  message, // Service thông báo
+  Space, // Component khoảng cách
+  Result, // Component hiển thị kết quả
 } from "antd";
+
+// Import các icon từ Ant Design
 import {
-  MailOutlined,
-  ArrowLeftOutlined,
-  CheckCircleOutlined,
-  LockOutlined,
+  MailOutlined, // Icon email
+  ArrowLeftOutlined, // Icon mũi tên trái
+  CheckCircleOutlined, // Icon check circle
+  LockOutlined, // Icon khóa
 } from "@ant-design/icons";
+
+// Import routing utilities
 import { Link, useNavigate } from "react-router-dom";
+
+// Import CSS styles
 import "../../styles/LoginPage.css";
 
+// Destructure Typography components
 const { Title, Text } = Typography;
 
+/**
+ * Trang Quên Mật Khẩu
+ * Cho phép người dùng nhập email để nhận link reset mật khẩu
+ */
 const ForgotPasswordPage = () => {
+  // Khởi tạo form instance
   const [form] = Form.useForm();
+
+  // State quản lý trạng thái loading
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [email, setEmail] = useState("");

@@ -1,5 +1,10 @@
+// Import các thư viện React và hooks cần thiết
 import React, { useState, useEffect } from "react";
+
+// Import thư viện dayjs để xử lý ngày tháng
 import dayjs from "dayjs";
+
+// Import các component từ Ant Design
 import {
   Card,
   Form,
@@ -21,32 +26,48 @@ import {
   Alert,
   TimePicker,
 } from "antd";
+
+// Import các icon từ Ant Design
 import {
-  UserOutlined,
-  MedicineBoxOutlined,
-  HeartOutlined,
-  SaveOutlined,
-  EyeOutlined,
-  FileTextOutlined,
-  ClockCircleOutlined,
-  SearchOutlined,
-  CheckCircleOutlined,
-  ReloadOutlined,
+  UserOutlined, // Icon người dùng
+  MedicineBoxOutlined, // Icon hộp thuốc
+  HeartOutlined, // Icon trái tim
+  SaveOutlined, // Icon lưu
+  EyeOutlined, // Icon xem
+  FileTextOutlined, // Icon file text
+  ClockCircleOutlined, // Icon đồng hồ
+  SearchOutlined, // Icon tìm kiếm
+  CheckCircleOutlined, // Icon check circle
+  ReloadOutlined, // Icon reload
 } from "@ant-design/icons";
+
+// Import các API services
 import { healthCheckApi } from "../../services/healthCheckApi";
 import { mockHealthCheckApi } from "../../services/mockHealthCheckApi";
 import { bloodDonationApi } from "../../services/bloodDonationApi";
+
+// Import plugin cho dayjs để parse custom format
 import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(customParseFormat);
 
+// Destructure Typography components
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
+// Kiểm tra URL parameters để xác định có sử dụng Mock API không
 const urlParams = new URLSearchParams(window.location.search);
 const USE_MOCK_API = urlParams.get("useMock") === "true" || false;
 
+/**
+ * Component CreateHealthForms
+ * Tạo hồ sơ sức khỏe cho người hiến máu
+ * Chỉ dành cho nhân viên (Staff) sử dụng
+ */
 const CreateHealthForms = () => {
+  // Form instance để quản lý form
   const [form] = Form.useForm();
+
+  // Effect để lấy CCCD từ URL parameters và auto-fill form
   useEffect(() => {
     const cccd = new URLSearchParams(window.location.search).get("cccd");
     if (
@@ -55,33 +76,63 @@ const CreateHealthForms = () => {
       cccd.trim() !== "" &&
       cccd.length >= 9
     ) {
+      // Auto-fill CCCD vào form và tìm kiếm thông tin donor
       form.setFieldsValue({ userIdCard: cccd });
       handleSearchDonor(cccd);
     } else {
       form.setFieldsValue({ userIdCard: undefined });
     }
   }, [form]);
+
+  // State quản lý trạng thái loading khi submit form
   const [loading, setLoading] = useState(false);
+
+  // State quản lý hiển thị modal preview
   const [previewVisible, setPreviewVisible] = useState(false);
+
+  // State lưu trữ dữ liệu preview
   const [previewData, setPreviewData] = useState(null);
+
+  // State quản lý loading khi tìm kiếm donor
   const [donorSearchLoading, setDonorSearchLoading] = useState(false);
+
+  // State lưu trữ thông tin donor đã chọn
   const [selectedDonor, setSelectedDonor] = useState(null);
+
+  // State lưu trữ danh sách hồ sơ sức khỏe gần đây
   const [recentForms, setRecentForms] = useState([]);
+
+  // State quản lý lỗi API
   const [apiError, setApiError] = useState(false);
+
+  // State lưu trữ danh sách đơn hiến máu đang chờ
   const [pendingDonations, setPendingDonations] = useState([]);
+
+  // State quản lý hiển thị danh sách đơn hiến máu
   const [showPendingList, setShowPendingList] = useState(false);
+
+  // State lưu trữ các ngày hiến máu khả dụng
   const [availableDonationDates, setAvailableDonationDates] = useState([]);
+
+  // State quản lý thời gian kiểm tra sức khỏe
   const [healthCheckTime, setHealthCheckTime] = useState(
     dayjs("08:00", "HH:mm")
   );
 
+  // Chọn API service dựa trên USE_MOCK_API flag
+  // Chọn API service dựa trên USE_MOCK_API flag
   const apiService = USE_MOCK_API ? mockHealthCheckApi : healthCheckApi;
 
+  // Effect để load dữ liệu khi component mount
   useEffect(() => {
-    loadRecentHealthForms();
-    loadApprovedDonations();
+    loadRecentHealthForms(); // Load danh sách hồ sơ sức khỏe gần đây
+    loadApprovedDonations(); // Load danh sách đơn hiến máu đã duyệt
   }, []);
 
+  /**
+   * Hàm load danh sách hồ sơ sức khỏe gần đây
+   * Cố gắng lấy từ API thật trước, fallback về mock nếu lỗi
+   */
   const loadRecentHealthForms = async () => {
     try {
       let data = [];
@@ -137,29 +188,44 @@ const CreateHealthForms = () => {
     }
   };
 
+  /**
+   * Hàm load danh sách đơn hiến máu đã được duyệt
+   * Chỉ chạy khi không sử dụng Mock API
+   */
   const loadApprovedDonations = async () => {
-    if (USE_MOCK_API) return;
+    if (USE_MOCK_API) return; // Bỏ qua nếu đang dùng Mock API
     try {
       const donations = await healthCheckApi.getApprovedBloodDonations();
-      setPendingDonations(donations.slice(0, 10));
+      setPendingDonations(donations.slice(0, 10)); // Chỉ lấy 10 đơn đầu tiên
     } catch (error) {
-      setPendingDonations([]);
+      setPendingDonations([]); // Set empty array nếu có lỗi
     }
   };
 
+  /**
+   * Hàm tìm kiếm thông tin donor theo CCCD/CMND
+   * @param {string} userIdCard - Số CCCD/CMND cần tìm kiếm
+   */
   const handleSearchDonor = async (userIdCard) => {
+    // Validate input - cần ít nhất 9 ký tự
     if (!userIdCard || userIdCard.length < 9) {
       setSelectedDonor(null);
       setHealthCheckTime(dayjs("08:00", "HH:mm"));
       return;
     }
-    setDonorSearchLoading(true);
-    setApiError(false);
+
+    setDonorSearchLoading(true); // Bắt đầu loading
+    setApiError(false); // Reset error state
+
     try {
       let donorData = null;
+
+      // Chỉ gọi API thật nếu không dùng Mock
       if (!USE_MOCK_API) {
         try {
           donorData = await healthCheckApi.getDonorByIdCard(userIdCard);
+
+          // Kiểm tra trạng thái đơn hiến máu - chỉ cho phép đơn đã duyệt
           if (
             donorData &&
             donorData.status &&

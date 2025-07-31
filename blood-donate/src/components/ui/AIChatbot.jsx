@@ -1,4 +1,7 @@
+// Import các thư viện React và hooks cần thiết
 import React, { useState, useRef, useEffect } from "react";
+
+// Import các component từ Ant Design
 import {
   Modal,
   Input,
@@ -12,36 +15,63 @@ import {
   Divider,
   Tooltip,
 } from "antd";
+
+// Import các icon từ Ant Design
 import {
-  MessageOutlined,
-  SendOutlined,
-  RobotOutlined,
-  UserOutlined,
-  ClearOutlined,
-  QuestionCircleOutlined,
-  HeartOutlined,
-  CloseOutlined,
+  MessageOutlined, // Icon tin nhắn
+  SendOutlined, // Icon gửi
+  RobotOutlined, // Icon robot (AI)
+  UserOutlined, // Icon người dùng
+  ClearOutlined, // Icon xóa
+  QuestionCircleOutlined, // Icon câu hỏi
+  HeartOutlined, // Icon trái tim
+  CloseOutlined, // Icon đóng
 } from "@ant-design/icons";
+
+// Import service xử lý AI chat
 import aiChatService from "../../services/aiChatService";
+
+// Import CSS cho component
 import "./AIChatbot.css";
 
+// Destructure Typography components
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
+/**
+ * Component AI Chatbot
+ * Cung cấp tính năng chat với AI để hỗ trợ người dùng
+ * Hiển thị dưới dạng floating button và modal chat
+ */
 const AIChatbot = () => {
+  // State quản lý hiển thị modal chat
   const [isVisible, setIsVisible] = useState(false);
+
+  // State quản lý trạng thái thu nhỏ của chat
   const [isMinimized, setIsMinimized] = useState(false);
+
+  // State lưu trữ danh sách tin nhắn
   const [messages, setMessages] = useState([]);
+
+  // State lưu trữ nội dung input hiện tại
   const [inputValue, setInputValue] = useState("");
+
+  // State quản lý trạng thái loading khi AI đang xử lý
   const [isLoading, setIsLoading] = useState(false);
+
+  // State quản lý hiển thị gợi ý câu hỏi
   const [showSuggestions, setShowSuggestions] = useState(true);
+
+  // Ref để scroll xuống cuối danh sách tin nhắn
   const messagesEndRef = useRef(null);
+
+  // Ref cho input field để focus
   const inputRef = useRef(null);
 
-  // Kiểm tra trạng thái đăng nhập từ localStorage
+  // State kiểm tra trạng thái đăng nhập từ localStorage
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Kiểm tra authentication khi component mount và khi localStorage thay đổi
+  // Effect kiểm tra authentication khi component mount và khi localStorage thay đổi
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem("userToken");

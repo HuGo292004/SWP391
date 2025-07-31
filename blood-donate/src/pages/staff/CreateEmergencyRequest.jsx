@@ -1,68 +1,73 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Container, 
-  Row, 
-  Col, 
-  Card, 
-  Form, 
-  Button, 
-  Alert,
-  Badge,
-  Modal,
-  Table,
-  Spinner
-} from 'react-bootstrap';
-import { 
-  FaExclamationTriangle, 
-  FaHeart, 
-  FaMedkit, 
-  FaUser,
-  FaPhone,
-  FaCalendarAlt,
-  FaClock,
-  FaSave,
-  FaPlus,
-  FaEye,
+// Import các thư viện React và hooks cần thiết
+import React, { useState, useEffect, useRef } from "react";
+
+// Import các component từ React Bootstrap
+import {
+  Container, // Container layout
+  Row, // Row grid
+  Col, // Column grid
+  Card, // Card component
+  Form, // Form component
+  Button, // Button component
+  Alert, // Alert component
+  Badge, // Badge component
+  Modal, // Modal component
+  Table, // Table component
+  Spinner, // Loading spinner
+} from "react-bootstrap";
+
+// Import các icon từ Font Awesome
+import {
+  FaExclamationTriangle, // Icon cảnh báo
+  FaHeart, // Icon trái tim
+  FaMedkit, // Icon y tế
+  FaUser, // Icon người dùng
+  FaPhone, // Icon điện thoại
+  FaCalendarAlt, // Icon lịch
+  FaClock, // Icon đồng hồ
+  FaSave, // Icon lưu
+  FaPlus, // Icon thêm
+  FaEye, // Icon xem
   FaEdit,
   FaTrash,
-  FaSearch
-} from 'react-icons/fa';
-import { 
-  searchUserByIdCard, 
-  createEmergencyRequest, 
+  FaSearch,
+} from "react-icons/fa";
+import {
+  searchUserByIdCard,
+  createEmergencyRequest,
   getAllBloodRequests,
   getBloodTypeId,
   cleanupTokens,
   refreshAuthToken,
-  getAvailableQuantityByBloodType
-} from '../../services/emergencyRequestApi';
-import '../../styles/EmergencyRequest.css';
+  getAvailableQuantityByBloodType,
+} from "../../services/emergencyRequestApi";
+import "../../styles/EmergencyRequest.css";
 
 const CreateEmergencyRequest = () => {
   const [formData, setFormData] = useState({
-    patientName: '',
-    email: '',
-    userIdCard: '',
-    phone: '',
-    dateOfBirth: '',
-    bloodTypeRequired: '',
-    quantityNeeded: '',
-    urgencyLevel: 'HIGH', // Default to HIGH for emergency
-    medicalCondition: '',
-    contactInfo: '',
-    description: ''
+    patientName: "",
+    email: "",
+    userIdCard: "",
+    phone: "",
+    dateOfBirth: "",
+    bloodTypeRequired: "",
+    quantityNeeded: "",
+    urgencyLevel: "HIGH", // Default to HIGH for emergency
+    medicalCondition: "",
+    contactInfo: "",
+    description: "",
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchingUser, setIsSearchingUser] = useState(false);
   const [userFound, setUserFound] = useState(null);
   // const [savedRequests, setSavedRequests] = useState([]); // Removed: no emergency list
-  const [authStatus, setAuthStatus] = useState('checking'); // checking, authenticated, unauthenticated
-  
+  const [authStatus, setAuthStatus] = useState("checking"); // checking, authenticated, unauthenticated
+
   const modalRef = useRef(null);
 
   // Removed debug useEffect for showPreview
@@ -71,11 +76,11 @@ const CreateEmergencyRequest = () => {
   useEffect(() => {
     const checkAuth = () => {
       const validToken = cleanupTokens();
-      
+
       if (validToken) {
-        setAuthStatus('authenticated');
+        setAuthStatus("authenticated");
       } else {
-        setAuthStatus('unauthenticated');
+        setAuthStatus("unauthenticated");
       }
     };
 
@@ -86,13 +91,13 @@ const CreateEmergencyRequest = () => {
       checkAuth();
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    
+    window.addEventListener("storage", handleStorageChange);
+
     // Also check periodically in case token is set by JavaScript
     const intervalId = setInterval(checkAuth, 2000);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
       clearInterval(intervalId);
     };
   }, []);
@@ -101,23 +106,23 @@ const CreateEmergencyRequest = () => {
 
   // Refresh authentication token
   const handleRefreshAuth = async () => {
-    setAuthStatus('checking');
+    setAuthStatus("checking");
     try {
       const newToken = await refreshAuthToken();
       if (newToken) {
-        setAuthStatus('authenticated');
-        setErrorMessage('');
+        setAuthStatus("authenticated");
+        setErrorMessage("");
         setShowError(false);
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
       } else {
-        setAuthStatus('unauthenticated');
-        setErrorMessage('Không thể làm mới token. Vui lòng đăng nhập lại.');
+        setAuthStatus("unauthenticated");
+        setErrorMessage("Không thể làm mới token. Vui lòng đăng nhập lại.");
         setShowError(true);
       }
     } catch (error) {
-      setAuthStatus('unauthenticated');
-      setErrorMessage('Lỗi khi làm mới xác thực: ' + error.message);
+      setAuthStatus("unauthenticated");
+      setErrorMessage("Lỗi khi làm mới xác thực: " + error.message);
       setShowError(true);
     }
   };
@@ -125,7 +130,7 @@ const CreateEmergencyRequest = () => {
   // Search user by ID Card
   const handleSearchUser = async () => {
     if (!formData.userIdCard) {
-      setErrorMessage('Vui lòng nhập số CCCD/CMND');
+      setErrorMessage("Vui lòng nhập số CCCD/CMND");
       setShowError(true);
       return;
     }
@@ -136,24 +141,26 @@ const CreateEmergencyRequest = () => {
       if (user) {
         // User found - auto-fill form
         setUserFound(user);
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          patientName: user.fullName || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : ''
+          patientName: user.fullName || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split("T")[0] : "",
         }));
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
       } else {
         // User not found or auth issue
         setUserFound(null);
-        setErrorMessage('Không tìm thấy tài khoản với CCCD/CMND này hoặc bạn chưa đăng nhập. Hệ thống sẽ tự động tạo tài khoản mới khi tạo yêu cầu.');
+        setErrorMessage(
+          "Không tìm thấy tài khoản với CCCD/CMND này hoặc bạn chưa đăng nhập. Hệ thống sẽ tự động tạo tài khoản mới khi tạo yêu cầu."
+        );
         setShowError(true);
         setTimeout(() => setShowError(false), 5000);
       }
     } catch (error) {
-      setErrorMessage(error.message || 'Lỗi khi tìm kiếm thông tin người dùng');
+      setErrorMessage(error.message || "Lỗi khi tìm kiếm thông tin người dùng");
       setShowError(true);
       setTimeout(() => setShowError(false), 5000);
     } finally {
@@ -163,13 +170,13 @@ const CreateEmergencyRequest = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     // Reset user found status when ID card changes
-    if (name === 'userIdCard') {
+    if (name === "userIdCard") {
       setUserFound(null);
     }
   };
@@ -177,10 +184,18 @@ const CreateEmergencyRequest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Validate required fields
-    const requiredFields = ['patientName', 'email', 'userIdCard', 'phone', 'dateOfBirth', 'bloodTypeRequired', 'quantityNeeded'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
+    const requiredFields = [
+      "patientName",
+      "email",
+      "userIdCard",
+      "phone",
+      "dateOfBirth",
+      "bloodTypeRequired",
+      "quantityNeeded",
+    ];
+    const missingFields = requiredFields.filter((field) => !formData[field]);
     if (missingFields.length > 0) {
-      setErrorMessage('Vui lòng điền đầy đủ các trường bắt buộc');
+      setErrorMessage("Vui lòng điền đầy đủ các trường bắt buộc");
       setShowError(true);
       setTimeout(() => setShowError(false), 3000);
       return;
@@ -193,12 +208,14 @@ const CreateEmergencyRequest = () => {
       const quantityNeeded = parseInt(formData.quantityNeeded);
 
       // 2. Kiểm tra số lượng máu trong kho
-      const availableQuantity = await getAvailableQuantityByBloodType(bloodTypeId);
+      const availableQuantity = await getAvailableQuantityByBloodType(
+        bloodTypeId
+      );
 
       // 3. Xác định trạng thái
-      let status = 'Opened';
+      let status = "Opened";
       if (availableQuantity >= quantityNeeded) {
-        status = 'Pending';
+        status = "Pending";
       }
 
       // 4. Chuẩn bị dữ liệu gửi lên API
@@ -210,11 +227,11 @@ const CreateEmergencyRequest = () => {
         dateOfBirth: formData.dateOfBirth,
         bloodTypeRequired: bloodTypeId, // Convert to blood type ID
         quantityNeeded,
-        urgencyLevel: 'HIGH',
+        urgencyLevel: "HIGH",
         medicalCondition: formData.description,
         contactInfo: formData.phone,
         description: formData.description,
-        status // Thêm trạng thái vào request
+        status, // Thêm trạng thái vào request
       };
 
       const result = await createEmergencyRequest(requestData);
@@ -223,22 +240,22 @@ const CreateEmergencyRequest = () => {
         setTimeout(() => setShowSuccess(false), 3000);
         // Reset form
         setFormData({
-          patientName: '',
-          email: '',
-          userIdCard: '',
-          phone: '',
-          dateOfBirth: '',
-          bloodTypeRequired: '',
-          quantityNeeded: '',
-          urgencyLevel: 'HIGH',
-          medicalCondition: '',
-          contactInfo: '',
-          description: ''
+          patientName: "",
+          email: "",
+          userIdCard: "",
+          phone: "",
+          dateOfBirth: "",
+          bloodTypeRequired: "",
+          quantityNeeded: "",
+          urgencyLevel: "HIGH",
+          medicalCondition: "",
+          contactInfo: "",
+          description: "",
         });
         setUserFound(null);
       }
     } catch (error) {
-      setErrorMessage('Lỗi khi tạo yêu cầu khẩn cấp: ' + error.message);
+      setErrorMessage("Lỗi khi tạo yêu cầu khẩn cấp: " + error.message);
       setShowError(true);
       setTimeout(() => setShowError(false), 5000);
     } finally {

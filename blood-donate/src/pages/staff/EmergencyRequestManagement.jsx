@@ -1,24 +1,30 @@
-// Quy tắc chuyển trạng thái hợp lệ
+// Quy tắc chuyển trạng thái hợp lệ cho các yêu cầu khẩn cấp
 const STATUS_TRANSITIONS = {
-  Pending: ['Opened', 'Approved', 'Rejected', 'Done', 'Closed'],
-  Opened: ['Pending', 'Approved', 'Rejected', 'Done', 'Closed'],
-  Approved: ['Closed'],
-  Rejected: ['Closed'],
+  Pending: ["Opened", "Approved", "Rejected", "Done", "Closed"],
+  Opened: ["Pending", "Approved", "Rejected", "Done", "Closed"],
+  Approved: ["Closed"],
+  Rejected: ["Closed"],
 };
-import React, { useEffect, useState } from 'react';
+
+// Import các thư viện React và hooks cần thiết
+import React, { useEffect, useState } from "react";
+
+// Import các component từ Ant Design
 import {
-  Table,
-  Tag,
-  Typography,
-  Spin,
-  Button,
-  Modal,
-  InputNumber,
-  Select,
-  Form,
-  message,
-} from 'antd';
-import { getAllBloodRequests } from '../../services/emergencyRequestApi';
+  Table, // Component bảng dữ liệu
+  Tag, // Component tag trạng thái
+  Typography, // Component typography
+  Spin, // Component loading spinner
+  Button, // Component nút bấm
+  Modal, // Component modal
+  InputNumber, // Component input số
+  Select, // Component select dropdown
+  Form, // Component form
+  message, // Service thông báo
+} from "antd";
+
+// Import API service cho emergency requests
+import { getAllBloodRequests } from "../../services/emergencyRequestApi";
 
 const { Title } = Typography;
 
@@ -34,49 +40,52 @@ const STATUS_ENUM = {
 };
 
 const BLOOD_TYPE_MAP = {
-  '11111111-1111-1111-1111-111111111001': 'A+',
-  '11111111-1111-1111-1111-111111111002': 'A-',
-  '11111111-1111-1111-1111-111111111003': 'B+',
-  '11111111-1111-1111-1111-111111111004': 'B-',
-  '11111111-1111-1111-1111-111111111005': 'AB+',
-  '11111111-1111-1111-1111-111111111006': 'AB-',
-  '11111111-1111-1111-1111-111111111007': 'O+',
-  '11111111-1111-1111-1111-111111111008': 'O-',
+  "11111111-1111-1111-1111-111111111001": "A+",
+  "11111111-1111-1111-1111-111111111002": "A-",
+  "11111111-1111-1111-1111-111111111003": "B+",
+  "11111111-1111-1111-1111-111111111004": "B-",
+  "11111111-1111-1111-1111-111111111005": "AB+",
+  "11111111-1111-1111-1111-111111111006": "AB-",
+  "11111111-1111-1111-1111-111111111007": "O+",
+  "11111111-1111-1111-1111-111111111008": "O-",
 };
 
 const STATUS_OPTIONS = [
-  { value: 'Opened', label: 'Cần hỗ trợ' },
-  { value: 'Pending', label: 'Chờ xử lý' },
-  { value: 'Approved', label: 'Đã duyệt' },
-  { value: 'Rejected', label: 'Từ chối' },
-  { value: 'Done', label: 'Hoàn thành' },
-  { value: 'Closed', label: 'Đã đóng' },
+  { value: "Opened", label: "Cần hỗ trợ" },
+  { value: "Pending", label: "Chờ xử lý" },
+  { value: "Approved", label: "Đã duyệt" },
+  { value: "Rejected", label: "Từ chối" },
+  { value: "Done", label: "Hoàn thành" },
+  { value: "Closed", label: "Đã đóng" },
 ];
 
 const STATUS_COLORS = {
-  Opened: 'red',
-  Pending: 'gold',
-  Closed: 'green',
+  Opened: "red",
+  Pending: "gold",
+  Closed: "green",
 };
 
 // ===== Helpers =====
 const getAuthToken = () => {
-  const keys = ['userToken', 'token', 'authToken', 'jwtToken', 'accessToken'];
+  const keys = ["userToken", "token", "authToken", "jwtToken", "accessToken"];
   for (const key of keys) {
     const token = localStorage.getItem(key) || sessionStorage.getItem(key);
-    if (token?.startsWith('eyJ') && token.length > 100) return token;
+    if (token?.startsWith("eyJ") && token.length > 100) return token;
   }
-  return '';
+  return "";
 };
 
 const getRequestUser = async (requestId) => {
   try {
-    const res = await fetch(`http://localhost:7262/api/BloodRequest/get-request-user/${requestId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(getAuthToken() && { Authorization: `Bearer ${getAuthToken()}` }),
-      },
-    });
+    const res = await fetch(
+      `http://localhost:7262/api/BloodRequest/get-request-user/${requestId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(getAuthToken() && { Authorization: `Bearer ${getAuthToken()}` }),
+        },
+      }
+    );
     const text = await res.text();
     const result = JSON.parse(text);
     return result?.data?.fullName || null;
@@ -90,8 +99,16 @@ const EmergencyRequestManagement = () => {
   const [requests, setRequests] = useState([]);
   const [userNames, setUserNames] = useState({});
   const [loading, setLoading] = useState(false);
-  const [detailModal, setDetailModal] = useState({ open: false, data: null, loading: false });
-  const [editModal, setEditModal] = useState({ open: false, data: null, loading: false });
+  const [detailModal, setDetailModal] = useState({
+    open: false,
+    data: null,
+    loading: false,
+  });
+  const [editModal, setEditModal] = useState({
+    open: false,
+    data: null,
+    loading: false,
+  });
   const [editForm] = Form.useForm();
 
   // Load danh sách yêu cầu và tên người dùng
@@ -104,10 +121,12 @@ const EmergencyRequestManagement = () => {
         setRequests(reqs);
 
         const names = {};
-        await Promise.all(reqs.map(async (r) => {
-          const name = await getRequestUser(r.requestId);
-          if (name) names[r.requestId] = name;
-        }));
+        await Promise.all(
+          reqs.map(async (r) => {
+            const name = await getRequestUser(r.requestId);
+            if (name) names[r.requestId] = name;
+          })
+        );
         setUserNames(names);
       } catch {
         setRequests([]);
@@ -121,17 +140,26 @@ const EmergencyRequestManagement = () => {
   const handleViewDetail = async (record) => {
     setDetailModal({ open: true, data: null, loading: true });
     try {
-      const res = await fetch(`http://localhost:7262/api/BloodRequest/get-request-user/${record.requestId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(getAuthToken() && { Authorization: `Bearer ${getAuthToken()}` }),
-        },
-      });
+      const res = await fetch(
+        `http://localhost:7262/api/BloodRequest/get-request-user/${record.requestId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(getAuthToken() && {
+              Authorization: `Bearer ${getAuthToken()}`,
+            }),
+          },
+        }
+      );
       const text = await res.text();
       const result = JSON.parse(text);
-      setDetailModal({ open: true, data: result?.data || null, loading: false });
+      setDetailModal({
+        open: true,
+        data: result?.data || null,
+        loading: false,
+      });
     } catch {
-      message.error('Không lấy được chi tiết yêu cầu');
+      message.error("Không lấy được chi tiết yêu cầu");
       setDetailModal({ open: true, data: null, loading: false });
     }
   };
@@ -151,32 +179,48 @@ const EmergencyRequestManagement = () => {
       const old = editModal.data;
 
       let res;
-      if (values.quantityNeeded === old.quantityNeeded && values.status !== old.status) {
-        res = await fetch(`http://localhost:7262/api/BloodRequest/update-emergency-status/${old.requestId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(getAuthToken() && { Authorization: `Bearer ${getAuthToken()}` }),
-          },
-          body: JSON.stringify({ requestId: old.requestId, newStatus: STATUS_ENUM[values.status] }),
-        });
+      if (
+        values.quantityNeeded === old.quantityNeeded &&
+        values.status !== old.status
+      ) {
+        res = await fetch(
+          `http://localhost:7262/api/BloodRequest/update-emergency-status/${old.requestId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              ...(getAuthToken() && {
+                Authorization: `Bearer ${getAuthToken()}`,
+              }),
+            },
+            body: JSON.stringify({
+              requestId: old.requestId,
+              newStatus: STATUS_ENUM[values.status],
+            }),
+          }
+        );
       } else {
         const payload = { ...old, ...values };
-        if (typeof payload.status === 'string') {
+        if (typeof payload.status === "string") {
           payload.status = STATUS_ENUM[payload.status];
         }
-        res = await fetch(`http://localhost:7262/api/BloodRequest/Update-Blood-Requests/${old.requestId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(getAuthToken() && { Authorization: `Bearer ${getAuthToken()}` }),
-          },
-          body: JSON.stringify(payload),
-        });
+        res = await fetch(
+          `http://localhost:7262/api/BloodRequest/Update-Blood-Requests/${old.requestId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              ...(getAuthToken() && {
+                Authorization: `Bearer ${getAuthToken()}`,
+              }),
+            },
+            body: JSON.stringify(payload),
+          }
+        );
       }
 
       if (!res.ok) throw new Error();
-      message.success('Cập nhật thành công');
+      message.success("Cập nhật thành công");
       setEditModal({ open: false, data: null, loading: false });
 
       setLoading(true);
@@ -184,77 +228,90 @@ const EmergencyRequestManagement = () => {
       setRequests(Array.isArray(data) ? data : []);
       setLoading(false);
     } catch {
-      message.error('Cập nhật thất bại');
+      message.error("Cập nhật thất bại");
       setEditModal((prev) => ({ ...prev, loading: false }));
     }
   };
 
   const columns = [
     {
-      title: 'Mã yêu cầu',
-      dataIndex: 'requestId',
-      key: 'requestId',
+      title: "Mã yêu cầu",
+      dataIndex: "requestId",
+      key: "requestId",
       width: 120,
       ellipsis: true,
       render: (id) => (
-        <span style={{ display: 'flex', alignItems: 'center' }}>
-          <Button size="small" type="link" style={{ padding: 0, marginRight: 6 }}
+        <span style={{ display: "flex", alignItems: "center" }}>
+          <Button
+            size="small"
+            type="link"
+            style={{ padding: 0, marginRight: 6 }}
             onClick={() => {
               navigator.clipboard.writeText(id);
-              message.success('Đã copy mã yêu cầu');
-            }}>
+              message.success("Đã copy mã yêu cầu");
+            }}
+          >
             Copy
           </Button>
-          <span style={{ wordBreak: 'break-word' }}>{id}</span>
+          <span style={{ wordBreak: "break-word" }}>{id}</span>
         </span>
       ),
     },
     {
-      title: 'Tên bệnh nhân',
-      dataIndex: 'requestId',
-      key: 'userName',
+      title: "Tên bệnh nhân",
+      dataIndex: "requestId",
+      key: "userName",
       width: 170,
-      render: (id) => userNames[id] || '---',
+      render: (id) => userNames[id] || "---",
     },
     {
-      title: 'Nhóm máu',
-      dataIndex: 'bloodTypeRequired',
-      key: 'bloodTypeRequired',
+      title: "Nhóm máu",
+      dataIndex: "bloodTypeRequired",
+      key: "bloodTypeRequired",
       width: 90,
       render: (id) => BLOOD_TYPE_MAP[id] || id,
     },
     {
-      title: 'Số lượng (ml)',
-      dataIndex: 'quantityNeeded',
-      key: 'quantityNeeded',
+      title: "Số lượng (ml)",
+      dataIndex: "quantityNeeded",
+      key: "quantityNeeded",
       width: 110,
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
       width: 120,
       render: (status) => {
-        const label = STATUS_OPTIONS.find((s) => s.value === status)?.label || status;
-        return <Tag color={STATUS_COLORS[status] || 'default'}>{label}</Tag>;
+        const label =
+          STATUS_OPTIONS.find((s) => s.value === status)?.label || status;
+        return <Tag color={STATUS_COLORS[status] || "default"}>{label}</Tag>;
       },
     },
     {
-      title: 'Ngày yêu cầu',
-      dataIndex: 'requestDate',
-      key: 'requestDate',
+      title: "Ngày yêu cầu",
+      dataIndex: "requestDate",
+      key: "requestDate",
       width: 140,
     },
     {
-      title: 'Thao tác',
-      key: 'actions',
+      title: "Thao tác",
+      key: "actions",
       width: 160,
       render: (_, record) => (
         <>
-          <Button size="small" onClick={() => handleViewDetail(record)} style={{ marginRight: 8 }}>
+          <Button
+            size="small"
+            onClick={() => handleViewDetail(record)}
+            style={{ marginRight: 8 }}
+          >
             Xem chi tiết
           </Button>
-          <Button size="small" type="primary" onClick={() => handleEdit(record)}>
+          <Button
+            size="small"
+            type="primary"
+            onClick={() => handleEdit(record)}
+          >
             Chỉnh sửa
           </Button>
         </>
@@ -279,7 +336,9 @@ const EmergencyRequestManagement = () => {
       <Modal
         open={detailModal.open}
         title="Chi tiết yêu cầu khẩn cấp"
-        onCancel={() => setDetailModal({ open: false, data: null, loading: false })}
+        onCancel={() =>
+          setDetailModal({ open: false, data: null, loading: false })
+        }
         footer={null}
         width={480}
       >
@@ -287,15 +346,33 @@ const EmergencyRequestManagement = () => {
           <Spin />
         ) : detailModal.data ? (
           <div>
-            <p><b>Họ tên:</b> {detailModal.data.fullName}</p>
-            <p><b>Email:</b> {detailModal.data.email}</p>
-            <p><b>SĐT:</b> {detailModal.data.phone}</p>
-            <p><b>CMND/CCCD:</b> {detailModal.data.userIdCard}</p>
-            <p><b>Ngày sinh:</b> {detailModal.data.dateOfBirth}</p>
-            <p><b>Trạng thái:</b> {detailModal.data.status}</p>
-            <p><b>Mô tả:</b> {detailModal.data.description}</p>
-            <p><b>Số lượng cần (ml):</b> {detailModal.data.quantityNeeded}</p>
-            <p><b>Ngày yêu cầu:</b> {detailModal.data.requestDate}</p>
+            <p>
+              <b>Họ tên:</b> {detailModal.data.fullName}
+            </p>
+            <p>
+              <b>Email:</b> {detailModal.data.email}
+            </p>
+            <p>
+              <b>SĐT:</b> {detailModal.data.phone}
+            </p>
+            <p>
+              <b>CMND/CCCD:</b> {detailModal.data.userIdCard}
+            </p>
+            <p>
+              <b>Ngày sinh:</b> {detailModal.data.dateOfBirth}
+            </p>
+            <p>
+              <b>Trạng thái:</b> {detailModal.data.status}
+            </p>
+            <p>
+              <b>Mô tả:</b> {detailModal.data.description}
+            </p>
+            <p>
+              <b>Số lượng cần (ml):</b> {detailModal.data.quantityNeeded}
+            </p>
+            <p>
+              <b>Ngày yêu cầu:</b> {detailModal.data.requestDate}
+            </p>
           </div>
         ) : (
           <div>Không có dữ liệu</div>
@@ -306,7 +383,9 @@ const EmergencyRequestManagement = () => {
       <Modal
         open={editModal.open}
         title="Chỉnh sửa yêu cầu khẩn cấp"
-        onCancel={() => setEditModal({ open: false, data: null, loading: false })}
+        onCancel={() =>
+          setEditModal({ open: false, data: null, loading: false })
+        }
         onOk={handleEditSave}
         confirmLoading={editModal.loading}
         width={400}
@@ -315,22 +394,36 @@ const EmergencyRequestManagement = () => {
           <Form.Item
             label="Số lượng cần (ml)"
             name="quantityNeeded"
-            rules={[{ required: true, message: 'Vui lòng nhập số lượng máu cần' }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập số lượng máu cần" },
+            ]}
           >
-            <InputNumber min={1} max={10000} style={{ width: '100%' }} />
+            <InputNumber min={1} max={10000} style={{ width: "100%" }} />
           </Form.Item>
           <Form.Item
             label="Trạng thái"
             name="status"
-            rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+            rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
           >
             <Select
               options={
                 STATUS_TRANSITIONS[editModal.data?.status]
                   ? STATUS_TRANSITIONS[editModal.data.status]
-                      .filter((s) => s !== editModal.data.status && s !== 'Done' && s !== 'Approved' && s !== 'Rejected')
-                      .map((s) => STATUS_OPTIONS.find((opt) => opt.value === s)).filter(Boolean)
-                  : STATUS_OPTIONS.filter((opt) => opt.value !== 'Done' && opt.value !== 'Approved' && opt.value !== 'Rejected')
+                      .filter(
+                        (s) =>
+                          s !== editModal.data.status &&
+                          s !== "Done" &&
+                          s !== "Approved" &&
+                          s !== "Rejected"
+                      )
+                      .map((s) => STATUS_OPTIONS.find((opt) => opt.value === s))
+                      .filter(Boolean)
+                  : STATUS_OPTIONS.filter(
+                      (opt) =>
+                        opt.value !== "Done" &&
+                        opt.value !== "Approved" &&
+                        opt.value !== "Rejected"
+                    )
               }
             />
           </Form.Item>

@@ -1,33 +1,38 @@
+// Import các thư viện React và hooks
 import React, { useState, useEffect } from "react";
+
+// Import các component từ React Bootstrap
 import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Table,
-  Button,
-  Form,
-  Modal,
-  Badge,
-  Alert,
-  InputGroup,
-  Dropdown,
-  DropdownButton,
-  Tab,
-  Tabs,
-  OverlayTrigger,
-  Tooltip,
-  Spinner,
+  Container, // Container để layout
+  Row, // Row cho grid system
+  Col, // Column cho grid system
+  Card, // Card component
+  Table, // Table component
+  Button, // Button component
+  Form, // Form component
+  Modal, // Modal component
+  Badge, // Badge component
+  Alert, // Alert component
+  InputGroup, // Input group component
+  Dropdown, // Dropdown component
+  DropdownButton, // Dropdown button component
+  Tab, // Tab component
+  Tabs, // Tabs container
+  OverlayTrigger, // Overlay trigger cho tooltip
+  Tooltip, // Tooltip component
+  Spinner, // Loading spinner
 } from "react-bootstrap";
+
+// Import các icon từ React Icons (Font Awesome)
 import {
-  FaSearch,
-  FaEdit,
-  FaEye,
-  FaUser,
-  FaUsers,
-  FaPhone,
-  FaIdCard,
-  FaCalendarAlt,
+  FaSearch, // Icon tìm kiếm
+  FaEdit, // Icon chỉnh sửa
+  FaEye, // Icon xem
+  FaUser, // Icon người dùng
+  FaUsers, // Icon nhóm người dùng
+  FaPhone, // Icon điện thoại
+  FaIdCard, // Icon thẻ ID
+  FaCalendarAlt, // Icon lịch
   FaHeart,
   FaUserMd,
   FaUserFriends,

@@ -1,34 +1,37 @@
-/*
- * Blood Donation Registration Page
+/**
+ * Trang Đăng Ký Hiến Máu
  *
- * RECENT UPDATES: Integrated BloodManagement API and Enhanced Donor API (July 4, 2025)
- * - Integrated BloodManagement API for dynamic blood types loading
- * - Created enhancedDonorApi to save address and currentMedications to Donor table
- * - Updated data flow to ensure address and medications are stored in Donor table, not BloodDonation table
+ * CẬP NHẬT GẦN ĐÂY: Tích hợp BloodManagement API và Enhanced Donor API (4 tháng 7, 2025)
+ * - Tích hợp BloodManagement API để load động các loại nhóm máu
+ * - Tạo enhancedDonorApi để lưu địa chỉ và thuốc đang dùng vào bảng Donor
+ * - Cập nhật luồng dữ liệu để đảm bảo địa chỉ và thuốc được lưu trong bảng Donor, không phải BloodDonation
  *
- * API Integration:
- * - BloodManagement API: /api/BloodManagement/Get-Blood-types (dynamic blood types)
- * - Enhanced Donor API: Creates/updates donor profile with address and currentMedications
- * - BloodDonation API: /api/BloodDonation (blood donation records with notes only)
+ * Tích Hợp API:
+ * - BloodManagement API: /api/BloodManagement/Get-Blood-types (nhóm máu động)
+ * - Enhanced Donor API: Tạo/cập nhật hồ sơ donor với địa chỉ và thuốc đang dùng
+ * - BloodDonation API: /api/BloodDonation (bản ghi hiến máu chỉ có ghi chú)
  *
- * Data Architecture:
- * - User personal information (name, email, phone, DOB) is stored in the User table
- * - Donor profile (donorId, userId, bloodTypeId, address, currentMedications, isAvailable) is stored in the Donor table
- * - Blood donation records (donationDate, notes, status) are stored in the BloodDonation table
- * - Address and currentMedications are now stored in Donor table (as requested)
- * - Notes field is for additional comments only
+ * Kiến Trúc Dữ Liệu:
+ * - Thông tin cá nhân người dùng (tên, email, SĐT, ngày sinh) được lưu trong bảng User
+ * - Hồ sơ donor (donorId, userId, bloodTypeId, địa chỉ, thuốc đang dùng, isAvailable) được lưu trong bảng Donor
+ * - Bản ghi hiến máu (ngày hiến, ghi chú, trạng thái) được lưu trong bảng BloodDonation
+ * - Địa chỉ và thuốc đang dùng giờ được lưu trong bảng Donor (theo yêu cầu)
+ * - Trường ghi chú chỉ dành cho các nhận xét bổ sung
  *
- * Process:
- * 1. Load blood types dynamically from BloodManagement API
- * 2. Fetch user info from User API for display in confirmation step
- * 3. Submit blood donation registration and update Donor profile with address/medications
- * 4. Blood donation record stores donationDate, notes, status in BloodDonation table
- * 5. Donor profile stores address, currentMedications, bloodTypeId in Donor table
+ * Quy Trình:
+ * 1. Load các nhóm máu động từ BloodManagement API
+ * 2. Lấy thông tin user từ User API để hiển thị trong bước xác nhận
+ * 3. Submit đăng ký hiến máu và cập nhật hồ sơ Donor với địa chỉ/thuốc
+ * 4. Bản ghi hiến máu lưu ngày hiến, ghi chú, trạng thái trong bảng BloodDonation
+ * 5. Hồ sơ donor lưu địa chỉ, thuốc đang dùng, bloodTypeId trong bảng Donor
  *
- * Important: Address and CurrentMedications are now saved to Donor table, Notes is for additional comments
+ * Quan trọng: Địa chỉ và Thuốc đang dùng giờ được lưu vào bảng Donor, Ghi chú dành cho nhận xét bổ sung
  */
 
+// Import các thư viện React và hooks
 import React, { useState, useEffect } from "react";
+
+// Import các component từ Ant Design
 import {
   Form,
   Input,
@@ -48,16 +51,18 @@ import {
   Divider,
   Tag,
 } from "antd";
+
+// Import các icon từ Ant Design
 import {
-  HeartFilled,
-  CalendarOutlined,
-  ClockCircleOutlined,
-  EnvironmentOutlined,
-  SafetyCertificateOutlined,
-  MedicineBoxOutlined,
-  UserOutlined,
-  PhoneOutlined,
-  MailOutlined,
+  HeartFilled, // Icon trái tim đầy
+  CalendarOutlined, // Icon lịch
+  ClockCircleOutlined, // Icon đồng hồ
+  EnvironmentOutlined, // Icon địa điểm
+  SafetyCertificateOutlined, // Icon chứng chỉ an toàn
+  MedicineBoxOutlined, // Icon hộp thuốc
+  UserOutlined, // Icon người dùng
+  PhoneOutlined, // Icon điện thoại
+  MailOutlined, // Icon email
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
@@ -149,7 +154,9 @@ const BloodDonationRegistration = () => {
       if (completedDonations.length > 0) {
         const lastDonationDate = new Date(completedDonations[0].donationDate);
         // Cộng thêm 12 tuần (84 ngày)
-        const nextAllowed = new Date(lastDonationDate.getTime() + 84 * 24 * 60 * 60 * 1000);
+        const nextAllowed = new Date(
+          lastDonationDate.getTime() + 84 * 24 * 60 * 60 * 1000
+        );
         setMinNextDonationDate(nextAllowed);
       } else {
         setMinNextDonationDate(null);
@@ -609,7 +616,10 @@ const BloodDonationRegistration = () => {
     if (!current) return false;
     if (minNextDonationDate) {
       // Chỉ cho phép chọn ngày >= minNextDonationDate
-      return current && current.startOf("day") < dayjs(minNextDonationDate).startOf("day");
+      return (
+        current &&
+        current.startOf("day") < dayjs(minNextDonationDate).startOf("day")
+      );
     }
     return false;
   };
@@ -1024,7 +1034,11 @@ const BloodDonationRegistration = () => {
 
           {minNextDonationDate && (
             <Alert
-              message={`Bạn chỉ có thể đăng ký hiến máu sau ngày ${dayjs(minNextDonationDate).format("DD/MM/YYYY")}. (Khoảng cách tối thiểu giữa hai lần hiến là 12 tuần)`}
+              message={`Bạn chỉ có thể đăng ký hiến máu sau ngày ${dayjs(
+                minNextDonationDate
+              ).format(
+                "DD/MM/YYYY"
+              )}. (Khoảng cách tối thiểu giữa hai lần hiến là 12 tuần)`}
               type="info"
               showIcon
               className="alert-message"

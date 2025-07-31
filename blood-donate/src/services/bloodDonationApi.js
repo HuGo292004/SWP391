@@ -1,9 +1,18 @@
-// Blood Donation API Service
+/**
+ * Blood Donation API Service
+ * Service để xử lý các API liên quan đến hiến máu
+ */
+
+// Base URL cho Blood Donation API
 const BASE_URL = "http://localhost:7262/api";
 
-// Helper function to get auth token
+/**
+ * Helper function để lấy auth token từ storage
+ * Kiểm tra nhiều vị trí có thể lưu token
+ * @returns {string|null} Auth token hoặc null nếu không tìm thấy
+ */
 const getAuthToken = () => {
-  // Try different possible storage locations for auth token
+  // Thử các vị trí có thể lưu auth token
   return (
     localStorage.getItem("userToken") ||
     localStorage.getItem("token") ||
@@ -16,7 +25,10 @@ const getAuthToken = () => {
   );
 };
 
-// Helper function to get auth headers
+/**
+ * Helper function để tạo auth headers cho API requests
+ * @returns {Object} Headers object với Authorization nếu có token
+ */
 const getAuthHeaders = () => {
   const token = getAuthToken();
   const headers = {
@@ -219,7 +231,10 @@ export const bloodDonationApi = {
       console.error("Error approving blood donation:", error);
 
       // Re-throw with more specific error message
-      if (error.message && (error.message.includes("already") || error.message.includes("đã"))) {
+      if (
+        error.message &&
+        (error.message.includes("already") || error.message.includes("đã"))
+      ) {
         // Already approved - this is actually success
         console.log("Blood donation was already approved");
         return { success: true, message: "Blood donation already approved" };

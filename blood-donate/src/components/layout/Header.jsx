@@ -1,33 +1,36 @@
+// Import các icon từ Ant Design
 import {
-  AlertOutlined,
-  BellOutlined,
-  CheckCircleFilled,
-  ClockCircleFilled,
-  DashboardOutlined,
-  FileTextOutlined,
-  HeartOutlined,
-  LogoutOutlined,
-  MedicineBoxOutlined,
-  MenuOutlined,
-  SearchOutlined,
-  TeamOutlined,
-  UserOutlined,
-  CloseOutlined,
-  SafetyCertificateOutlined,
-  HomeOutlined,
-  QuestionCircleOutlined,
-  FileTextOutlined as NewsOutlined,
-  PhoneOutlined,
+  AlertOutlined, // Icon cảnh báo
+  BellOutlined, // Icon thông báo
+  CheckCircleFilled, // Icon check circle đầy
+  ClockCircleFilled, // Icon đồng hồ đầy
+  DashboardOutlined, // Icon dashboard
+  FileTextOutlined, // Icon file text
+  HeartOutlined, // Icon trái tim (logo chính)
+  LogoutOutlined, // Icon đăng xuất
+  MedicineBoxOutlined, // Icon hộp thuốc
+  MenuOutlined, // Icon menu
+  SearchOutlined, // Icon tìm kiếm
+  TeamOutlined, // Icon team/nhóm
+  UserOutlined, // Icon người dùng
+  CloseOutlined, // Icon đóng
+  SafetyCertificateOutlined, // Icon chứng chỉ
+  HomeOutlined, // Icon trang chủ
+  QuestionCircleOutlined, // Icon câu hỏi
+  FileTextOutlined as NewsOutlined, // Icon tin tức (alias)
+  PhoneOutlined, // Icon điện thoại
 } from "@ant-design/icons";
+
+// Import các component từ Ant Design
 import {
-  Avatar,
-  Badge,
-  Button,
-  Divider,
-  Drawer,
-  Dropdown,
-  Layout,
-  Menu,
+  Avatar, // Component avatar người dùng
+  Badge, // Component badge thông báo
+  Button, // Component button
+  Divider, // Component phân cách
+  Drawer, // Component drawer (menu mobile)
+  Dropdown, // Component dropdown menu
+  Layout, // Component layout
+  Menu, // Component menu
   Space,
   Typography,
 } from "antd";
@@ -295,7 +298,7 @@ const AppHeader = () => {
       ),
       path: currentRole ? `/${currentRole}` : "/",
     },
-    // Nếu là staff thì hiện "Yêu cầu khẩn cấp" thay cho "Hiến máu"
+    // Chỉ hiện "Yêu cầu khẩn cấp" cho staff, ẩn cho admin và member
     ...(currentRole === "staff"
       ? [
           {
@@ -311,7 +314,10 @@ const AppHeader = () => {
             path: "/staff/emergency-request-management",
           },
         ]
-      : [
+      : []),
+    // Chỉ hiện "Hiến máu" cho guest và member, ẩn cho staff và admin
+    ...(currentRole !== "staff" && currentRole !== "admin"
+      ? [
           {
             key: "blood-donation-register",
             label: (
@@ -327,7 +333,8 @@ const AppHeader = () => {
                 ? "/member/blood-donation-register"
                 : "/blood-donation-register",
           },
-        ]),
+        ]
+      : []),
     {
       key: currentRole ? `/${currentRole}/faq` : "/faq",
       label: (
@@ -513,7 +520,8 @@ const AppHeader = () => {
             ],
           },
         ]
-      : []), // Ẩn "Yêu cầu khẩn cấp" cho role member và admin
+      : []),
+    // Ẩn "Yêu cầu khẩn cấp" cho role member và admin
     ...(user?.role !== "member" && user?.role !== "admin"
       ? [
           {
@@ -533,7 +541,8 @@ const AppHeader = () => {
             ),
           },
         ]
-      : []), // Chỉ hiển thị dashboard cho Admin (không hiển thị cho Staff và Member)
+      : []),
+    // Chỉ hiển thị dashboard cho Admin (không hiển thị cho Staff và Member)
     ...(isAuthenticated && currentRole === "admin"
       ? [
           {
@@ -856,21 +865,25 @@ const AppHeader = () => {
               {/* User Info Display - Desktop - With Drawer */}{" "}
               <Dropdown
                 menu={{
-                  items: [
-                    {
-                      key: "profile",
-                      icon: (
-                        <UserOutlined
-                          style={{ color: healthThemeColors.primary }}
-                        />
-                      ),
-                      label: "Hồ sơ cá nhân",
-                      onClick: () => {
-                        navigate(createRoleBasedPath("/profile", currentRole));
-                      },
-                    },
-                    ...(user?.role === "Admin"
+                  items:
+                    user?.role?.toLowerCase() === "admin" ||
+                    user?.role === "Admin"
                       ? [
+                          // Menu cho admin: Hồ sơ cá nhân, Admin Dashboard, Quản lý người dùng, Đăng xuất
+                          {
+                            key: "profile",
+                            icon: (
+                              <UserOutlined
+                                style={{ color: healthThemeColors.primary }}
+                              />
+                            ),
+                            label: "Hồ sơ cá nhân",
+                            onClick: () => {
+                              navigate(
+                                createRoleBasedPath("/profile", currentRole)
+                              );
+                            },
+                          },
                           {
                             key: "admin-dashboard",
                             icon: (
@@ -885,10 +898,6 @@ const AppHeader = () => {
                               );
                             },
                           },
-                        ]
-                      : []),
-                    ...(user?.role === "Admin" || user?.role === "Staff"
-                      ? [
                           {
                             key: "user-management",
                             icon: (
@@ -907,135 +916,204 @@ const AppHeader = () => {
                             },
                           },
                           {
-                            type: "submenu",
-                            key: "blood-donation-management",
+                            type: "divider",
+                          },
+                          {
+                            key: "logout",
                             icon: (
-                              <MedicineBoxOutlined
+                              <LogoutOutlined
+                                style={{ color: healthThemeColors.error }}
+                              />
+                            ),
+                            label: (
+                              <span style={{ color: healthThemeColors.error }}>
+                                Đăng xuất
+                              </span>
+                            ),
+                            onClick: () => {
+                              logout();
+                            },
+                          },
+                        ]
+                      : [
+                          // Menu đầy đủ cho các role khác
+                          {
+                            key: "profile",
+                            icon: (
+                              <UserOutlined
                                 style={{ color: healthThemeColors.primary }}
                               />
                             ),
-                            label: "Quản lý hiến máu",
-                            children: [
-                              {
-                                key: "approve-donation-requests",
-                                icon: (
-                                  <CheckCircleFilled
-                                    style={{ color: healthThemeColors.success }}
-                                  />
-                                ),
-                                label: "Quản lý yêu cầu hiến máu",
-                                onClick: () => {
-                                  navigate(
-                                    createRoleBasedPath(
-                                      "/blood-donation-management",
-                                      currentRole
-                                    )
-                                  );
-                                },
-                              },
-                              {
-                                key: "create-emergency-request",
-                                icon: (
-                                  <AlertOutlined
-                                    style={{ color: healthThemeColors.warning }}
-                                  />
-                                ),
-                                label: "Tạo yêu cầu khẩn cấp",
-                                onClick: () => {
-                                  navigate(
-                                    createRoleBasedPath(
-                                      "/create-emergency-request",
-                                      currentRole
-                                    )
-                                  );
-                                },
-                              },
-                            ],
-                          },
-                          {
-                            key: "health-forms",
-                            icon: (
-                              <HeartOutlined
-                                style={{ color: healthThemeColors.accent }}
-                              />
-                            ),
-                            label: "Tạo hồ sơ sức khỏe",
+                            label: "Hồ sơ cá nhân",
                             onClick: () => {
                               navigate(
-                                createRoleBasedPath(
-                                  "/create-health-forms",
-                                  currentRole
-                                )
+                                createRoleBasedPath("/profile", currentRole)
                               );
                             },
                           },
+                          ...(user?.role === "Staff"
+                            ? [
+                                {
+                                  key: "user-management",
+                                  icon: (
+                                    <TeamOutlined
+                                      style={{
+                                        color: healthThemeColors.primary,
+                                      }}
+                                    />
+                                  ),
+                                  label: "Quản lý người dùng",
+                                  onClick: () => {
+                                    navigate(
+                                      createRoleBasedPath(
+                                        "/user-management",
+                                        currentRole
+                                      )
+                                    );
+                                  },
+                                },
+                                {
+                                  type: "submenu",
+                                  key: "blood-donation-management",
+                                  icon: (
+                                    <MedicineBoxOutlined
+                                      style={{
+                                        color: healthThemeColors.primary,
+                                      }}
+                                    />
+                                  ),
+                                  label: "Quản lý hiến máu",
+                                  children: [
+                                    {
+                                      key: "approve-donation-requests",
+                                      icon: (
+                                        <CheckCircleFilled
+                                          style={{
+                                            color: healthThemeColors.success,
+                                          }}
+                                        />
+                                      ),
+                                      label: "Quản lý yêu cầu hiến máu",
+                                      onClick: () => {
+                                        navigate(
+                                          createRoleBasedPath(
+                                            "/blood-donation-management",
+                                            currentRole
+                                          )
+                                        );
+                                      },
+                                    },
+                                    {
+                                      key: "create-emergency-request",
+                                      icon: (
+                                        <AlertOutlined
+                                          style={{
+                                            color: healthThemeColors.warning,
+                                          }}
+                                        />
+                                      ),
+                                      label: "Tạo yêu cầu khẩn cấp",
+                                      onClick: () => {
+                                        navigate(
+                                          createRoleBasedPath(
+                                            "/create-emergency-request",
+                                            currentRole
+                                          )
+                                        );
+                                      },
+                                    },
+                                  ],
+                                },
+                                {
+                                  key: "health-forms",
+                                  icon: (
+                                    <HeartOutlined
+                                      style={{
+                                        color: healthThemeColors.accent,
+                                      }}
+                                    />
+                                  ),
+                                  label: "Tạo hồ sơ sức khỏe",
+                                  onClick: () => {
+                                    navigate(
+                                      createRoleBasedPath(
+                                        "/create-health-forms",
+                                        currentRole
+                                      )
+                                    );
+                                  },
+                                },
+                                {
+                                  key: "blood-inventory",
+                                  icon: (
+                                    <MedicineBoxOutlined
+                                      style={{
+                                        color: healthThemeColors.success,
+                                      }}
+                                    />
+                                  ),
+                                  label: "Quản lý kho máu",
+                                  onClick: () => {
+                                    navigate(
+                                      createRoleBasedPath(
+                                        "/blood-inventory",
+                                        currentRole
+                                      )
+                                    );
+                                  },
+                                },
+                              ]
+                            : []),
+                          ...(user?.role === "Member"
+                            ? [
+                                {
+                                  key: "blood-donation-profile",
+                                  icon: (
+                                    <HeartOutlined
+                                      style={{
+                                        color: healthThemeColors.accent,
+                                      }}
+                                    />
+                                  ),
+                                  label: "Hồ sơ hiến máu",
+                                  onClick: () => {
+                                    navigate("/member/blood-donation-profile");
+                                  },
+                                },
+                                {
+                                  key: "certificate",
+                                  icon: (
+                                    <SafetyCertificateOutlined
+                                      style={{ color: "#faad14" }}
+                                    />
+                                  ),
+                                  label: "Chứng chỉ hiến máu",
+                                  onClick: () => {
+                                    navigate("/member/certificate");
+                                  },
+                                },
+                              ]
+                            : []),
                           {
-                            key: "blood-inventory",
+                            type: "divider",
+                          },
+                          {
+                            key: "logout",
                             icon: (
-                              <MedicineBoxOutlined
-                                style={{ color: healthThemeColors.success }}
+                              <LogoutOutlined
+                                style={{ color: healthThemeColors.error }}
                               />
                             ),
-                            label: "Quản lý kho máu",
-                            onClick: () => {
-                              navigate(
-                                createRoleBasedPath(
-                                  "/blood-inventory",
-                                  currentRole
-                                )
-                              );
-                            },
-                          },
-                        ]
-                      : []),
-                    ...(user?.role === "Member"
-                      ? [
-                          {
-                            key: "blood-donation-profile",
-                            icon: (
-                              <HeartOutlined
-                                style={{ color: healthThemeColors.accent }}
-                              />
+                            label: (
+                              <span style={{ color: healthThemeColors.error }}>
+                                Đăng xuất
+                              </span>
                             ),
-                            label: "Hồ sơ hiến máu",
                             onClick: () => {
-                              navigate("/member/blood-donation-profile");
+                              logout();
                             },
                           },
-                          {
-                            key: "certificate",
-                            icon: (
-                              <SafetyCertificateOutlined
-                                style={{ color: "#faad14" }}
-                              />
-                            ),
-                            label: "Chứng chỉ hiến máu",
-                            onClick: () => {
-                              navigate("/member/certificate");
-                            },
-                          },
-                        ]
-                      : []),
-                    {
-                      type: "divider",
-                    },
-                    {
-                      key: "logout",
-                      icon: (
-                        <LogoutOutlined
-                          style={{ color: healthThemeColors.error }}
-                        />
-                      ),
-                      label: (
-                        <span style={{ color: healthThemeColors.error }}>
-                          Đăng xuất
-                        </span>
-                      ),
-                      onClick: () => {
-                        logout();
-                      },
-                    },
-                  ],
+                        ],
                 }}
                 trigger={["click"]}
                 placement="bottomRight"

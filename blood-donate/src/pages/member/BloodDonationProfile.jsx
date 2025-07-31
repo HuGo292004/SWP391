@@ -1,28 +1,33 @@
+// Import các thư viện React và hooks cần thiết
 import React, { useState, useEffect } from "react";
+
+// Import các component từ Ant Design
 import {
-  Card,
-  Steps,
-  Typography,
-  Table,
-  Tag,
-  Empty,
-  Spin,
-  Alert,
-  Row,
-  Col,
-  Avatar,
-  Statistic,
-  Divider,
-  List,
-  Button,
-  message,
-  Modal,
-  Input,
+  Card, // Component card container
+  Steps, // Component hiển thị các bước
+  Typography, // Component typography
+  Table, // Component bảng dữ liệu
+  Tag, // Component tag trạng thái
+  Empty, // Component hiển thị khi không có dữ liệu
+  Spin, // Component loading spinner
+  Alert, // Component thông báo
+  Row, // Component hàng grid
+  Col, // Component cột grid
+  Avatar, // Component avatar
+  Statistic, // Component thống kê
+  Divider, // Component phân cách
+  List, // Component danh sách
+  Button, // Component nút bấm
+  message, // Service thông báo
+  Modal, // Component modal
+  Input, // Component input
 } from "antd";
+
+// Import các icon từ Ant Design
 import {
-  FileTextOutlined,
-  SolutionOutlined,
-  ClockCircleOutlined,
+  FileTextOutlined, // Icon file text
+  SolutionOutlined, // Icon giải pháp
+  ClockCircleOutlined, // Icon đồng hồ
   StarOutlined,
   HeartOutlined,
   CheckCircleOutlined,

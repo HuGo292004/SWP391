@@ -1,16 +1,16 @@
+// Import các thư viện cần thiết
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ConfigProvider, App as AntdApp } from "antd";
 import { useState, useEffect } from "react";
 import "./styles/App.css";
 
-// Pages - using new structure
+// Import các trang và component theo cấu trúc mới
 
-// Components
+// Import các component layout và UI
 import { MainLayout } from "./components/layout";
 import { AIChatbot } from "./components/ui";
 
-// Context
-
+// Import các trang chung (common pages)
 import {
   HomePage,
   NotFoundPage,
@@ -19,8 +19,14 @@ import {
   SupportPage,
   Profile,
 } from "./pages/common";
+
+// Import các trang xác thực (authentication pages)
 import { LoginPage, RegisterPage, ForgotPasswordPage } from "./pages/auth";
+
+// Import các trang dành cho admin
 import { AdminDashboard } from "./pages/admin";
+
+// Import các trang dành cho nhân viên (staff)
 import {
   UserManagement,
   CreateEmergencyRequest,
@@ -30,26 +36,29 @@ import {
   BloodDonationManagement,
   EmergencyRequestManagement,
 } from "./pages/staff";
+
+// Import các trang dành cho thành viên (member)
 import {
   BloodDonationRegistration,
   BloodDonationProfile,
   Certificate,
 } from "./pages/member";
 
-// Y tế theme colors
+// Cấu hình theme y tế cho toàn bộ ứng dụng
 const healthTheme = {
   token: {
-    colorPrimary: "#1976D2", // Xanh dương y tế
+    colorPrimary: "#1976D2", // Màu xanh dương chủ đạo của y tế
     colorInfo: "#1976D2",
-    colorSuccess: "#4CAF50", // Xanh lá
-    colorWarning: "#FF9800", // Cam
-    colorError: "#F44336", // Đỏ
-    colorTextBase: "#37474F",
+    colorSuccess: "#4CAF50", // Màu xanh lá cho thành công
+    colorWarning: "#FF9800", // Màu cam cho cảnh báo
+    colorError: "#F44336", // Màu đỏ cho lỗi
+    colorTextBase: "#37474F", // Màu chữ cơ bản
     fontFamily:
       "Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif",
     borderRadius: 6,
     fontSize: 16,
   },
+  // Cấu hình riêng cho từng component
   components: {
     Button: {
       colorPrimary: "#1976D2",
@@ -62,15 +71,18 @@ const healthTheme = {
   },
 };
 
+// Component chính của ứng dụng
 function App() {
+  // State để quản lý trạng thái loading
   const [loading, setLoading] = useState(true);
 
+  // Effect để simulate thời gian loading
   useEffect(() => {
-    // Simulate loading time
     const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
+  // Hiển thị màn hình loading khi ứng dụng đang tải
   if (loading) {
     return (
       <ConfigProvider theme={healthTheme}>
@@ -88,29 +100,38 @@ function App() {
       </ConfigProvider>
     );
   }
+
+  // Render chính của ứng dụng
   return (
     <ConfigProvider theme={healthTheme}>
       <Router>
-        {/* <AuthProvider> - TODO: Import and setup authentication provider */}
+        {/* TODO: Thêm AuthProvider để quản lý xác thực */}
         <AntdApp>
           <MainLayout>
             <Routes>
-              {/* Public routes - Guest có thể truy cập không cần đăng nhập */}
+              {/* ==================== ROUTES CÔNG KHAI ==================== */}
+              {/* Các route này không cần đăng nhập, ai cũng có thể truy cập */}
               <Route path="/" element={<HomePage />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/news" element={<NewsPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/profile" element={<Profile />} />
-              {/* Auth routes */}
+
+              {/* ==================== ROUTES XÁC THỰC ==================== */}
+              {/* Các trang đăng nhập, đăng ký, quên mật khẩu */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              {/* Blood donation registration route - Public access */}
+
+              {/* ==================== ROUTES ĐĂNG KÝ HIẾN MÁU ==================== */}
+              {/* Route công khai cho đăng ký hiến máu */}
               <Route
                 path="/blood-donation-register"
                 element={<BloodDonationRegistration />}
-              />{" "}
-              {/* Admin routes */}
+              />
+
+              {/* ==================== ROUTES DÀNH CHO ADMIN ==================== */}
+              {/* Các route chỉ dành cho quản trị viên */}
               <Route path="/admin" element={<HomePage />} />
               <Route path="/admin/faq" element={<FAQPage />} />
               <Route path="/admin/news" element={<NewsPage />} />
@@ -137,7 +158,9 @@ function App() {
                 path="/admin/blood-donation-management"
                 element={<BloodDonationManagement />}
               />
-              {/* Staff routes */}
+
+              {/* ==================== ROUTES DÀNH CHO NHÂN VIÊN ==================== */}
+              {/* Các route chỉ dành cho nhân viên y tế */}
               <Route path="/staff" element={<HomePage />} />
               <Route path="/staff/faq" element={<FAQPage />} />
               <Route path="/staff/news" element={<NewsPage />} />
@@ -171,7 +194,9 @@ function App() {
                 path="/staff/blood-donation-management"
                 element={<BloodDonationManagement />}
               />
-              {/* Member routes */}
+
+              {/* ==================== ROUTES DÀNH CHO THÀNH VIÊN ==================== */}
+              {/* Các route chỉ dành cho thành viên đã đăng ký */}
               <Route path="/member" element={<HomePage />} />
               <Route path="/member/faq" element={<FAQPage />} />
               <Route path="/member/news" element={<NewsPage />} />
@@ -190,12 +215,14 @@ function App() {
                 element={<BloodDonationProfile />}
               />
               <Route path="/member/certificate" element={<Certificate />} />
-              {/* 404 route */}
+
+              {/* ==================== ROUTE 404 ==================== */}
+              {/* Trang không tìm thấy - hiển thị khi không có route nào khớp */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </MainLayout>
 
-          {/* AI Chatbot - Available on all pages */}
+          {/* AI Chatbot - Có sẵn trên tất cả các trang */}
           <AIChatbot />
         </AntdApp>
         {/* </AuthProvider> */}
