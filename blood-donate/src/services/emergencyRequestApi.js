@@ -49,6 +49,35 @@ export const getAvailableQuantityByBloodType = async (bloodTypeId) => {
     return 0;
   }
 };
+
+// Lấy tổng số lượng máu khả dụng từ tất cả nhóm máu tương thích (bao gồm cả nhóm máu cần thiết)
+export const getAvailableQuantityByCompatibleBloodTypes = async (neededBloodTypeId) => {
+  try {
+    // Import blood type compatibility functions
+    const { getCompatibleDonorBloodTypeIDs } = await import('../utils/bloodTypeCompatibility.js');
+    
+    // Lấy danh sách tất cả bloodTypeID tương thích (bao gồm nhóm máu cần thiết)
+    const compatibleBloodTypeIDs = getCompatibleDonorBloodTypeIDs(neededBloodTypeId);
+    
+    console.log(`Checking compatible blood types for ${neededBloodTypeId}:`, compatibleBloodTypeIDs);
+    
+    let totalAvailableQuantity = 0;
+    
+    // Duyệt qua từng nhóm máu tương thích và tính tổng số lượng
+    for (const bloodTypeId of compatibleBloodTypeIDs) {
+      const quantity = await getAvailableQuantityByBloodType(bloodTypeId);
+      totalAvailableQuantity += quantity;
+      console.log(`Blood type ${bloodTypeId}: ${quantity}ml available`);
+    }
+    
+    console.log(`Total compatible blood quantity available: ${totalAvailableQuantity}ml`);
+    return totalAvailableQuantity;
+  } catch (error) {
+    console.error('Error calculating compatible blood quantity:', error);
+    // Fallback to original logic if there's an error
+    return await getAvailableQuantityByBloodType(neededBloodTypeId);
+  }
+};
 // Emergency Request API - Production Version
 // Handles emergency blood requests, user search, and authentication
 
@@ -240,6 +269,9 @@ export const searchUserByIdCard = async (userIdCard) => {
 
 export const createEmergencyRequest = async (requestData) => {
   try {
+    console.log('🚀 Creating emergency request with data:', requestData);
+    console.log('📊 Status being sent to backend:', requestData.status);
+    
     const response = await fetch(
       `${API_BASE_URL}/BloodRequest/register-emergency`,
       {
@@ -249,11 +281,16 @@ export const createEmergencyRequest = async (requestData) => {
       }
     );
 
+    console.log('📥 Backend response status:', response.status);
+
     if (response.ok) {
       const responseText = await response.text();
-      return responseText?.trim()
+      const result = responseText?.trim()
         ? JSON.parse(responseText)
         : { success: true, message: "Request created successfully" };
+      
+      console.log('✅ Emergency request created successfully:', result);
+      return result;
     } else if (response.status === 401) {
       throw new Error("Bạn cần đăng nhập để thực hiện chức năng này");
     } else {

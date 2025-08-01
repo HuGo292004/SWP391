@@ -443,10 +443,8 @@ const HomePage = () => {
 
   // Hàm xử lý khi người dùng bấm nút hỗ trợ khẩn cấp
   const handleSupportEmergency = (requestId) => {
-    // Điều hướng đến trang đăng ký hiến máu với ID yêu cầu khẩn cấp
-    navigate(
-      `/member/blood-donation-registration?emergencyRequestId=${requestId}`
-    );
+    // Điều hướng đến trang đăng ký hiến máu với thông tin emergency request
+    navigate(`/member/blood-donation-registration?emergencyRequestId=${requestId}`);
   };
 
   // Hàm xử lý navigation với kiểm tra đăng nhập

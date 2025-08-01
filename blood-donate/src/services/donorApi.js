@@ -171,7 +171,6 @@ export const donorApi = {
           message: "Đăng ký hiến máu thành công (Demo mode)",
           data: {
             donorID: generateUUID(),
-            requestID: donationData.requestID,
             donationDate: donationData.donationDate,
             bloodTypeID: donationData.bloodTypeID,
             status: donationData.status,
@@ -230,7 +229,6 @@ export const donorApi = {
       console.log("Step 2: Registering blood donation...");
       const apiData = {
         donorID: donationData.donorID, // Will be set by backend based on authenticated user
-        requestID: donationData.requestID || null,
         donationDate: donationData.donationDate,
         bloodTypeID: donationData.bloodTypeID,
         status: donationData.status,

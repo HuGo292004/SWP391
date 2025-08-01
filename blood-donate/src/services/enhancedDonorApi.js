@@ -122,7 +122,6 @@ export const enhancedDonorApi = {
       // OPTION 1: Try to send everything in a single blood donation request with extended data
       const extendedDonationData = {
         donorID: null, // Backend will set based on authenticated user
-        requestID: donationData.requestID || null,
         donationDate: donationData.donationDate,
         bloodType: donationData.bloodType, // Use bloodType instead of bloodTypeID
         status: donationData.status || 'Pending',
@@ -170,7 +169,6 @@ export const enhancedDonorApi = {
         // Step 2: Register blood donation (without duplicate donor info)
         const bloodDonationData = {
           donorID: null, // Backend will set based on authenticated user
-          requestID: donationData.requestID || null,
           donationDate: donationData.donationDate,
           bloodType: donationData.bloodType, // Use bloodType instead of bloodTypeID
           status: donationData.status || 'Pending',

@@ -40,6 +40,7 @@ import {
   cleanupTokens,
   refreshAuthToken,
   getAvailableQuantityByBloodType,
+  getAvailableQuantityByCompatibleBloodTypes,
 } from "../../services/emergencyRequestApi";
 import "../../styles/EmergencyRequest.css";
 
@@ -183,6 +184,7 @@ const CreateEmergencyRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     // Validate required fields
     const requiredFields = [
       "patientName",
@@ -201,21 +203,52 @@ const CreateEmergencyRequest = () => {
       return;
     }
 
+    // Validate số lượng máu cần
+    const quantityNeeded = parseInt(formData.quantityNeeded);
+    
+    // Kiểm tra là số nguyên dương
+    if (!Number.isInteger(quantityNeeded) || quantityNeeded <= 0) {
+      setErrorMessage("Số lượng máu phải là số nguyên dương");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+    
+    // Kiểm tra tối thiểu 250ml
+    if (quantityNeeded < 250) {
+      setErrorMessage("Tối thiểu cần 250ml máu");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+    
+    // Kiểm tra tối đa 2000ml
+    if (quantityNeeded > 2000) {
+      setErrorMessage("Không được yêu cầu quá 2000ml máu");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // 1. Lấy bloodTypeId và số lượng cần
+      // 1. Lấy bloodTypeId
       const bloodTypeId = getBloodTypeId(formData.bloodTypeRequired);
-      const quantityNeeded = parseInt(formData.quantityNeeded);
 
-      // 2. Kiểm tra số lượng máu trong kho
-      const availableQuantity = await getAvailableQuantityByBloodType(
+      // 2. Kiểm tra số lượng máu từ tất cả nhóm máu tương thích trong kho
+      console.log(`Checking blood availability for needed type: ${formData.bloodTypeRequired} (ID: ${bloodTypeId})`);
+      const availableQuantity = await getAvailableQuantityByCompatibleBloodTypes(
         bloodTypeId
       );
+      console.log(`Total compatible blood available: ${availableQuantity}ml, needed: ${quantityNeeded}ml`);
 
-      // 3. Xác định trạng thái
+      // 3. Xác định trạng thái dựa trên tổng số lượng máu tương thích
       let status = "Opened";
       if (availableQuantity >= quantityNeeded) {
         status = "Pending";
+        console.log(`Status set to Pending - sufficient compatible blood available`);
+      } else {
+        console.log(`Status set to Opened - insufficient compatible blood (shortage: ${quantityNeeded - availableQuantity}ml)`);
       }
 
       // 4. Chuẩn bị dữ liệu gửi lên API
@@ -490,13 +523,14 @@ const CreateEmergencyRequest = () => {
                           name="quantityNeeded"
                           value={formData.quantityNeeded}
                           onChange={handleInputChange}
-                          placeholder="Số ml (VD: 5000)"
-                          min="100"
-                          step="100"
+                          placeholder="Nhập số ml (VD: 450, 900)"
+                          min="250"
+                          max="2000"
+                          step="1"
                           required
                         />
                         <Form.Text className="text-muted">
-                          Đơn vị tính: ml (1 đơn vị máu ≈ 450ml)
+                          Tối thiểu: 250ml (≈ 0.5 đơn vị) - Tối đa: 2000ml (≈ 4.4 đơn vị)
                         </Form.Text>
                       </Form.Group>
                     </Col>
@@ -618,9 +652,7 @@ const CreateEmergencyRequest = () => {
             <div className="mb-3">
               <strong>Số lượng cần:</strong>{" "}
               {formData.quantityNeeded ? (
-                `${formData.quantityNeeded} ml (≈ ${Math.round(
-                  formData.quantityNeeded / 450
-                )} đơn vị)`
+                `${formData.quantityNeeded} ml (≈ ${(formData.quantityNeeded / 450).toFixed(1)} đơn vị)`
               ) : (
                 <span className="text-muted">(Chưa nhập)</span>
               )}

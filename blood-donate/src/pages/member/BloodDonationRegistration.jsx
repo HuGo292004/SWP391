@@ -28,7 +28,6 @@
  * Quan trọng: Địa chỉ và Thuốc đang dùng giờ được lưu vào bảng Donor, Ghi chú dành cho nhận xét bổ sung
  */
 
-// Import các thư viện React và hooks
 import React, { useState, useEffect } from "react";
 
 // Import các component từ Ant Design
@@ -64,7 +63,7 @@ import {
   PhoneOutlined, // Icon điện thoại
   MailOutlined, // Icon email
 } from "@ant-design/icons";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -73,6 +72,12 @@ import { enhancedDonorApi } from "../../services/enhancedDonorApi";
 import { bloodManagementApi } from "../../services/bloodManagementApi";
 import { bloodDonationApi } from "../../services/bloodDonationApi";
 import { UserAPI } from "../../services/userApi";
+import { getAllBloodRequests } from "../../services/emergencyRequestApi";
+import { 
+  canDonateBloodTo, 
+  getBloodTypeFromID, 
+  getCompatibleRecipientBloodTypes 
+} from "../../utils/bloodTypeCompatibility";
 import "../../styles/BloodDonationRegistration.css";
 
 const { Title, Text, Paragraph } = Typography;
@@ -93,22 +98,17 @@ const BloodDonationRegistration = () => {
   const [loadingBloodTypes, setLoadingBloodTypes] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [autoBloodType, setAutoBloodType] = useState("");
   const [autoAddress, setAutoAddress] = useState("");
-  const location = useLocation();
+  
+  // Emergency request support states
+  const [emergencyRequest, setEmergencyRequest] = useState(null);
+  const [loadingEmergencyRequest, setLoadingEmergencyRequest] = useState(false);
+  const [bloodTypeCompatibilityWarning, setBloodTypeCompatibilityWarning] = useState("");
+  
   // Business rule: minimum 12 weeks between donations
   const [minNextDonationDate, setMinNextDonationDate] = useState(null);
-  // Auto-fill emergencyRequestId from URL if present
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const emergencyRequestId = params.get("emergencyRequestId");
-    if (emergencyRequestId) {
-      form.setFieldsValue({ requestID: emergencyRequestId });
-      setFormData((prev) => ({ ...prev, requestID: emergencyRequestId }));
-    }
-    // eslint-disable-next-line
-  }, [location.search]);
-
   // Load blood types from API on component mount
   useEffect(() => {
     // Initialize with static blood types first
@@ -119,7 +119,84 @@ const BloodDonationRegistration = () => {
     checkExistingDonation();
     // Check last successful donation for 12-week rule
     fetchLastSuccessfulDonation();
+    // Load emergency request if provided in URL
+    loadEmergencyRequestIfPresent();
   }, []);
+
+  // Load emergency request information if emergencyRequestId is in URL
+  const loadEmergencyRequestIfPresent = async () => {
+    const emergencyRequestId = searchParams.get('emergencyRequestId');
+    if (!emergencyRequestId) return;
+
+    setLoadingEmergencyRequest(true);
+    try {
+      console.log('Loading emergency request:', emergencyRequestId);
+      
+      // Get all emergency requests and find the specific one
+      const allRequests = await getAllBloodRequests();
+      const targetRequest = allRequests.find(req => 
+        req.requestId === emergencyRequestId || 
+        req.id === emergencyRequestId
+      );
+
+      if (targetRequest) {
+        setEmergencyRequest(targetRequest);
+        console.log('Emergency request loaded:', targetRequest);
+        
+        // Show info message that user is supporting an emergency request
+        setSuccess(`Bạn đang hỗ trợ yêu cầu khẩn cấp cho nhóm máu ${getBloodTypeFromID(targetRequest.bloodTypeRequired) || targetRequest.bloodTypeRequired}. Vui lòng chọn nhóm máu tương thích.`);
+      } else {
+        console.warn('Emergency request not found:', emergencyRequestId);
+        setError('Không tìm thấy yêu cầu khẩn cấp. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error loading emergency request:', error);
+      setError('Không thể tải thông tin yêu cầu khẩn cấp.');
+    } finally {
+      setLoadingEmergencyRequest(false);
+    }
+  };
+
+  // Check blood type compatibility with emergency request
+  const checkBloodTypeCompatibility = (selectedBloodTypeID) => {
+    if (!emergencyRequest || !selectedBloodTypeID) {
+      setBloodTypeCompatibilityWarning("");
+      return true;
+    }
+
+    const selectedBloodType = convertBloodTypeIDToString(selectedBloodTypeID);
+    const neededBloodType = getBloodTypeFromID(emergencyRequest.bloodTypeRequired) || emergencyRequest.bloodTypeRequired;
+    
+    if (!selectedBloodType || !neededBloodType) {
+      setBloodTypeCompatibilityWarning("");
+      return true;
+    }
+
+    // Check if selected blood type can donate to needed blood type
+    const isCompatible = canDonateBloodTo(selectedBloodType, neededBloodType);
+    
+    if (!isCompatible) {
+      // Show which blood types can help this emergency
+      const compatibleDonors = getCompatibleRecipientBloodTypes(selectedBloodType);
+      const canHelpBloodTypes = compatibleDonors.join(", ");
+      
+      // Get which blood types can help the emergency request
+      const { getCompatibleDonorBloodTypes } = require("../../utils/bloodTypeCompatibility");
+      const canHelpEmergency = getCompatibleDonorBloodTypes(neededBloodType);
+      
+      setBloodTypeCompatibilityWarning(
+        `⚠️ CẢNH BÁO: Nhóm máu ${selectedBloodType} không thể hỗ trợ cho nhóm máu ${neededBloodType}. ` +
+        `\n\n📋 Nhóm máu ${selectedBloodType} chỉ có thể hỗ trợ cho: ${canHelpBloodTypes}` +
+        `\n\n🩸 Yêu cầu khẩn cấp ${neededBloodType} có thể nhận từ: ${canHelpEmergency.join(", ")}` +
+        `\n\n💡 Vui lòng chọn một trong các nhóm máu tương thích hoặc huỷ hỗ trợ yêu cầu này.`
+      );
+      return false;
+    } else {
+      setBloodTypeCompatibilityWarning("");
+      setSuccess(`✅ Nhóm máu ${selectedBloodType} có thể hỗ trợ cho yêu cầu khẩn cấp ${neededBloodType}!`);
+      return true;
+    }
+  };
 
   // Lấy lần hiến máu thành công gần nhất để tính ngày có thể đăng ký tiếp theo
   const fetchLastSuccessfulDonation = async () => {
@@ -183,10 +260,24 @@ const BloodDonationRegistration = () => {
           address: address,
         });
         form.validateFields(["bloodTypeID"]);
+        
+        // Check compatibility with emergency request if present
+        if (bloodTypeId) {
+          const isCompatible = checkBloodTypeCompatibility(bloodTypeId);
+          if (!isCompatible && emergencyRequest) {
+            // If auto-filled blood type is not compatible, show warning but don't prevent usage
+            setTimeout(() => {
+              setError(
+                `Nhóm máu trong hồ sơ của bạn (${convertBloodTypeIDToString(bloodTypeId)}) không tương thích với yêu cầu khẩn cấp. ` +
+                `Bạn có thể thay đổi nhóm máu hoặc huỷ hỗ trợ yêu cầu này.`
+              );
+            }, 1000);
+          }
+        }
       }
     };
     fetchDonorProfile();
-  }, [bloodTypes]);
+  }, [bloodTypes, emergencyRequest]); // Add emergencyRequest as dependency
 
   // Sau khi setAutoAddress trong useEffect, đồng bộ lại form nếu autoAddress thay đổi
   useEffect(() => {
@@ -438,7 +529,6 @@ const BloodDonationRegistration = () => {
 
       const donationData = {
         donorID: null, // Let backend set this based on authenticated user
-        requestID: formValues.requestID || null,
         donationDate:
           formValues.donationDate && formValues.donationTime
             ? dayjs(
@@ -555,7 +645,7 @@ const BloodDonationRegistration = () => {
     form
       .validateFields(fieldsToValidate)
       .then((values) => {
-        // Get all form values, including optional ones like notes and requestID
+        // Get all form values, including optional ones like notes
         const allFormValues = form.getFieldsValue();
 
         // Additional validation for bloodTypeID and conversion
@@ -573,6 +663,12 @@ const BloodDonationRegistration = () => {
           );
           if (!bloodTypeString) {
             setError("Không thể xác định nhóm máu. Vui lòng chọn lại!");
+            return;
+          }
+
+          // Check blood type compatibility with emergency request
+          if (!checkBloodTypeCompatibility(bloodTypeIDToValidate)) {
+            setError("Nhóm máu bạn chọn không tương thích với yêu cầu khẩn cấp. Vui lòng chọn nhóm máu tương thích hoặc huỷ hỗ trợ yêu cầu này.");
             return;
           }
         }
@@ -673,123 +769,110 @@ const BloodDonationRegistration = () => {
               />
             </Form.Item>
 
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Nhóm máu"
-                  name="bloodTypeID"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn nhóm máu!" },
-                    {
-                      validator: (_, value) => {
-                        if (!isValidBloodTypeID(value)) {
-                          return Promise.reject(
-                            new Error("Vui lòng chọn nhóm máu hợp lệ!")
-                          );
-                        }
-                        return Promise.resolve();
-                      },
-                    },
-                  ]}
-                >
-                  <Select
-                    placeholder={
-                      loadingBloodTypes
-                        ? "Đang tải nhóm máu..."
-                        : "Chọn nhóm máu của bạn"
-                    }
-                    className="modern-input"
-                    showSearch
-                    loading={loadingBloodTypes}
-                    disabled={loadingBloodTypes || bloodTypes.length === 0}
-                    filterOption={(input, option) => {
-                      const searchText = option?.searchText || "";
-                      return searchText
-                        .toLowerCase()
-                        .includes(input.toLowerCase());
-                    }}
-                    notFoundContent={
-                      loadingBloodTypes
-                        ? "Đang tải..."
-                        : "Không tìm thấy nhóm máu"
-                    }
-                    onChange={(value) => {
-                      const selectedType = bloodTypes.find(
-                        (type) =>
-                          type.bloodTypeId === value || // API uses lowercase 'd' - check first
-                          type.bloodTypeID === value ||
-                          type.BloodTypeID === value ||
-                          type.id === value
+            <Form.Item
+              label="Nhóm máu"
+              name="bloodTypeID"
+              rules={[
+                { required: true, message: "Vui lòng chọn nhóm máu!" },
+                {
+                  validator: (_, value) => {
+                    if (!isValidBloodTypeID(value)) {
+                      return Promise.reject(
+                        new Error("Vui lòng chọn nhóm máu hợp lệ!")
                       );
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
+              <Select
+                placeholder={
+                  loadingBloodTypes
+                    ? "Đang tải nhóm máu..."
+                    : "Chọn nhóm máu của bạn"
+                }
+                className="modern-input"
+                showSearch
+                loading={loadingBloodTypes}
+                disabled={loadingBloodTypes || bloodTypes.length === 0}
+                filterOption={(input, option) => {
+                  const searchText = option?.searchText || "";
+                  return searchText
+                    .toLowerCase()
+                    .includes(input.toLowerCase());
+                }}
+                notFoundContent={
+                  loadingBloodTypes
+                    ? "Đang tải..."
+                    : "Không tìm thấy nhóm máu"
+                }
+                onChange={(value) => {
+                  const selectedType = bloodTypes.find(
+                    (type) =>
+                      type.bloodTypeId === value || // API uses lowercase 'd' - check first
+                      type.bloodTypeID === value ||
+                      type.BloodTypeID === value ||
+                      type.id === value
+                  );
 
-                      // Update both the form value and the formData state
-                      setFormData((prev) => ({
-                        ...prev,
-                        bloodTypeID: value,
-                      }));
+                  // Update both the form value and the formData state
+                  setFormData((prev) => ({
+                    ...prev,
+                    bloodTypeID: value,
+                  }));
 
-                      // Also update the Ant Design form field
-                      form.setFieldsValue({
-                        bloodTypeID: value,
-                      });
-                    }}
-                    // KHÔNG dùng defaultValue hoặc value ở đây
-                  >
-                    {bloodTypes.map((type, index) => {
-                      const key =
-                        type.bloodTypeId ||
-                        type.bloodTypeID ||
-                        type.BloodTypeID ||
-                        type.id ||
-                        `type-${index}`;
-                      const aboType = type.aboType || type.AboType || "";
-                      const rhFactor = type.rhFactor || type.RhFactor || "";
-                      const description =
-                        type.description ||
-                        type.Description ||
-                        `Nhóm máu ${aboType} Rh ${
-                          rhFactor === "+" ? "dương" : "âm"
-                        }`;
-                      return (
-                        <Option
-                          key={key}
-                          value={key}
-                          searchText={`${aboType}${rhFactor} ${description}`}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <Tag color="red" style={{ margin: 0 }}>
-                              {aboType}
-                              {rhFactor}
-                            </Tag>
-                            <span style={{ fontSize: "12px", color: "#666" }}>
-                              {description}
-                            </span>
-                          </div>
-                        </Option>
-                      );
-                    })}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Mã hỗ trợ khẩn cấp (nếu có)"
-                  name="requestID"
-                  tooltip="Nếu bạn hiến máu để đáp ứng yêu cầu khẩn cấp, hãy nhập mã yêu cầu"
-                >
-                  <Input
-                    placeholder="Nhập mã hỗ trợ khẩn cấp (tùy chọn)"
-                    className="modern-input"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+                  // Also update the Ant Design form field
+                  form.setFieldsValue({
+                    bloodTypeID: value,
+                  });
+
+                  // Check compatibility with emergency request if present
+                  checkBloodTypeCompatibility(value);
+                }}
+                // KHÔNG dùng defaultValue hoặc value ở đây
+              >
+                {bloodTypes.map((type, index) => {
+                  const key =
+                    type.bloodTypeId ||
+                    type.bloodTypeID ||
+                    type.BloodTypeID ||
+                    type.id ||
+                    `type-${index}`;
+                  const aboType = type.aboType || type.AboType || "";
+                  const rhFactor = type.rhFactor || type.RhFactor || "";
+                  const description =
+                    type.description ||
+                    type.Description ||
+                    `Nhóm máu ${aboType} Rh ${
+                      rhFactor === "+" ? "dương" : "âm"
+                    }`;
+                  return (
+                    <Option
+                      key={key}
+                      value={key}
+                      searchText={`${aboType}${rhFactor} ${description}`}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Tag color="red" style={{ margin: 0 }}>
+                          {aboType}
+                          {rhFactor}
+                        </Tag>
+                        <span style={{ fontSize: "12px", color: "#666" }}>
+                          {description}
+                        </span>
+                      </div>
+                    </Option>
+                  );
+                })}
+              </Select>
+            </Form.Item>
 
             <Form.Item
               label="Địa chỉ"
@@ -809,6 +892,49 @@ const BloodDonationRegistration = () => {
                 className="modern-input"
               />
             </Form.Item>
+
+            {/* Emergency Request Information */}
+            {emergencyRequest && (
+              <Alert
+                message="Thông tin yêu cầu khẩn cấp"
+                description={
+                  <div>
+                    <p><strong>Bệnh nhân:</strong> {emergencyRequest.patientName}</p>
+                    <p><strong>Nhóm máu cần:</strong> {getBloodTypeFromID(emergencyRequest.bloodTypeRequired) || emergencyRequest.bloodTypeRequired}</p>
+                    <p><strong>Số lượng cần:</strong> {emergencyRequest.quantityNeeded}ml</p>
+                    {(() => {
+                      try {
+                        const { getCompatibleDonorBloodTypes } = require("../../utils/bloodTypeCompatibility");
+                        const neededBloodType = getBloodTypeFromID(emergencyRequest.bloodTypeRequired) || emergencyRequest.bloodTypeRequired;
+                        const compatibleDonors = getCompatibleDonorBloodTypes(neededBloodType);
+                        return (
+                          <p><strong>Nhóm máu có thể hỗ trợ:</strong> {compatibleDonors.join(", ")}</p>
+                        );
+                      } catch (e) {
+                        return null;
+                      }
+                    })()}
+                    {emergencyRequest.description && (
+                      <p><strong>Mô tả:</strong> {emergencyRequest.description}</p>
+                    )}
+                  </div>
+                }
+                type="info"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+            )}
+
+            {/* Blood Type Compatibility Warning */}
+            {bloodTypeCompatibilityWarning && (
+              <Alert
+                message="Cảnh báo tương thích nhóm máu"
+                description={bloodTypeCompatibilityWarning}
+                type="error"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+            )}
           </Card>
         );
 
@@ -940,17 +1066,6 @@ const BloodDonationRegistration = () => {
                     </Row>
                   )}
 
-                  {formData.requestID && (
-                    <Row gutter={[16, 16]}>
-                      <Col span={24}>
-                        <div className="confirm-item">
-                          <Text strong>Mã hỗ trợ khẩn cấp:</Text>
-                          <Text>{formData.requestID}</Text>
-                        </div>
-                      </Col>
-                    </Row>
-                  )}
-
                   <Divider />
 
                   <div style={{ marginBottom: "16px" }}>
@@ -1040,6 +1155,34 @@ const BloodDonationRegistration = () => {
                 "DD/MM/YYYY"
               )}. (Khoảng cách tối thiểu giữa hai lần hiến là 12 tuần)`}
               type="info"
+              showIcon
+              className="alert-message"
+              style={{ marginBottom: 16 }}
+            />
+          )}
+
+          {/* Emergency Request Cancel Option */}
+          {emergencyRequest && (
+            <Alert
+              message="Hỗ trợ yêu cầu khẩn cấp"
+              description={
+                <div>
+                  <p>Bạn đang hỗ trợ yêu cầu khẩn cấp cho bệnh nhân <strong>{emergencyRequest.patientName}</strong>.</p>
+                  <Button 
+                    type="link" 
+                    onClick={() => {
+                      navigate('/member/blood-donation-registration');
+                      setEmergencyRequest(null);
+                      setBloodTypeCompatibilityWarning("");
+                      setSuccess("");
+                    }}
+                    style={{ paddingLeft: 0 }}
+                  >
+                    Huỷ hỗ trợ và đăng ký hiến máu bình thường
+                  </Button>
+                </div>
+              }
+              type="warning"
               showIcon
               className="alert-message"
               style={{ marginBottom: 16 }}
