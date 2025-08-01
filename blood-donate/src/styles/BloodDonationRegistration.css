@@ -1,16 +1,16 @@
 /* Blood Donation Registration Styles - Cải tiến UI */
-/* Container chính */
+/* Container chính với gradient background */
 .blood-donation-registration-container {
   min-height: 100vh;
-  background: #ffffff;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   position: relative;
-  padding: 40px 16px 60px 16px;
+  padding: 20px 16px 60px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Thêm pattern background */
+/* Thêm pattern background tinh tế */
 .blood-donation-registration-container::before {
   content: "";
   position: absolute;
@@ -18,119 +18,120 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: radial-gradient(
-      circle at 20% 80%,
-      rgba(33, 150, 243, 0.03) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 20%,
-      rgba(33, 150, 243, 0.03) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 40% 40%,
-      rgba(33, 150, 243, 0.02) 0%,
-      transparent 50%
-    );
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(244, 67, 54, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 75% 75%, rgba(33, 150, 243, 0.05) 0%, transparent 45%),
+    linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.02) 50%, transparent 51%);
   z-index: 1;
 }
 
-/* Header với thiết kế mới */
+/* Header với thiết kế đẹp hơn */
 .registration-header {
   text-align: center;
-  margin-bottom: 40px;
-  padding: 40px 24px 32px 24px;
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-  border-radius: 24px;
+  margin-bottom: 30px;
+  padding: 35px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
   color: #ffffff;
-  box-shadow: 0 8px 32px rgba(33, 150, 243, 0.25),
-    0 4px 16px rgba(33, 150, 243, 0.15);
-  max-width: 700px;
+  box-shadow: 
+    0 20px 40px rgba(102, 126, 234, 0.3),
+    0 8px 16px rgba(118, 75, 162, 0.2);
+  max-width: 800px;
   width: 100%;
   position: relative;
   z-index: 2;
-  border: 1px solid rgba(33, 150, 243, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .header-icon {
-  font-size: 3.5rem;
-  color: #ff4757;
-  margin-bottom: 16px;
+  font-size: 4rem;
+  color: #ff6b6b;
+  margin-bottom: 20px;
   display: block;
   animation: heartbeat 2s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 @keyframes heartbeat {
-  0% {
-    transform: scale(1);
-  }
-  14% {
-    transform: scale(1.15);
-  }
-  28% {
-    transform: scale(1);
-  }
-  42% {
-    transform: scale(1.15);
-  }
-  70% {
-    transform: scale(1);
-  }
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.1); }
+  50% { transform: scale(1.05); }
+  75% { transform: scale(1.15); }
 }
 
 .header-title {
   color: #ffffff !important;
-  margin-bottom: 12px;
-  font-size: 2.5rem;
+  margin-bottom: 15px;
+  font-size: 2.8rem;
   font-weight: 800;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.5px;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.9) !important;
-  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-size: 1.3rem;
   margin-bottom: 0;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Main content với thiết kế sạch sẽ */
+/* Main content với thiết kế glass morphism */
 .registration-content {
-  max-width: 1000px;
+  max-width: 1100px;
   width: 100%;
-  margin: 0 auto 32px auto;
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 32px 32px 24px 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  margin: 0 auto 40px auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  padding: 40px 35px 30px 35px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.1),
+    0 8px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   position: relative;
   z-index: 2;
-  border: 1px solid #e9ecef;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Thêm hiệu ứng cho content */
+/* Thêm hiệu ứng cho content với gradient mới */
 .registration-content::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #2196f3, #42a5f5, #1e88e5, #2196f3);
-  border-radius: 24px 24px 0 0;
+  height: 6px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+  background-size: 300% 100%;
+  border-radius: 25px 25px 0 0;
+  animation: gradientShift 4s ease-in-out infinite;
 }
 
-@media (max-width: 1000px) {
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Responsive design cải tiến */
+@media (max-width: 1200px) {
   .registration-content {
     max-width: 95vw;
-    padding: 24px 20px 20px 20px;
-    margin: 0 auto 24px auto;
+    padding: 30px 25px 25px 25px;
+    margin: 0 auto 30px auto;
   }
+}
 
+@media (max-width: 768px) {
+  .registration-content {
+    padding: 25px 20px 20px 20px;
+    border-radius: 20px;
+  }
+  
   .header-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   .header-subtitle {
@@ -138,75 +139,217 @@
   }
 
   .registration-header {
-    padding: 32px 20px 24px 20px;
-    margin-bottom: 32px;
+    padding: 30px 25px;
+    margin-bottom: 25px;
+    border-radius: 18px;
   }
 }
 
 /* Steps container với thiết kế mới */
 .steps-container {
-  margin-bottom: 40px;
+  margin-bottom: 35px;
 }
 
 .blood-donation-form .ant-steps {
-  margin-bottom: 40px;
+  margin-bottom: 35px;
 }
 
 .blood-donation-form .ant-steps-item-title {
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   color: #2c3e50 !important;
+  font-size: 1.1rem !important;
 }
 
 .blood-donation-form .ant-steps-item-description {
   color: #6c757d !important;
+  font-size: 0.95rem !important;
 }
 
-/* Step Card với thiết kế mới */
+/* Step Card với glass morphism effect */
 .step-card {
   border: none;
-  box-shadow: 0 8px 32px rgba(33, 150, 243, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.05);
-  border-radius: 20px;
-  margin-bottom: 24px;
-  border: 1px solid rgba(33, 150, 243, 0.1);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.1),
+    0 5px 15px rgba(0, 0, 0, 0.08);
+  border-radius: 25px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
 }
 
 .step-card .ant-card-head {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border-bottom: 1px solid rgba(33, 150, 243, 0.1);
-  border-radius: 20px 20px 0 0;
-  min-height: 64px;
-  padding: 0 24px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.15);
+  border-radius: 25px 25px 0 0;
+  min-height: 70px;
+  padding: 0 30px;
 }
 
 .step-card .ant-card-head-title {
-  font-weight: 700;
-  color: #2196f3;
-  font-size: 1.4rem;
+  font-weight: 800;
+  color: #667eea;
+  font-size: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
 }
 
 .step-card .ant-card-head-title::before {
   content: "🩸";
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 .step-card .ant-card-body {
-  padding: 24px 24px 20px 24px;
-  background: #ffffff;
+  padding: 30px 30px 25px 30px;
+  background: rgba(255, 255, 255, 0.95);
 }
 
-/* Form styling cải tiến */
+/* Form styling cải tiến với tỉ lệ phù hợp */
 .blood-donation-form .ant-form-item {
-  margin-bottom: 32px;
+  margin-bottom: 28px;
+}
+
+.blood-donation-form .ant-form-item-label > label {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blood-donation-form .ant-form-item-label > label::before {
+  content: "";
+  width: 4px;
+  height: 18px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 2px;
+}
+
+/* Input styling với tỉ lệ hợp lý */
+.modern-input,
+.ant-input,
+.ant-select .ant-select-selector,
+.ant-picker,
+.ant-input-affix-wrapper {
+  border-radius: 12px !important;
+  border: 2px solid #e8ecf0 !important;
+  font-size: 1rem !important;
+  padding: 12px 16px !important;
+  min-height: 48px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Sizing cho các loại input */
+.ant-picker {
+  width: 100% !important;
+  max-width: 280px !important;
+}
+
+.ant-select {
+  width: 100% !important;
+}
+
+.ant-input,
+.ant-input-affix-wrapper {
+  width: 100% !important;
+}
+
+textarea.ant-input {
+  min-height: 80px !important;
+  resize: vertical !important;
+}
+
+/* Focus states */
+.modern-input:focus,
+.ant-input:focus,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused,
+.ant-input-affix-wrapper-focused {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
+  background: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.modern-input:hover,
+.ant-input:hover,
+.ant-select:not(.ant-select-disabled):hover .ant-select-selector,
+.ant-picker:hover {
+  border-color: #8b9dc3 !important;
+  background: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+/* Blood Type Compatibility Message */
+.blood-type-compatibility-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 2px solid #b3d7bf;
+  color: #155724;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.blood-type-compatibility-success::before {
+  content: "✅";
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.blood-type-compatibility-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border: 2px solid #ffd93d;
+  color: #856404;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.blood-type-compatibility-warning::before {
+  content: "⚠️";
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .blood-donation-form .ant-form-item-label > label {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #2c3e50;
   letter-spacing: 0.3px;
   margin-bottom: 8px;
@@ -404,26 +547,88 @@
   }
 }
 
+/* Responsive Design cho mobile */
+@media (max-width: 768px) {
+  .registration-content {
+    padding: 25px 20px 20px 20px;
+    border-radius: 20px;
+  }
+  
+  .header-title {
+    font-size: 2.2rem;
+  }
+
+  .header-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .registration-header {
+    padding: 30px 25px;
+    margin-bottom: 25px;
+    border-radius: 18px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .prev-btn,
+  .next-btn,
+  .submit-btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .info-cards .ant-col {
+    margin-bottom: 20px;
+  }
+}
+
 @media (max-width: 600px) {
   .header-title {
-    font-size: 1.8rem;
+    font-size: 1.9rem;
   }
 
   .header-icon {
-    font-size: 2.8rem;
+    font-size: 3.2rem;
   }
 
   .registration-content {
-    padding: 20px 12px 16px 12px;
+    padding: 20px 15px 16px 15px;
   }
 
   .step-card .ant-card-head {
-    padding: 0 16px;
-    min-height: 56px;
+    padding: 0 20px;
+    min-height: 60px;
   }
 
   .step-card .ant-card-head-title {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+  }
+
+  .step-card .ant-card-body {
+    padding: 25px 20px 20px 20px;
+  }
+
+  .blood-donation-form .ant-form-item-label > label {
+    font-size: 1rem;
+  }
+
+  .info-card {
+    padding: 30px 20px;
+  }
+
+  .info-icon {
+    font-size: 3.2rem;
+  }
+
+  .info-card .ant-typography h4 {
+    font-size: 1.4rem;
+  }
+
+  .info-card .ant-typography {
+    font-size: 1rem;
   }
 }
 
@@ -540,23 +745,26 @@
   font-size: 1rem;
 }
 
-/* Info Cards Section */
+/* Info Cards Section với thiết kế hiện đại */
 .info-cards {
-  max-width: 1000px;
+  max-width: 1200px;
   width: 100%;
-  margin-top: 40px;
+  margin-top: 50px;
   position: relative;
   z-index: 2;
 }
 
 .info-card {
-  background: #ffffff;
-  border-radius: 20px;
-  border: 1px solid #e9ecef;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
-  padding: 32px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.1),
+    0 5px 15px rgba(0, 0, 0, 0.08);
+  padding: 40px 30px;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
   position: relative;
   overflow: hidden;
@@ -568,39 +776,61 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #2196f3, #42a5f5);
-  border-radius: 20px 20px 0 0;
+  height: 6px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+  background-size: 200% 100%;
+  border-radius: 25px 25px 0 0;
+  animation: gradientMove 3s ease-in-out infinite;
+}
+
+@keyframes gradientMove {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .info-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15),
-    0 10px 25px rgba(33, 150, 243, 0.1);
+  transform: translateY(-15px) scale(1.03);
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.15),
+    0 15px 30px rgba(102, 126, 234, 0.2);
+}
+
+.info-card:nth-child(1) .info-icon {
+  color: #ff6b6b;
+}
+
+.info-card:nth-child(2) .info-icon {
+  color: #4ecdc4;
+}
+
+.info-card:nth-child(3) .info-icon {
+  color: #45b7d1;
 }
 
 .info-icon {
-  font-size: 3rem;
-  color: #2196f3;
-  margin-bottom: 20px;
+  font-size: 3.8rem;
+  margin-bottom: 25px;
   display: block;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
 .info-card:hover .info-icon {
-  transform: scale(1.1);
-  color: #1976d2;
+  transform: scale(1.2) rotate(8deg);
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
 }
 
 .info-card .ant-typography h4 {
   color: #2c3e50;
-  font-weight: 700;
-  margin-bottom: 16px;
-  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+  font-size: 1.6rem;
+  letter-spacing: -0.5px;
 }
 
 .info-card .ant-typography {
-  color: #6c757d;
-  font-size: 1rem;
-  line-height: 1.6;
+  color: #5a6c7d;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  font-weight: 500;
 }

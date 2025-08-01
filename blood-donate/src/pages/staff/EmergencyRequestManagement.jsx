@@ -9,6 +9,9 @@ const STATUS_TRANSITIONS = {
 // Import các thư viện React và hooks cần thiết
 import React, { useEffect, useState } from "react";
 
+// Import CSS
+import "../../styles/EmergencyRequestManagement.css";
+
 // Import các component từ Ant Design
 import {
   Table, // Component bảng dữ liệu
@@ -31,10 +34,13 @@ import {
   List, // Component list
   Checkbox, // Component checkbox
   Divider, // Component divider
+  Input, // Component input
+  DatePicker, // Component date picker
+  Statistic, // Component statistic
 } from "antd";
 
 // Import icons
-import { ExportOutlined } from "@ant-design/icons";
+import { ExportOutlined, SearchOutlined, ReloadOutlined, FilterOutlined } from "@ant-design/icons";
 
 // Import API service cho emergency requests
 import { getAllBloodRequests } from "../../services/emergencyRequestApi";
@@ -68,8 +74,6 @@ const BLOOD_TYPE_MAP = {
 const STATUS_OPTIONS = [
   { value: "Opened", label: "Cần hỗ trợ" },
   { value: "Pending", label: "Chờ xử lý" },
-  { value: "Approved", label: "Đã duyệt" },
-  { value: "Rejected", label: "Từ chối" },
   { value: "Done", label: "Hoàn thành" },
   { value: "Closed", label: "Đã đóng" },
 ];
@@ -109,8 +113,11 @@ const getRequestUser = async (requestId) => {
   }
 };
 
-// Component mapping helper
+// Component mapping helper với thông tin chi tiết
 const getComponentText = (componentId) => {
+  // Chuyển componentId về uppercase để đồng nhất
+  const normalizedId = componentId ? componentId.toUpperCase() : '';
+  
   const componentMap = {
     "321FC094-8CBA-4351-8F21-167D8D974DF2": "Bạch cầu",
     "80BFD932-0D38-46DA-AD65-176CA398B66F": "Huyết tương", 
@@ -130,14 +137,101 @@ const getComponentText = (componentId) => {
     "fresh_frozen_plasma": "Huyết tương tươi đông lạnh",
   };
 
-  return componentMap[componentId] || textMap[componentId] || componentId;
+  // Tìm kiếm theo normalizedId trước
+  const result = componentMap[normalizedId] || textMap[normalizedId.toLowerCase()];
+  
+  if (result) {
+    return result;
+  }
+
+  // Nếu không tìm thấy, tìm kiếm trong tất cả keys với case-insensitive
+  for (const [key, value] of Object.entries(componentMap)) {
+    if (key.toUpperCase() === normalizedId) {
+      return value;
+    }
+  }
+
+  return componentId;
+};
+
+// Hàm lấy thông tin chi tiết về thành phần máu
+const getComponentDetails = (componentId) => {
+  // Chuyển componentId về uppercase để đồng nhất
+  const normalizedId = componentId ? componentId.toUpperCase() : '';
+  
+  const componentDetails = {
+    "321FC094-8CBA-4351-8F21-167D8D974DF2": {
+      name: "Bạch cầu",
+      compatibility: "Ít khi truyền do nguy cơ phản ứng miễn dịch. Dành cho bệnh nhân suy giảm miễn dịch nghiêm trọng.",
+      storage: "Phải dùng ngay sau khi tách, không bảo quản lâu dài.",
+      color: "volcano"
+    },
+    "80BFD932-0D38-46DA-AD65-176CA398B66F": {
+      name: "Huyết tương",
+      compatibility: "Có thể truyền cho bất kỳ nhóm máu nào nếu đã được tách đông lạnh. Ưu tiên cùng nhóm.",
+      storage: "Bảo quản ở -18°C hoặc thấp hơn, tối đa 1 năm.",
+      color: "cyan"
+    },
+    "EEC9ADCB-1189-4647-8763-32FCE9A628C6": {
+      name: "Máu toàn phần",
+      compatibility: "Phù hợp với người cùng nhóm máu ABO và Rh.",
+      storage: "Bảo quản ở nhiệt độ 1-6°C trong vòng 35 ngày.",
+      color: "red"
+    },
+    "349DBBD3-C98C-4D03-93A2-6692E07E3A25": {
+      name: "Hồng cầu",
+      compatibility: "Thích hợp cho người thiếu máu hoặc mất máu nhiều. Cần tương thích nhóm máu ABO và Rh.",
+      storage: "Bảo quản ở 1-6°C, sử dụng trong 42 ngày.",
+      color: "magenta"
+    },
+    "2086DB63-1BA1-4AD5-9BEA-7EF69F1C1F67": {
+      name: "Tủa lạnh",
+      compatibility: "Dùng để điều trị rối loạn đông máu. Ưu tiên tương thích ABO.",
+      storage: "Bảo quản ở -18°C hoặc thấp hơn, dùng trong vòng 1 năm.",
+      color: "blue"
+    },
+    "6CDE6913-37CA-41F2-B7D8-F88E8CB23E93": {
+      name: "Tiểu cầu",
+      compatibility: "Tương thích với hệ thống ABO; không cần Rh. Dành cho bệnh nhân chảy máu hoặc giảm tiểu cầu.",
+      storage: "Bảo quản ở 20-24°C và lắc nhẹ liên tục, dùng trong 5 ngày.",
+      color: "orange"
+    },
+  };
+
+  // Tìm kiếm component theo normalizedId
+  const foundComponent = componentDetails[normalizedId] || 
+    Object.values(componentDetails).find(comp => 
+      Object.keys(componentDetails).some(key => key.toUpperCase() === normalizedId)
+    );
+
+  if (foundComponent) {
+    return foundComponent;
+  }
+
+  // Nếu không tìm thấy, trả về thông tin mặc định
+  return {
+    name: getComponentText(componentId) || componentId,
+    compatibility: "Thông tin chưa có",
+    storage: "Thông tin chưa có",
+    color: "default"
+  };
 };
 
 // ===== Component =====
 const EmergencyRequestManagement = () => {
   const [requests, setRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
   const [userNames, setUserNames] = useState({});
   const [loading, setLoading] = useState(false);
+  
+  // Filter states
+  const [filters, setFilters] = useState({
+    status: '',
+    bloodType: '',
+    patientName: '',
+    dateRange: null,
+  });
+  
   const [detailModal, setDetailModal] = useState({
     open: false,
     data: null,
@@ -157,31 +251,92 @@ const EmergencyRequestManagement = () => {
   });
   const [editForm] = Form.useForm();
 
+  // Hàm lọc dữ liệu
+  const applyFilters = (requestsData = requests, filtersData = filters) => {
+    let filtered = [...requestsData];
+
+    // Lọc theo trạng thái
+    if (filtersData.status) {
+      filtered = filtered.filter(req => req.status === filtersData.status);
+    }
+
+    // Lọc theo nhóm máu
+    if (filtersData.bloodType) {
+      filtered = filtered.filter(req => req.bloodTypeRequired === filtersData.bloodType);
+    }
+
+    // Lọc theo tên bệnh nhân
+    if (filtersData.patientName) {
+      filtered = filtered.filter(req => {
+        const patientName = userNames[req.requestId]?.toLowerCase() || '';
+        return patientName.includes(filtersData.patientName.toLowerCase());
+      });
+    }
+
+    // Lọc theo khoảng thời gian
+    if (filtersData.dateRange && filtersData.dateRange.length === 2) {
+      const [startDate, endDate] = filtersData.dateRange;
+      filtered = filtered.filter(req => {
+        const reqDate = new Date(req.requestDate);
+        return reqDate >= startDate && reqDate <= endDate;
+      });
+    }
+
+    setFilteredRequests(filtered);
+  };
+
+  // Hàm reset filter
+  const resetFilters = () => {
+    const emptyFilters = {
+      status: '',
+      bloodType: '',
+      patientName: '',
+      dateRange: null,
+    };
+    setFilters(emptyFilters);
+    applyFilters(requests, emptyFilters);
+  };
+
+  // Hàm xử lý thay đổi filter
+  const handleFilterChange = (key, value) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    applyFilters(requests, newFilters);
+  };
+
+  // Hàm refresh dữ liệu
+  const refreshData = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllBloodRequests();
+      const reqs = Array.isArray(data) ? data : [];
+      setRequests(reqs);
+
+      const names = {};
+      await Promise.all(
+        reqs.map(async (r) => {
+          const name = await getRequestUser(r.requestId);
+          if (name) names[r.requestId] = name;
+        })
+      );
+      setUserNames(names);
+      applyFilters(reqs, filters);
+    } catch {
+      setRequests([]);
+      setFilteredRequests([]);
+    }
+    setLoading(false);
+  };
+
   // Load danh sách yêu cầu và tên người dùng
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const data = await getAllBloodRequests();
-        const reqs = Array.isArray(data) ? data : [];
-        setRequests(reqs);
-
-        const names = {};
-        await Promise.all(
-          reqs.map(async (r) => {
-            const name = await getRequestUser(r.requestId);
-            if (name) names[r.requestId] = name;
-          })
-        );
-        setUserNames(names);
-      } catch {
-        setRequests([]);
-      }
-      setLoading(false);
-    };
-
-    fetchData();
+    refreshData();
   }, []);
+
+  // Apply filters when userNames change
+  useEffect(() => {
+    applyFilters();
+  }, [userNames]);
 
   const handleViewDetail = async (record) => {
     setDetailModal({ open: true, data: null, loading: true });
@@ -269,10 +424,7 @@ const EmergencyRequestManagement = () => {
       message.success("Cập nhật thành công");
       setEditModal({ open: false, data: null, loading: false });
 
-      setLoading(true);
-      const data = await getAllBloodRequests();
-      setRequests(Array.isArray(data) ? data : []);
-      setLoading(false);
+      await refreshData();
     } catch {
       message.error("Cập nhật thất bại");
       setEditModal((prev) => ({ ...prev, loading: false }));
@@ -399,10 +551,7 @@ const EmergencyRequestManagement = () => {
       });
 
       // Reload danh sách yêu cầu
-      setLoading(true);
-      const data = await getAllBloodRequests();
-      setRequests(Array.isArray(data) ? data : []);
-      setLoading(false);
+      await refreshData();
 
     } catch (error) {
       console.error("Error exporting blood:", error);
@@ -412,29 +561,6 @@ const EmergencyRequestManagement = () => {
   };
 
   const columns = [
-    {
-      title: "Mã yêu cầu",
-      dataIndex: "requestId",
-      key: "requestId",
-      width: 120,
-      ellipsis: true,
-      render: (id) => (
-        <span style={{ display: "flex", alignItems: "center" }}>
-          <Button
-            size="small"
-            type="link"
-            style={{ padding: 0, marginRight: 6 }}
-            onClick={() => {
-              navigator.clipboard.writeText(id);
-              message.success("Đã copy mã yêu cầu");
-            }}
-          >
-            Copy
-          </Button>
-          <span style={{ wordBreak: "break-word" }}>{id}</span>
-        </span>
-      ),
-    },
     {
       title: "Tên bệnh nhân",
       dataIndex: "requestId",
@@ -512,17 +638,183 @@ const EmergencyRequestManagement = () => {
   ];
 
   return (
-    <div style={{ padding: 32 }}>
-      <Title level={3}>Quản lý yêu cầu khẩn cấp</Title>
-      <Spin spinning={loading} tip="Đang tải dữ liệu...">
-        <Table
-          dataSource={requests}
-          columns={columns}
-          rowKey="requestId"
-          bordered
-          pagination={{ pageSize: 10 }}
-        />
-      </Spin>
+    <div className="emergency-management-container">
+      {/* Header Section */}
+      <div className="emergency-header">
+        <Title level={2} className="page-title">
+          <span className="title-icon">🚨</span>
+          Quản lý yêu cầu khẩn cấp
+        </Title>
+        
+        {/* Statistics Cards */}
+        <Row gutter={16} className="stats-row">
+          <Col xs={12} sm={12} md={6} lg={6}>
+            <Card className="stat-card stat-total">
+              <Statistic
+                title="Tổng yêu cầu"
+                value={requests.length}
+                prefix="📋"
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={12} md={6} lg={6}>
+            <Card className="stat-card stat-pending">
+              <Statistic
+                title="Chờ xử lý"
+                value={requests.filter(r => r.status === 'Pending' || r.status === 'Opened').length}
+                prefix="⏳"
+                valueStyle={{ color: '#faad14' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={12} md={6} lg={6}>
+            <Card className="stat-card stat-done">
+              <Statistic
+                title="Hoàn thành"
+                value={requests.filter(r => r.status === 'Done').length}
+                prefix="🎉"
+                valueStyle={{ color: '#13c2c2' }}
+              />
+            </Card>
+          </Col>
+        </Row>
+      </div>
+
+      {/* Filter Section */}
+      <Card className="filter-card">
+        <div className="filter-header">
+          <Space align="center">
+            <FilterOutlined style={{ fontSize: '16px', color: '#1890ff' }} />
+            <span className="filter-title">Bộ lọc tìm kiếm</span>
+          </Space>
+          <Button 
+            type="link" 
+            onClick={resetFilters}
+            className="reset-filter-btn"
+          >
+            Xóa bộ lọc
+          </Button>
+        </div>
+        
+        <Row gutter={[16, 20]} className="filter-row">
+          <Col xs={24} sm={12} md={6} lg={6}>
+            <div className="filter-item">
+              <label className="filter-label">Trạng thái</label>
+              <Select
+                placeholder="Chọn trạng thái"
+                value={filters.status}
+                onChange={(value) => handleFilterChange('status', value)}
+                allowClear
+                className="filter-select"
+                suffixIcon={<SearchOutlined />}
+                dropdownStyle={{
+                  borderRadius: '10px',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+                }}
+              >
+                {STATUS_OPTIONS.map(option => (
+                  <Select.Option key={option.value} value={option.value}>
+                    <Tag color={STATUS_COLORS[option.value] || "default"} size="small">
+                      {option.label}
+                    </Tag>
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6} lg={6}>
+            <div className="filter-item">
+              <label className="filter-label">Nhóm máu</label>
+              <Select
+                placeholder="Chọn nhóm máu"
+                value={filters.bloodType}
+                onChange={(value) => handleFilterChange('bloodType', value)}
+                allowClear
+                className="filter-select"
+                suffixIcon={<SearchOutlined />}
+                dropdownStyle={{
+                  borderRadius: '10px',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+                }}
+              >
+                {Object.entries(BLOOD_TYPE_MAP).map(([id, type]) => (
+                  <Select.Option key={id} value={id}>
+                    <Tag color="red" size="small">{type}</Tag>
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6} lg={6}>
+            <div className="filter-item">
+              <label className="filter-label">Tên bệnh nhân</label>
+              <Input
+                placeholder="Tìm theo tên bệnh nhân"
+                value={filters.patientName}
+                onChange={(e) => handleFilterChange('patientName', e.target.value)}
+                allowClear
+                className="filter-input"
+                prefix={<SearchOutlined />}
+              />
+            </div>
+          </Col>
+          
+          <Col xs={24} sm={12} md={6} lg={6}>
+            <div className="filter-item">
+              <label className="filter-label">Khoảng thời gian</label>
+              <DatePicker.RangePicker
+                value={filters.dateRange}
+                onChange={(dates) => handleFilterChange('dateRange', dates)}
+                placeholder={['Từ ngày', 'Đến ngày']}
+                className="filter-date-picker"
+                format="DD/MM/YYYY"
+                dropdownClassName="filter-date-dropdown"
+              />
+            </div>
+          </Col>
+        </Row>
+        
+        <div className="filter-actions">
+          <Space>
+            <span className="filter-result">
+              Hiển thị {filteredRequests.length} / {requests.length} yêu cầu
+            </span>
+            <Button 
+              type="primary" 
+              icon={<ReloadOutlined />}
+              onClick={refreshData}
+              loading={loading}
+              className="refresh-btn"
+            >
+              Làm mới
+            </Button>
+          </Space>
+        </div>
+      </Card>
+
+      {/* Table Section */}
+      <Card className="table-card">
+        <Spin spinning={loading} tip="Đang tải dữ liệu...">
+          <Table
+            dataSource={filteredRequests}
+            columns={columns}
+            rowKey="requestId"
+            bordered={false}
+            pagination={{ 
+              pageSize: 10,
+              showSizeChanger: false,
+              showQuickJumper: false,
+              showTotal: false,
+              responsive: true,
+            }}
+            className="emergency-table"
+            scroll={{ x: 1000 }}
+          />
+        </Spin>
+      </Card>
 
       {/* Modal chi tiết */}
       <Modal
@@ -707,61 +999,112 @@ const EmergencyRequestManagement = () => {
                 renderItem={(unit) => {
                   const isSelected = bloodExportModal.selectedUnits.includes(unit.unitId);
                   const daysToExpiry = Math.ceil((new Date(unit.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+                  const componentDetails = getComponentDetails(unit.componentType);
                   
                   return (
                     <List.Item
                       style={{
                         backgroundColor: isSelected ? "#f6ffed" : "white",
-                        border: isSelected ? "1px solid #52c41a" : "1px solid #f0f0f0",
-                        borderRadius: 8,
-                        marginBottom: 8,
-                        padding: "12px 16px",
+                        border: isSelected ? "2px solid #52c41a" : "1px solid #f0f0f0",
+                        borderRadius: 12,
+                        marginBottom: 12,
+                        padding: "16px 20px",
+                        transition: "all 0.3s ease",
+                        boxShadow: isSelected ? "0 4px 12px rgba(82, 196, 26, 0.2)" : "0 2px 8px rgba(0, 0, 0, 0.1)",
                       }}
                     >
-                      <Row style={{ width: "100%" }} align="middle">
-                        <Col span={2}>
+                      <Row style={{ width: "100%" }} align="middle" gutter={[8, 8]}>
+                        <Col span={3}>
                           <Checkbox
                             checked={isSelected}
                             onChange={(e) => handleSelectUnit(unit.unitId, e.target.checked)}
+                            style={{ transform: "scale(1.2)" }}
                           />
                         </Col>
+                        
                         <Col span={5}>
-                          <div>
-                            <div style={{ fontWeight: "bold" }}>{unit.unitId}</div>
-                            <div style={{ fontSize: "12px", color: "#666" }}>
-                              {unit.donationId}
-                            </div>
-                          </div>
-                        </Col>
-                        <Col span={4}>
-                          <Tag color="blue">
+                          <Tag color="blue" style={{ fontWeight: "bold", fontSize: "14px" }}>
                             {getBloodTypeFromID(unit.bloodTypeId)}
                           </Tag>
                         </Col>
-                        <Col span={3}>
-                          <Badge count={`${unit.quantity}ml`} color="#108ee9" />
-                        </Col>
+                        
                         <Col span={4}>
-                          <Tag color="purple" size="small">
-                            {getComponentText(unit.componentType)}
+                          <Badge 
+                            count={`${unit.quantity}ml`} 
+                            color="#108ee9" 
+                            style={{ fontWeight: "bold", fontSize: "14px" }}
+                          />
+                        </Col>
+                        
+                        <Col span={6}>
+                          <Tag 
+                            color={componentDetails.color} 
+                            size="default"
+                            style={{ fontWeight: "600", fontSize: "13px" }}
+                            title={`${componentDetails.compatibility}\n\nBảo quản: ${componentDetails.storage}`}
+                          >
+                            {componentDetails.name}
                           </Tag>
                         </Col>
-                        <Col span={4}>
-                          <div style={{ fontSize: "12px" }}>
-                            HSD: {unit.expiryDate}
-                          </div>
+                        
+                        <Col span={6}>
+                          <Tag 
+                            color="green" 
+                            size="default"
+                            style={{ 
+                              fontWeight: "600", 
+                              textTransform: "capitalize",
+                              fontSize: "13px"
+                            }}
+                          >
+                            {unit.status === 'available' ? 'Sẵn sàng' : unit.status}
+                          </Tag>
                           {daysToExpiry <= 7 && (
-                            <Tag color={daysToExpiry <= 3 ? "red" : "orange"} size="small">
-                              Còn {daysToExpiry} ngày
-                            </Tag>
+                            <div style={{ marginTop: "6px" }}>
+                              <Tag 
+                                color={daysToExpiry <= 3 ? "red" : "orange"} 
+                                size="small"
+                                style={{ 
+                                  fontWeight: "bold",
+                                  animation: daysToExpiry <= 3 ? "pulse-warning 1.5s infinite" : "none"
+                                }}
+                              >
+                                {daysToExpiry <= 0 ? "Hết hạn" : `Còn ${daysToExpiry} ngày`}
+                              </Tag>
+                            </div>
                           )}
                         </Col>
-                        <Col span={3}>
-                          <Tag color="green" size="small">
-                            {unit.status}
-                          </Tag>
-                        </Col>
                       </Row>
+                      
+                      {/* Thông tin chi tiết khi được chọn */}
+                      {isSelected && (
+                        <div style={{ 
+                          marginTop: "12px", 
+                          padding: "12px", 
+                          backgroundColor: "rgba(82, 196, 26, 0.05)", 
+                          borderRadius: "8px",
+                          borderLeft: "4px solid #52c41a"
+                        }}>
+                          <Row gutter={[16, 8]}>
+                            <Col span={12}>
+                              <div style={{ fontSize: "12px" }}>
+                                <strong style={{ color: "#52c41a" }}>Tương thích:</strong>
+                                <div style={{ color: "#666", marginTop: "4px" }}>
+                                  {componentDetails.compatibility}
+                                </div>
+                              </div>
+                            </Col>
+                            <Col span={12}>
+                              <div style={{ fontSize: "12px" }}>
+                                <strong style={{ color: "#52c41a" }}>Bảo quản:</strong>
+                                <div style={{ color: "#666", marginTop: "4px" }}>
+                                  {componentDetails.storage}
+                                </div>
+                              </div>
+                            </Col>
+                          </Row>
+                        </div>
+                      )}
                     </List.Item>
                   );
                 }}

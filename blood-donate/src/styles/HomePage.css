@@ -2021,3 +2021,296 @@
 .blood-type-card-simple .card-body {
   padding: 1.5rem 1rem !important;
 }
+
+/* ============================================
+   EMERGENCY REQUESTS SECTION - CÁCH THIẾT KẾ MỚI
+   ============================================ */
+
+/* Container chính của emergency section */
+.emergency-requests-section {
+  background: linear-gradient(135deg, #fafafa 0%, #f5f7fa 100%) !important;
+  position: relative;
+  overflow: hidden;
+  padding: 4rem 0 !important;
+}
+
+/* Thêm pattern background tinh tế */
+.emergency-requests-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(220, 53, 69, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(255, 107, 107, 0.03) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 49%, rgba(220, 53, 69, 0.01) 50%, transparent 51%);
+  z-index: 1;
+}
+
+/* Header section với thiết kế đẹp */
+.emergency-requests-section h3 {
+  position: relative;
+  z-index: 2;
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  margin-bottom: 3rem;
+  text-shadow: 0 2px 4px rgba(220, 53, 69, 0.1);
+}
+
+/* Thêm icon động cho header */
+.emergency-requests-section h3::before {
+  content: "🚨";
+  display: inline-block;
+  margin-right: 1rem;
+  font-size: 2.2rem;
+  animation: pulse-emergency 2s infinite;
+  filter: drop-shadow(0 2px 4px rgba(220, 53, 69, 0.3));
+}
+
+@keyframes pulse-emergency {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Container wrapper */
+.emergency-requests-section .container {
+  position: relative;
+  z-index: 2;
+}
+
+/* Emergency list container */
+.emergency-list {
+  padding: 0;
+  margin: 0;
+}
+
+/* Cải thiện emergency item cards */
+.emergency-item {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 2px solid rgba(220, 53, 69, 0.1) !important;
+  border-radius: 20px !important;
+  margin-bottom: 2rem !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 
+    0 10px 30px rgba(220, 53, 69, 0.08),
+    0 4px 15px rgba(0, 0, 0, 0.05) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Thêm border accent cho emergency item */
+.emergency-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #dc3545, #ff6b6b, #ff8a80, #dc3545);
+  background-size: 300% 100%;
+  animation: gradient-shift 3s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Hover effects */
+.emergency-item:hover {
+  transform: translateY(-8px) !important;
+  box-shadow: 
+    0 20px 40px rgba(220, 53, 69, 0.15),
+    0 8px 25px rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(220, 53, 69, 0.3) !important;
+}
+
+/* Card body padding */
+.emergency-item .card-body {
+  padding: 2rem !important;
+  position: relative;
+  z-index: 2;
+}
+
+/* Patient info section */
+.patient-info {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.08) 0%, rgba(40, 167, 69, 0.05) 100%) !important;
+  border: 2px solid rgba(40, 167, 69, 0.2) !important;
+  border-radius: 15px !important;
+  padding: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+  position: relative;
+}
+
+.patient-info::before {
+  content: "👤";
+  position: absolute;
+  top: -8px;
+  left: 15px;
+  background: white;
+  padding: 0 8px;
+  font-size: 1.2rem;
+}
+
+/* Blood info section */
+.blood-info {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.08) 0%, rgba(220, 53, 69, 0.05) 100%) !important;
+  border: 2px solid rgba(220, 53, 69, 0.2) !important;
+  border-radius: 15px !important;
+  padding: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+  position: relative;
+}
+
+.blood-info::before {
+  content: "🩸";
+  position: absolute;
+  top: -8px;
+  left: 15px;
+  background: white;
+  padding: 0 8px;
+  font-size: 1.2rem;
+}
+
+/* Medical info section */
+.medical-info {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 193, 7, 0.05) 100%) !important;
+  border: 2px solid rgba(255, 193, 7, 0.2) !important;
+  border-radius: 15px !important;
+  padding: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+  position: relative;
+}
+
+.medical-info::before {
+  content: "⚕️";
+  position: absolute;
+  top: -8px;
+  left: 15px;
+  background: white;
+  padding: 0 8px;
+  font-size: 1.2rem;
+}
+
+/* Timestamp section */
+.timestamp {
+  background: linear-gradient(135deg, rgba(108, 117, 125, 0.08) 0%, rgba(108, 117, 125, 0.05) 100%) !important;
+  border: 2px solid rgba(108, 117, 125, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 1rem 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+  font-size: 0.95rem;
+  color: #6c757d;
+  text-align: center;
+}
+
+/* Badge improvements */
+.emergency-item .badge {
+  font-size: 0.85rem !important;
+  padding: 0.6rem 1.2rem !important;
+  border-radius: 25px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.badge-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+  border: none !important;
+}
+
+.badge-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+  color: #212529 !important;
+  border: none !important;
+}
+
+.badge-success {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+  border: none !important;
+}
+
+/* Button styling for support actions */
+.emergency-item .btn {
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  padding: 0.75rem 2rem !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: 0.9rem !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.emergency-item .btn-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+  border: none !important;
+}
+
+.emergency-item .btn-primary:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3) !important;
+}
+
+.emergency-item .btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+  border: none !important;
+}
+
+.emergency-item .btn-success:hover {
+  background: linear-gradient(135deg, #1e7e34 0%, #155724 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3) !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .emergency-requests-section {
+    padding: 3rem 0 !important;
+  }
+  
+  .emergency-requests-section h3 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .emergency-item .card-body {
+    padding: 1.5rem !important;
+  }
+  
+  .patient-info, .blood-info, .medical-info {
+    padding: 1rem !important;
+  }
+  
+  .emergency-item .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .emergency-requests-section h3 {
+    font-size: 1.8rem;
+  }
+  
+  .emergency-requests-section h3::before {
+    font-size: 1.6rem;
+    margin-right: 0.5rem;
+  }
+}

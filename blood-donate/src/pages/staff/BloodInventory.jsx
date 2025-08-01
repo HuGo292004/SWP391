@@ -403,16 +403,8 @@ const BloodInventory = () => {
         return "Có sẵn";
       case "used":
         return "Đã sử dụng";
-      case "reserved":
-        return "Đã đặt trước";
       case "expired":
         return "Hết hạn";
-      case "damaged":
-        return "Hư hỏng";
-      case "quarantine":
-        return "Cách ly";
-      case "testing":
-        return "Đang kiểm tra";
       default:
         return status;
     }
@@ -590,13 +582,6 @@ const BloodInventory = () => {
     //   fixed: 'left',
     //   render: (text) => <Text strong style={{ color: '#1890ff' }}>{text}</Text>
     // },
-    {
-      title: "Mã hiến máu",
-      dataIndex: "donationId",
-      key: "donationId",
-      width: 120,
-      render: (text) => <Text code>{text}</Text>,
-    },
     {
       title: "Nhóm máu",
       dataIndex: "bloodTypeName",
@@ -859,11 +844,7 @@ const BloodInventory = () => {
               <Option value="all">Tất cả</Option>
               <Option value="available">Có sẵn</Option>
               <Option value="used">Đã sử dụng</Option>
-              <Option value="reserved">Đã đặt trước</Option>
               <Option value="expired">Hết hạn</Option>
-              <Option value="quarantine">Cách ly</Option>
-              <Option value="testing">Đang kiểm tra</Option>
-              <Option value="damaged">Hư hỏng</Option>
             </Select>
           </Col>
           <Col xs={12} sm={6} lg={4}>

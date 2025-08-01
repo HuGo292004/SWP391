@@ -106,6 +106,7 @@ const BloodDonationRegistration = () => {
   const [emergencyRequest, setEmergencyRequest] = useState(null);
   const [loadingEmergencyRequest, setLoadingEmergencyRequest] = useState(false);
   const [bloodTypeCompatibilityWarning, setBloodTypeCompatibilityWarning] = useState("");
+  const [bloodTypeCompatibilityMessage, setBloodTypeCompatibilityMessage] = useState("");
   
   // Business rule: minimum 12 weeks between donations
   const [minNextDonationDate, setMinNextDonationDate] = useState(null);
@@ -198,6 +199,29 @@ const BloodDonationRegistration = () => {
     }
   };
 
+  // Show general compatibility message for any blood type
+  const showBloodTypeCompatibilityInfo = (selectedBloodTypeID) => {
+    if (!selectedBloodTypeID) {
+      setBloodTypeCompatibilityMessage("");
+      return;
+    }
+
+    const selectedBloodType = convertBloodTypeIDToString(selectedBloodTypeID);
+    if (!selectedBloodType) {
+      setBloodTypeCompatibilityMessage("");
+      return;
+    }
+
+    try {
+      const compatibleRecipients = getCompatibleRecipientBloodTypes(selectedBloodType);
+      const message = `Nhóm máu ${selectedBloodType} có thể hỗ trợ cho: ${compatibleRecipients.join(", ")}`;
+      setBloodTypeCompatibilityMessage(message);
+    } catch (error) {
+      console.error("Error getting blood type compatibility:", error);
+      setBloodTypeCompatibilityMessage("");
+    }
+  };
+
   // Lấy lần hiến máu thành công gần nhất để tính ngày có thể đăng ký tiếp theo
   const fetchLastSuccessfulDonation = async () => {
     try {
@@ -264,6 +288,10 @@ const BloodDonationRegistration = () => {
         // Check compatibility with emergency request if present
         if (bloodTypeId) {
           const isCompatible = checkBloodTypeCompatibility(bloodTypeId);
+          
+          // Show general compatibility info for auto-filled blood type
+          showBloodTypeCompatibilityInfo(bloodTypeId);
+          
           if (!isCompatible && emergencyRequest) {
             // If auto-filled blood type is not compatible, show warning but don't prevent usage
             setTimeout(() => {
@@ -829,6 +857,9 @@ const BloodDonationRegistration = () => {
 
                   // Check compatibility with emergency request if present
                   checkBloodTypeCompatibility(value);
+                  
+                  // Show general compatibility info
+                  showBloodTypeCompatibilityInfo(value);
                 }}
                 // KHÔNG dùng defaultValue hoặc value ở đây
               >
@@ -874,6 +905,19 @@ const BloodDonationRegistration = () => {
               </Select>
             </Form.Item>
 
+            {/* Blood Type Compatibility Message - hiển thị ngay dưới select nhóm máu */}
+            {formData.bloodTypeID && !emergencyRequest && bloodTypeCompatibilityMessage && (
+              <div className="blood-type-compatibility-success">
+                {bloodTypeCompatibilityMessage}
+              </div>
+            )}
+
+            {bloodTypeCompatibilityWarning && (
+              <div className="blood-type-compatibility-warning">
+                {bloodTypeCompatibilityWarning}
+              </div>
+            )}
+
             <Form.Item
               label="Địa chỉ"
               name="address"
@@ -899,7 +943,6 @@ const BloodDonationRegistration = () => {
                 message="Thông tin yêu cầu khẩn cấp"
                 description={
                   <div>
-                    <p><strong>Bệnh nhân:</strong> {emergencyRequest.patientName}</p>
                     <p><strong>Nhóm máu cần:</strong> {getBloodTypeFromID(emergencyRequest.bloodTypeRequired) || emergencyRequest.bloodTypeRequired}</p>
                     <p><strong>Số lượng cần:</strong> {emergencyRequest.quantityNeeded}ml</p>
                     {(() => {
@@ -914,9 +957,7 @@ const BloodDonationRegistration = () => {
                         return null;
                       }
                     })()}
-                    {emergencyRequest.description && (
-                      <p><strong>Mô tả:</strong> {emergencyRequest.description}</p>
-                    )}
+
                   </div>
                 }
                 type="info"
