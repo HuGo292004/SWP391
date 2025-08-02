@@ -42,6 +42,7 @@ import {
   getAvailableQuantityByBloodType,
   getAvailableQuantityByCompatibleBloodTypes,
 } from "../../services/emergencyRequestApi";
+import { healthCheckApi } from "../../services/healthCheckApi";
 import "../../styles/EmergencyRequest.css";
 
 const CreateEmergencyRequest = () => {
@@ -62,6 +63,7 @@ const CreateEmergencyRequest = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchingUser, setIsSearchingUser] = useState(false);
@@ -114,6 +116,7 @@ const CreateEmergencyRequest = () => {
         setAuthStatus("authenticated");
         setErrorMessage("");
         setShowError(false);
+        setSuccessMessage("Token đã được làm mới thành công!");
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
       } else {
@@ -142,15 +145,45 @@ const CreateEmergencyRequest = () => {
       if (user) {
         // User found - auto-fill form
         setUserFound(user);
-        setFormData((prev) => ({
-          ...prev,
+        
+        // Basic user info auto-fill
+        let updatedFormData = {
+          ...formData,
           patientName: user.fullName || "",
           email: user.email || "",
           phone: user.phone || "",
           dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split("T")[0] : "",
-        }));
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
+        };
+
+        // Try to get donor blood type info
+        try {
+          console.log("🔍 Searching for donor blood type info...");
+          const donorInfo = await healthCheckApi.getDonorByIdCard(formData.userIdCard);
+          
+          if (donorInfo && donorInfo.bloodType) {
+            console.log("✅ Found donor blood type:", donorInfo.bloodType);
+            // Auto-fill blood type if found
+            updatedFormData.bloodTypeRequired = donorInfo.bloodType;
+            
+            setFormData(updatedFormData);
+            setSuccessMessage(`Đã tìm thấy tài khoản: ${user.fullName}. Nhóm máu ${donorInfo.bloodType} đã được tự động điền.`);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 5000);
+          } else {
+            console.log("ℹ️ No donor blood type found, using basic user info only");
+            setFormData(updatedFormData);
+            setSuccessMessage(`Đã tìm thấy tài khoản: ${user.fullName}. Vui lòng chọn nhóm máu cần thiết.`);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+          }
+        } catch (donorError) {
+          console.log("ℹ️ Could not get donor blood type info:", donorError.message);
+          // Still use basic user info even if donor info fails
+          setFormData(updatedFormData);
+          setSuccessMessage(`Đã tìm thấy tài khoản: ${user.fullName}. Không tìm thấy thông tin nhóm máu, vui lòng chọn nhóm máu cần thiết.`);
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 3000);
+        }
       } else {
         // User not found or auth issue
         setUserFound(null);
@@ -269,6 +302,7 @@ const CreateEmergencyRequest = () => {
 
       const result = await createEmergencyRequest(requestData);
       if (result) {
+        setSuccessMessage("Yêu cầu khẩn cấp đã được tạo thành công!");
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
         // Reset form
@@ -323,9 +357,9 @@ const CreateEmergencyRequest = () => {
           onClose={() => setShowSuccess(false)}
         >
           <FaHeart className="me-2" />
-          {userFound
+          {successMessage || (userFound
             ? "Đã tìm thấy thông tin người dùng và tự động điền vào form!"
-            : "Yêu cầu khẩn cấp đã được tạo thành công!"}
+            : "Yêu cầu khẩn cấp đã được tạo thành công!")}
         </Alert>
       )}
 
