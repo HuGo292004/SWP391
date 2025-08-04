@@ -70,8 +70,130 @@ const CreateEmergencyRequest = () => {
   const [userFound, setUserFound] = useState(null);
   // const [savedRequests, setSavedRequests] = useState([]); // Removed: no emergency list
   const [authStatus, setAuthStatus] = useState("checking"); // checking, authenticated, unauthenticated
+  const [validationErrors, setValidationErrors] = useState({});
 
   const modalRef = useRef(null);
+
+  // Validation functions
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    // Vietnamese phone number format: 0xxxxxxxxx (10-11 digits)
+    const phoneRegex = /^0[3-9]\d{8,9}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ""));
+  };
+
+  const validateDateOfBirth = (dateOfBirth) => {
+    if (!dateOfBirth) return false;
+
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    // Age must be between 0 and 120
+    return age >= 0 && age <= 120 && birthDate <= today;
+  };
+
+  const validatePatientName = (name) => {
+    // Name should be at least 2 characters and contain only letters, spaces, and Vietnamese characters
+    const nameRegex =
+      /^[a-zA-ZàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\s]{2,}$/;
+    return nameRegex.test(name.trim());
+  };
+
+  const validateQuantity = (quantity) => {
+    const qty = parseInt(quantity);
+    return Number.isInteger(qty) && qty >= 250 && qty <= 2000;
+  };
+
+  const validateField = (name, value) => {
+    const errors = { ...validationErrors };
+
+    switch (name) {
+      case "patientName":
+        if (!value.trim()) {
+          errors[name] = "Họ tên là bắt buộc";
+        } else if (!validatePatientName(value)) {
+          errors[name] = "Họ tên phải có ít nhất 2 ký tự và chỉ chứa chữ cái";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "email":
+        if (!value.trim()) {
+          errors[name] = "Email là bắt buộc";
+        } else if (!validateEmail(value)) {
+          errors[name] = "Email không hợp lệ";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "userIdCard":
+        if (!value.trim()) {
+          errors[name] = "CCCD/CMND là bắt buộc";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "phone":
+        if (!value.trim()) {
+          errors[name] = "Số điện thoại là bắt buộc";
+        } else if (!validatePhone(value)) {
+          errors[name] = "Số điện thoại không hợp lệ (VD: 0912345678)";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "dateOfBirth":
+        if (!value) {
+          errors[name] = "Ngày sinh là bắt buộc";
+        } else if (!validateDateOfBirth(value)) {
+          errors[name] = "Ngày sinh không hợp lệ";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "bloodTypeRequired":
+        if (!value) {
+          errors[name] = "Nhóm máu là bắt buộc";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "quantityNeeded":
+        if (!value.trim()) {
+          errors[name] = "Số lượng máu là bắt buộc";
+        } else if (!validateQuantity(value)) {
+          errors[name] = "Số lượng phải từ 250ml đến 2000ml";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // Removed debug useEffect for showPreview
 
@@ -145,7 +267,7 @@ const CreateEmergencyRequest = () => {
       if (user) {
         // User found - auto-fill form
         setUserFound(user);
-        
+
         // Basic user info auto-fill
         let updatedFormData = {
           ...formData,
@@ -158,29 +280,42 @@ const CreateEmergencyRequest = () => {
         // Try to get donor blood type info
         try {
           console.log("🔍 Searching for donor blood type info...");
-          const donorInfo = await healthCheckApi.getDonorByIdCard(formData.userIdCard);
-          
+          const donorInfo = await healthCheckApi.getDonorByIdCard(
+            formData.userIdCard
+          );
+
           if (donorInfo && donorInfo.bloodType) {
             console.log("✅ Found donor blood type:", donorInfo.bloodType);
             // Auto-fill blood type if found
             updatedFormData.bloodTypeRequired = donorInfo.bloodType;
-            
+
             setFormData(updatedFormData);
-            setSuccessMessage(`Đã tìm thấy tài khoản: ${user.fullName}. Nhóm máu ${donorInfo.bloodType} đã được tự động điền.`);
+            setSuccessMessage(
+              `Đã tìm thấy tài khoản: ${user.fullName}. Nhóm máu ${donorInfo.bloodType} đã được tự động điền.`
+            );
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 5000);
           } else {
-            console.log("ℹ️ No donor blood type found, using basic user info only");
+            console.log(
+              "ℹ️ No donor blood type found, using basic user info only"
+            );
             setFormData(updatedFormData);
-            setSuccessMessage(`Đã tìm thấy tài khoản: ${user.fullName}. Vui lòng chọn nhóm máu cần thiết.`);
+            setSuccessMessage(
+              `Đã tìm thấy tài khoản: ${user.fullName}. Vui lòng chọn nhóm máu cần thiết.`
+            );
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
           }
         } catch (donorError) {
-          console.log("ℹ️ Could not get donor blood type info:", donorError.message);
+          console.log(
+            "ℹ️ Could not get donor blood type info:",
+            donorError.message
+          );
           // Still use basic user info even if donor info fails
           setFormData(updatedFormData);
-          setSuccessMessage(`Đã tìm thấy tài khoản: ${user.fullName}. Không tìm thấy thông tin nhóm máu, vui lòng chọn nhóm máu cần thiết.`);
+          setSuccessMessage(
+            `Đã tìm thấy tài khoản: ${user.fullName}. Không tìm thấy thông tin nhóm máu, vui lòng chọn nhóm máu cần thiết.`
+          );
           setShowSuccess(true);
           setTimeout(() => setShowSuccess(false), 3000);
         }
@@ -209,6 +344,9 @@ const CreateEmergencyRequest = () => {
       [name]: value,
     }));
 
+    // Real-time validation
+    validateField(name, value);
+
     // Reset user found status when ID card changes
     if (name === "userIdCard") {
       setUserFound(null);
@@ -217,8 +355,8 @@ const CreateEmergencyRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate required fields
+
+    // Validate all fields
     const requiredFields = [
       "patientName",
       "email",
@@ -228,36 +366,34 @@ const CreateEmergencyRequest = () => {
       "bloodTypeRequired",
       "quantityNeeded",
     ];
-    const missingFields = requiredFields.filter((field) => !formData[field]);
-    if (missingFields.length > 0) {
-      setErrorMessage("Vui lòng điền đầy đủ các trường bắt buộc");
+
+    let hasErrors = false;
+    const newErrors = {};
+
+    // Validate each required field
+    requiredFields.forEach((field) => {
+      const isValid = validateField(field, formData[field]);
+      if (!isValid) {
+        hasErrors = true;
+      }
+    });
+
+    // Check if there are any validation errors
+    if (hasErrors || Object.keys(validationErrors).length > 0) {
+      setErrorMessage("Vui lòng sửa các lỗi trong form trước khi gửi");
       setShowError(true);
-      setTimeout(() => setShowError(false), 3000);
+      setTimeout(() => setShowError(false), 5000);
       return;
     }
 
-    // Validate số lượng máu cần
+    // Additional validation for quantity (already covered in validateField but keeping for safety)
     const quantityNeeded = parseInt(formData.quantityNeeded);
-    
-    // Kiểm tra là số nguyên dương
-    if (!Number.isInteger(quantityNeeded) || quantityNeeded <= 0) {
-      setErrorMessage("Số lượng máu phải là số nguyên dương");
-      setShowError(true);
-      setTimeout(() => setShowError(false), 3000);
-      return;
-    }
-    
-    // Kiểm tra tối thiểu 250ml
-    if (quantityNeeded < 250) {
-      setErrorMessage("Tối thiểu cần 250ml máu");
-      setShowError(true);
-      setTimeout(() => setShowError(false), 3000);
-      return;
-    }
-    
-    // Kiểm tra tối đa 2000ml
-    if (quantityNeeded > 2000) {
-      setErrorMessage("Không được yêu cầu quá 2000ml máu");
+    if (
+      !Number.isInteger(quantityNeeded) ||
+      quantityNeeded < 250 ||
+      quantityNeeded > 2000
+    ) {
+      setErrorMessage("Số lượng máu phải từ 250ml đến 2000ml");
       setShowError(true);
       setTimeout(() => setShowError(false), 3000);
       return;
@@ -269,19 +405,28 @@ const CreateEmergencyRequest = () => {
       const bloodTypeId = getBloodTypeId(formData.bloodTypeRequired);
 
       // 2. Kiểm tra số lượng máu từ tất cả nhóm máu tương thích trong kho
-      console.log(`Checking blood availability for needed type: ${formData.bloodTypeRequired} (ID: ${bloodTypeId})`);
-      const availableQuantity = await getAvailableQuantityByCompatibleBloodTypes(
-        bloodTypeId
+      console.log(
+        `Checking blood availability for needed type: ${formData.bloodTypeRequired} (ID: ${bloodTypeId})`
       );
-      console.log(`Total compatible blood available: ${availableQuantity}ml, needed: ${quantityNeeded}ml`);
+      const availableQuantity =
+        await getAvailableQuantityByCompatibleBloodTypes(bloodTypeId);
+      console.log(
+        `Total compatible blood available: ${availableQuantity}ml, needed: ${quantityNeeded}ml`
+      );
 
       // 3. Xác định trạng thái dựa trên tổng số lượng máu tương thích
       let status = "Opened";
       if (availableQuantity >= quantityNeeded) {
         status = "Pending";
-        console.log(`Status set to Pending - sufficient compatible blood available`);
+        console.log(
+          `Status set to Pending - sufficient compatible blood available`
+        );
       } else {
-        console.log(`Status set to Opened - insufficient compatible blood (shortage: ${quantityNeeded - availableQuantity}ml)`);
+        console.log(
+          `Status set to Opened - insufficient compatible blood (shortage: ${
+            quantityNeeded - availableQuantity
+          }ml)`
+        );
       }
 
       // 4. Chuẩn bị dữ liệu gửi lên API
@@ -320,6 +465,7 @@ const CreateEmergencyRequest = () => {
           description: "",
         });
         setUserFound(null);
+        setValidationErrors({});
       }
     } catch (error) {
       setErrorMessage("Lỗi khi tạo yêu cầu khẩn cấp: " + error.message);
@@ -357,9 +503,10 @@ const CreateEmergencyRequest = () => {
           onClose={() => setShowSuccess(false)}
         >
           <FaHeart className="me-2" />
-          {successMessage || (userFound
-            ? "Đã tìm thấy thông tin người dùng và tự động điền vào form!"
-            : "Yêu cầu khẩn cấp đã được tạo thành công!")}
+          {successMessage ||
+            (userFound
+              ? "Đã tìm thấy thông tin người dùng và tự động điền vào form!"
+              : "Yêu cầu khẩn cấp đã được tạo thành công!")}
         </Alert>
       )}
 
@@ -442,7 +589,11 @@ const CreateEmergencyRequest = () => {
                           onChange={handleInputChange}
                           placeholder="Nhập họ và tên đầy đủ của bệnh nhân"
                           required
+                          isInvalid={!!validationErrors.patientName}
                         />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.patientName}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -457,7 +608,11 @@ const CreateEmergencyRequest = () => {
                           onChange={handleInputChange}
                           placeholder="Nhập địa chỉ email"
                           required
+                          isInvalid={!!validationErrors.email}
                         />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.email}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -471,6 +626,7 @@ const CreateEmergencyRequest = () => {
                             onChange={handleInputChange}
                             placeholder="Nhập số CCCD hoặc CMND"
                             required
+                            isInvalid={!!validationErrors.userIdCard}
                           />
                           <Button
                             variant="outline-primary"
@@ -489,6 +645,14 @@ const CreateEmergencyRequest = () => {
                             ✓ Đã tìm thấy tài khoản: {userFound.fullName}
                           </Form.Text>
                         )}
+                        {validationErrors.userIdCard && (
+                          <Form.Control.Feedback
+                            type="invalid"
+                            style={{ display: "block" }}
+                          >
+                            {validationErrors.userIdCard}
+                          </Form.Control.Feedback>
+                        )}
                       </Form.Group>
                     </Col>
                   </Row>
@@ -503,7 +667,11 @@ const CreateEmergencyRequest = () => {
                           onChange={handleInputChange}
                           placeholder="Nhập số điện thoại bệnh nhân"
                           required
+                          isInvalid={!!validationErrors.phone}
                         />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.phone}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -515,7 +683,11 @@ const CreateEmergencyRequest = () => {
                           value={formData.dateOfBirth}
                           onChange={handleInputChange}
                           required
+                          isInvalid={!!validationErrors.dateOfBirth}
                         />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.dateOfBirth}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -536,6 +708,7 @@ const CreateEmergencyRequest = () => {
                           value={formData.bloodTypeRequired}
                           onChange={handleInputChange}
                           required
+                          isInvalid={!!validationErrors.bloodTypeRequired}
                         >
                           <option value="">Chọn nhóm máu</option>
                           <option value="A+">A+</option>
@@ -547,6 +720,9 @@ const CreateEmergencyRequest = () => {
                           <option value="O+">O+</option>
                           <option value="O-">O-</option>
                         </Form.Select>
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.bloodTypeRequired}
+                        </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -562,9 +738,14 @@ const CreateEmergencyRequest = () => {
                           max="2000"
                           step="1"
                           required
+                          isInvalid={!!validationErrors.quantityNeeded}
                         />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.quantityNeeded}
+                        </Form.Control.Feedback>
                         <Form.Text className="text-muted">
-                          Tối thiểu: 250ml (≈ 0.5 đơn vị) - Tối đa: 2000ml (≈ 4.4 đơn vị)
+                          Tối thiểu: 250ml (≈ 0.5 đơn vị) - Tối đa: 2000ml (≈
+                          4.4 đơn vị)
                         </Form.Text>
                       </Form.Group>
                     </Col>
@@ -686,7 +867,9 @@ const CreateEmergencyRequest = () => {
             <div className="mb-3">
               <strong>Số lượng cần:</strong>{" "}
               {formData.quantityNeeded ? (
-                `${formData.quantityNeeded} ml (≈ ${(formData.quantityNeeded / 450).toFixed(1)} đơn vị)`
+                `${formData.quantityNeeded} ml (≈ ${(
+                  formData.quantityNeeded / 450
+                ).toFixed(1)} đơn vị)`
               ) : (
                 <span className="text-muted">(Chưa nhập)</span>
               )}

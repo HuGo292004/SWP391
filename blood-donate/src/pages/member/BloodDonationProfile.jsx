@@ -656,18 +656,22 @@ const BloodDonationProfile = () => {
       <Card className="profile-card" bordered={false}>
         <div className="profile-header">
           <div className="profile-avatar-section">
-            <Avatar
-              size={120}
-              icon={<UserOutlined />}
-              style={{
-                background: "linear-gradient(135deg, #1976D2 0%, #1565C0 100%)",
-                boxShadow: "0 4px 16px rgba(25, 118, 210, 0.3)",
-              }}
-            />
-            <div className="profile-badge">
-              <Tag color="red" className="blood-type-tag">
-                {bloodType}
-              </Tag>
+            <div className="avatar-container">
+              <Avatar
+                size={120}
+                icon={<UserOutlined />}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #1976D2 0%, #1565C0 100%)",
+                  boxShadow: "0 8px 24px rgba(25, 118, 210, 0.4)",
+                  border: "4px solid #fff",
+                }}
+              />
+              <div className="profile-badge">
+                <Tag color="red" className="blood-type-tag">
+                  {bloodType}
+                </Tag>
+              </div>
             </div>
           </div>
 
@@ -682,46 +686,38 @@ const BloodDonationProfile = () => {
             </div>
 
             <div className="profile-stats">
-              <div className="stat-item">
+              <div className="stat-item stat-donations">
                 <div className="stat-icon">
-                  <HeartOutlined style={{ color: "#1976D2", fontSize: 24 }} />
+                  <HeartOutlined style={{ color: "#fff", fontSize: 20 }} />
                 </div>
                 <div className="stat-content">
                   <div className="stat-value">{totalDonations}</div>
-                  <div className="stat-label">Tổng số lần hiến</div>
+                  <div className="stat-label">TỔNG SỐ LẦN HIẾN</div>
                 </div>
               </div>
 
-              <div className="stat-item">
+              <div className="stat-item stat-quantity">
                 <div className="stat-icon">
                   <div
                     style={{
-                      width: 24,
-                      height: 24,
-                      background:
-                        "linear-gradient(135deg, #1976D2 0%, #1565C0 100%)",
-                      borderRadius: "50%",
+                      width: 20,
+                      height: 20,
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: "bold",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    <span
-                      style={{
-                        color: "#fff",
-                        fontSize: 12,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      ml
-                    </span>
+                    ml
                   </div>
                 </div>
                 <div className="stat-content">
                   <div className="stat-value">
                     {totalQuantity.toLocaleString()}
                   </div>
-                  <div className="stat-label">Tổng lượng máu (ml)</div>
+                  <div className="stat-label">TỔNG LƯỢNG MÁU (ML)</div>
                 </div>
               </div>
             </div>
