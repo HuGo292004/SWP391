@@ -934,21 +934,6 @@ const BloodDonationProfile = () => {
               {viewStep === 0 && (
                 <>
                   {/* Bước 1: Chờ xác nhận */}
-                  <Text>
-                    Loại yêu cầu:
-                    <Tag
-                      color={
-                        currentDonation.requestType === "emergency"
-                          ? "red"
-                          : "blue"
-                      }
-                      style={{ marginLeft: 8 }}
-                    >
-                      {currentDonation.requestType === "emergency"
-                        ? "Khẩn cấp"
-                        : "Thường"}
-                    </Tag>
-                  </Text>
                   <br />
                   {currentDonation.status &&
                   currentDonation.status.toLowerCase() === "pending" ? (
@@ -960,14 +945,14 @@ const BloodDonationProfile = () => {
                           fontSize: 16,
                         }}
                       >
-                        ⏳ Đơn đăng ký hiến máu của bạn đang được chờ để xử lý.
+                        ⏳ Chờ đến ngày hiến máu & khám sức khỏe.
                       </Text>
                     </div>
                   ) : null}
                   {currentDonation.donationDate && (
                     <>
                       <Text>
-                        Ngày khám sức khỏe:{" "}
+                        Ngày khám sức khỏe và hiến máu:{" "}
                         {new Date(
                           currentDonation.donationDate
                         ).toLocaleDateString("vi-VN")}

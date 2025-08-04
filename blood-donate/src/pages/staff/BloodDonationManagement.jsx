@@ -258,45 +258,52 @@ const BloodDonationManagement = () => {
   };
 
   // Helper: render object as table
-  const renderDetailTable = (obj, fieldLabels = {}) => (
-    <table
-      style={{
-        width: "100%",
-        borderCollapse: "collapse",
-        background: "#fff",
-        borderRadius: 10,
-        boxShadow: "0 2px 8px #e3e8ee",
-        fontSize: 15,
-      }}
-    >
-      <tbody>
-        {Object.entries(obj).map(([key, value]) => (
-          <tr key={key}>
-            <td
-              style={{
-                fontWeight: 600,
-                color: "#1976D2",
-                padding: "8px 12px",
-                borderBottom: "1px solid #f0f0f0",
-                width: 160,
-              }}
-            >
-              {fieldLabels[key] || key}
-            </td>
-            <td
-              style={{
-                padding: "8px 12px",
-                borderBottom: "1px solid #f0f0f0",
-                color: "#263238",
-              }}
-            >
-              {String(value) || "-"}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+  const renderDetailTable = (obj, fieldLabels = {}, excludeFields = []) => {
+    // Filter out excluded fields
+    const filteredEntries = Object.entries(obj).filter(([key, value]) => 
+      !excludeFields.includes(key)
+    );
+    
+    return (
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          background: "#fff",
+          borderRadius: 10,
+          boxShadow: "0 2px 8px #e3e8ee",
+          fontSize: 15,
+        }}
+      >
+        <tbody>
+          {filteredEntries.map(([key, value]) => (
+            <tr key={key}>
+              <td
+                style={{
+                  fontWeight: 600,
+                  color: "#1976D2",
+                  padding: "8px 12px",
+                  borderBottom: "1px solid #f0f0f0",
+                  width: 160,
+                }}
+              >
+                {fieldLabels[key] || key}
+              </td>
+              <td
+                style={{
+                  padding: "8px 12px",
+                  borderBottom: "1px solid #f0f0f0",
+                  color: "#263238",
+                }}
+              >
+                {String(value) || "-"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  };
 
   // Mapping bloodTypeID sang tên nhóm máu
   const BLOOD_TYPES = [
@@ -628,7 +635,7 @@ const BloodDonationManagement = () => {
             tabBarStyle={{ fontWeight: 600, fontSize: 18 }}
           >
             <Tabs.TabPane
-              tab={<span style={{ fontWeight: 600 }}>Đơn hiến máu</span>}
+              tab={<span style={{ fontWeight: 600 }}>Yêu cầu hiến máu</span>}
               key="donation"
             >
               <div
@@ -652,10 +659,8 @@ const BloodDonationManagement = () => {
                   userIdCard: "CCCD/CMND",
                   bloodType: "Nhóm máu",
                   donationDate: "Ngày hiến máu",
-                  status: "Trạng thái",
                   notes: "Ghi chú",
-                  requestDescription: "Mô tả yêu cầu",
-                })}
+                }, ['status', 'requestDescription', 'donorName', 'currentMedications', 'CurrentMedications', 'current_medications'])}
               </div>
             </Tabs.TabPane>
             <Tabs.TabPane
@@ -795,10 +800,11 @@ const BloodDonationManagement = () => {
                       temperature: "Nhiệt độ",
                       bloodPressure: "Huyết áp",
                       medicalHistory: "Tiền sử bệnh",
+                      allergies: "Dị ứng",
                       currentMedications: "Thuốc đang dùng",
                       healthCheckDate: "Ngày khám",
                       healthCheckStatus: "Trạng thái",
-                    })}
+                    }, ['status'])}
                     <div style={{ marginTop: 24, textAlign: "right" }}>
                       {status === "pending" && (
                         <Button
