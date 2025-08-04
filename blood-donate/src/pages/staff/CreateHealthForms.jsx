@@ -666,20 +666,6 @@ const CreateHealthForms = () => {
                       <Form.Item
                         name="userIdCard"
                         label="CCCD/CMND người hiến máu"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Vui lòng nhập CCCD/CMND",
-                          },
-                          {
-                            min: 9,
-                            message: "CCCD/CMND phải có ít nhất 9 số",
-                          },
-                          {
-                            max: 12,
-                            message: "CCCD/CMND không được vượt quá 12 số",
-                          },
-                        ]}
                       >
                         <Input
                           placeholder="Nhập CCCD/CMND người hiến máu"
@@ -1005,19 +991,19 @@ const CreateHealthForms = () => {
                           {
                             type: "number",
                             min: 36.0,
-                            message: "Nhiệt độ tối thiểu để hiến máu là 36.0°C",
+                            message: "Nhiệt độ tối thiểu là 36.0°C",
                           },
                           {
                             type: "number",
-                            max: 37.5,
-                            message: "Nhiệt độ tối đa để hiến máu là 37.5°C",
+                            max: 39.9,
+                            message: "Nhiệt độ phải nhỏ hơn 40.0°C",
                           },
                         ]}
-                        tooltip="Nhiệt độ cơ thể bình thường để hiến máu: 36.0-37.5°C"
+                        tooltip="Nhiệt độ cơ thể có thể nhập từ 36.0°C đến < 40.0°C"
                       >
                         <InputNumber
                           style={{ width: "100%" }}
-                          placeholder="36.0-37.5°C"
+                          placeholder="36.0 - 39.9°C"
                           step={0.1}
                           precision={1}
                         />
