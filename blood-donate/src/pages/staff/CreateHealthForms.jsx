@@ -884,6 +884,7 @@ const CreateHealthForms = () => {
                     <HeartOutlined style={{ marginRight: "8px" }} />
                     Chỉ số sinh hiệu
                   </Title>
+
                   <Row gutter={16}>
                     <Col span={8}>
                       <Form.Item
@@ -896,17 +897,19 @@ const CreateHealthForms = () => {
                           },
                           {
                             type: "number",
-                            min: 30,
-                            max: 200,
-                            message: "Cân nặng không hợp lệ",
+                            min: 45,
+                            message: "Cân nặng tối thiểu để hiến máu là 45kg",
+                          },
+                          {
+                            type: "number",
+                            max: 150,
+                            message: "Cân nặng không được vượt quá 150kg",
                           },
                         ]}
                       >
                         <InputNumber
                           style={{ width: "100%" }}
-                          placeholder="Nhập cân nặng"
-                          min={30}
-                          max={200}
+                          placeholder="Tối thiểu 45kg"
                         />
                       </Form.Item>
                     </Col>
@@ -921,17 +924,19 @@ const CreateHealthForms = () => {
                           },
                           {
                             type: "number",
-                            min: 100,
-                            max: 250,
-                            message: "Chiều cao không hợp lệ",
+                            min: 140,
+                            message: "Chiều cao tối thiểu để hiến máu là 140cm",
+                          },
+                          {
+                            type: "number",
+                            max: 220,
+                            message: "Chiều cao không được vượt quá 220cm",
                           },
                         ]}
                       >
                         <InputNumber
                           style={{ width: "100%" }}
-                          placeholder="Nhập chiều cao"
-                          min={100}
-                          max={250}
+                          placeholder="Tối thiểu 140cm"
                         />
                       </Form.Item>
                     </Col>
@@ -944,9 +949,16 @@ const CreateHealthForms = () => {
                             required: true,
                             message: "Vui lòng nhập huyết áp",
                           },
+                          {
+                            pattern:
+                              /^(9[0-9]|1[0-9]{2}|200)\/(5[0-9]|[6-9][0-9]|1[0-2][0-9])$/,
+                            message:
+                              "Huyết áp phù hợp để hiến máu: 90-200/50-129 mmHg",
+                          },
                         ]}
+                        tooltip="Huyết áp tâm thu: 90-200 mmHg, Huyết áp tâm trương: 50-129 mmHg"
                       >
-                        <Input placeholder="VD: 120/80" />
+                        <Input placeholder="VD: 120/80" maxLength={7} />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -962,43 +974,52 @@ const CreateHealthForms = () => {
                           },
                           {
                             type: "number",
-                            min: 40,
-                            max: 200,
-                            message: "Nhịp tim không hợp lệ",
+                            min: 50,
+                            message:
+                              "Nhịp tim tối thiểu để hiến máu là 50 lần/phút",
+                          },
+                          {
+                            type: "number",
+                            max: 100,
+                            message:
+                              "Nhịp tim tối đa để hiến máu là 100 lần/phút",
                           },
                         ]}
+                        tooltip="Nhịp tim bình thường để hiến máu: 50-100 lần/phút"
                       >
                         <InputNumber
                           style={{ width: "100%" }}
-                          placeholder="Nhập nhịp tim"
-                          min={40}
-                          max={200}
+                          placeholder="50-100 lần/phút"
                         />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
                       <Form.Item
                         name="temperature"
-                        label="Nhiệt độ (°C)"
+                        label="Nhiệt độ cơ thể (°C)"
                         rules={[
                           {
                             required: true,
-                            message: "Vui lòng nhập nhiệt độ",
+                            message: "Vui lòng nhập nhiệt độ cơ thể",
                           },
                           {
                             type: "number",
-                            min: 35,
-                            max: 42,
-                            message: "Nhiệt độ không hợp lệ",
+                            min: 36.0,
+                            message: "Nhiệt độ tối thiểu để hiến máu là 36.0°C",
+                          },
+                          {
+                            type: "number",
+                            max: 37.5,
+                            message: "Nhiệt độ tối đa để hiến máu là 37.5°C",
                           },
                         ]}
+                        tooltip="Nhiệt độ cơ thể bình thường để hiến máu: 36.0-37.5°C"
                       >
                         <InputNumber
                           style={{ width: "100%" }}
-                          placeholder="Nhập nhiệt độ"
-                          min={35}
-                          max={42}
+                          placeholder="36.0-37.5°C"
                           step={0.1}
+                          precision={1}
                         />
                       </Form.Item>
                     </Col>
@@ -1015,17 +1036,20 @@ const CreateHealthForms = () => {
                           },
                           {
                             type: "number",
-                            min: 100,
-                            max: 1000,
-                            message: "Lượng máu phải từ 100 đến 1000 ml",
+                            min: 200,
+                            message: "Lượng máu tối thiểu để hiến là 200ml",
+                          },
+                          {
+                            type: "number",
+                            max: 450,
+                            message: "Lượng máu tối đa có thể hiến là 450ml",
                           },
                         ]}
+                        tooltip="Lượng máu tiêu chuẩn: 200-450ml tùy theo cân nặng và tình trạng sức khỏe"
                       >
                         <InputNumber
                           style={{ width: "100%" }}
-                          placeholder="Nhập lượng máu (ml)"
-                          min={100}
-                          max={1000}
+                          placeholder="200-450ml"
                           step={50}
                         />
                       </Form.Item>

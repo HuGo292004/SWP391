@@ -260,10 +260,10 @@ const BloodDonationManagement = () => {
   // Helper: render object as table
   const renderDetailTable = (obj, fieldLabels = {}, excludeFields = []) => {
     // Filter out excluded fields
-    const filteredEntries = Object.entries(obj).filter(([key, value]) => 
-      !excludeFields.includes(key)
+    const filteredEntries = Object.entries(obj).filter(
+      ([key, value]) => !excludeFields.includes(key)
     );
-    
+
     return (
       <table
         style={{
@@ -635,7 +635,7 @@ const BloodDonationManagement = () => {
             tabBarStyle={{ fontWeight: 600, fontSize: 18 }}
           >
             <Tabs.TabPane
-              tab={<span style={{ fontWeight: 600 }}>Yêu cầu hiến máu</span>}
+              tab={<span style={{ fontWeight: 600 }}>Đơn hiến máu</span>}
               key="donation"
             >
               <div
@@ -647,20 +647,28 @@ const BloodDonationManagement = () => {
                   fontSize: 15,
                   maxHeight: 600,
                   overflow: "auto",
+                  scrollbarWidth: "none" /* Firefox */,
+                  msOverflowStyle: "none" /* IE and Edge */,
                 }}
+                className="custom-scrollbar"
               >
-                {renderDetailTable(selectedDonation, {
-                  donationId: "Mã đơn",
-                  donorId: "Mã người hiến",
-                  fullName: "Họ tên",
-                  phoneNumber: "Số điện thoại",
-                  email: "Email",
-                  address: "Địa chỉ",
-                  userIdCard: "CCCD/CMND",
-                  bloodType: "Nhóm máu",
-                  donationDate: "Ngày hiến máu",
-                  notes: "Ghi chú",
-                }, ['status', 'requestDescription', 'donorName', 'currentMedications', 'CurrentMedications', 'current_medications'])}
+                {renderDetailTable(
+                  selectedDonation,
+                  {
+                    donationId: "Mã đơn",
+                    donorId: "Mã người hiến",
+                    fullName: "Họ tên",
+                    phoneNumber: "Số điện thoại",
+                    email: "Email",
+                    address: "Địa chỉ",
+                    userIdCard: "CCCD/CMND",
+                    bloodType: "Nhóm máu",
+                    donationDate: "Ngày hiến máu",
+                    status: "Trạng thái",
+                    notes: "Ghi chú",
+                  },
+                  ["currentMedications", "requestDescription", "donorName"]
+                )}
               </div>
             </Tabs.TabPane>
             <Tabs.TabPane
@@ -789,7 +797,10 @@ const BloodDonationManagement = () => {
                       fontSize: 15,
                       maxHeight: 600,
                       overflow: "auto",
+                      scrollbarWidth: "none" /* Firefox */,
+                      msOverflowStyle: "none" /* IE and Edge */,
                     }}
+                    className="custom-scrollbar"
                   >
                     {renderDetailTable(validHealthCheck, {
                       healthCheckId: "Mã phiếu",
@@ -800,11 +811,11 @@ const BloodDonationManagement = () => {
                       temperature: "Nhiệt độ",
                       bloodPressure: "Huyết áp",
                       medicalHistory: "Tiền sử bệnh",
-                      allergies: "Dị ứng",
+                      allergies: "Tiền sử dị ứng",
                       currentMedications: "Thuốc đang dùng",
                       healthCheckDate: "Ngày khám",
                       healthCheckStatus: "Trạng thái",
-                    }, ['status'])}
+                    })}
                     <div style={{ marginTop: 24, textAlign: "right" }}>
                       {status === "pending" && (
                         <Button

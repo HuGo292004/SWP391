@@ -751,9 +751,9 @@ const UserManagement = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((user) => (
+                  filteredUsers.map((user, index) => (
                     <tr key={user.id}>
-                      <td>{user.id}</td>
+                      <td>{index + 1}</td>
                       <td>
                         <div className="d-flex align-items-center">
                           <FaUser className="me-2 text-muted" />
