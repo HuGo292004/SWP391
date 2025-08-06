@@ -1,0 +1,6 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified heart for favicon -->
+  <path d="M8 14C8 14 3 10 3 6.75C3 4.95507 4.45507 3.5 6.25 3.5C7.04565 3.5 7.75935 3.82926 8.25 4.36912C8.74065 3.82926 9.45435 3.5 10.25 3.5C12.0449 3.5 13.5 4.95507 13.5 6.75C13.5 10 8.5 14 8 14Z" fill="#E91E63"/>
+  <rect x="6.5" y="6" width="1" height="3" fill="white" rx="0.5"/>
+  <rect x="5.5" y="7" width="3" height="1" fill="white" rx="0.5"/>
+</svg>

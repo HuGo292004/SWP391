@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="32" fill="#1976D2"/>
+  
+  <!-- Heart shape -->
+  <path d="M32 48C32 48 16 36 16 23C16 15.8203 21.8203 10 29 10C31.1826 10 33.2348 10.6585 35 11.7765C36.7652 10.6585 38.8174 10 41 10C48.1797 10 54 15.8203 54 23C54 36 38 48 32 48Z" fill="#E91E63"/>
+  
+  <!-- Blood drop inside -->
+  <ellipse cx="32" cy="30" rx="6" ry="10" fill="#C2185B"/>
+  
+  <!-- Small highlight -->
+  <ellipse cx="30" cy="26" rx="2" ry="3" fill="#F8BBD9" opacity="0.8"/>
+  
+  <!-- Cross symbol -->
+  <g transform="translate(26, 20)">
+    <rect x="5" y="2" width="2" height="8" fill="white" rx="1"/>
+    <rect x="2" y="5" width="8" height="2" fill="white" rx="1"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="32" y="58" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="6" font-weight="bold">BLOOD DONATION</text>
+</svg>

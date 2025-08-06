@@ -1,0 +1,144 @@
+/* BloodInventory.css - Professional, modern, clean look */
+
+.blood-inventory-container {
+  padding: 32px 16px;
+  background: #f4f7fb;
+  min-height: 100vh;
+}
+
+.blood-inventory-header-title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.blood-inventory-title {
+  margin-bottom: 4px !important;
+  text-align: center;
+  font-size: 2.1rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px;
+}
+
+.blood-inventory-subtitle {
+  text-align: center;
+  font-size: 1.08rem;
+  color: #607d8b !important;
+  font-weight: 500;
+  margin-bottom: 0;
+}
+
+.blood-inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  gap: 16px;
+}
+
+.blood-inventory-header .ant-typography {
+  margin-bottom: 0;
+}
+
+.blood-inventory-stats {
+  margin-bottom: 32px;
+}
+
+.blood-inventory-stats .ant-card {
+  border-radius: 14px;
+  box-shadow: 0 2px 12px #e3e8ee;
+  background: #fff;
+}
+
+.blood-inventory-quantities {
+  margin: 32px 0 16px 0;
+}
+
+.blood-inventory-quantities .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #e3e8ee;
+  background: #fff;
+}
+
+.blood-inventory-filters {
+  margin-bottom: 32px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #e3e8ee;
+  padding: 18px 24px;
+}
+
+.blood-inventory-table .ant-table-wrapper {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px #e3e8ee;
+  padding: 0 0 8px 0;
+}
+
+.blood-inventory-table .ant-table-thead > tr > th {
+  background: #f0f4fa;
+  font-weight: 700;
+  font-size: 15px;
+  color: #1976d2;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.blood-inventory-table .ant-table-tbody > tr > td {
+  font-size: 15px;
+  padding: 10px 12px;
+}
+
+.blood-inventory-table .ant-tag {
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 2px 12px;
+}
+
+.blood-inventory-table .ant-btn-link {
+  font-weight: 600;
+}
+
+.blood-inventory-table .ant-btn-link[disabled] {
+  color: #bdbdbd !important;
+}
+
+@media (max-width: 900px) {
+  .blood-inventory-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .blood-inventory-header-title-group {
+    align-items: center;
+  }
+  .blood-inventory-title, .blood-inventory-subtitle {
+    text-align: center;
+  }
+  .blood-inventory-stats .ant-col {
+    margin-bottom: 12px;
+  }
+  .blood-inventory-quantities .ant-col {
+    margin-bottom: 12px;
+  }
+  .blood-inventory-filters {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .blood-inventory-header {
+    padding: 0 4px;
+  }
+  .blood-inventory-stats,
+  .blood-inventory-quantities {
+    margin-bottom: 16px;
+  }
+  .blood-inventory-table .ant-table-thead > tr > th,
+  .blood-inventory-table .ant-table-tbody > tr > td {
+    font-size: 13px;
+    padding: 6px 4px;
+  }
+} 

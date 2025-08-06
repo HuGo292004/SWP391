@@ -1,0 +1,214 @@
+/* Blood Donation Management Styles */
+.blood-donation-management-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 12px 40px 12px;
+}
+
+.management-title {
+  text-align: center;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 32px;
+  letter-spacing: 0.5px;
+}
+
+.ant-table-wrapper {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(25, 118, 210, 0.1);
+  padding: 18px 0 24px 0;
+}
+
+.ant-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.ant-table-thead > tr > th {
+  background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.08rem;
+  text-align: center;
+  letter-spacing: 0.2px;
+  border: none;
+}
+
+.ant-table-tbody > tr > td {
+  font-size: 1rem;
+  padding: 14px 8px;
+  border-bottom: 1px solid #e3e8ee;
+  vertical-align: middle;
+}
+
+.ant-table-tbody > tr {
+  transition: background 0.2s;
+}
+.ant-table-tbody > tr:hover {
+  background: #f3f8fd;
+}
+
+/* Tag styles */
+.ant-tag {
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 4px 16px;
+  letter-spacing: 0.5px;
+}
+
+.ant-tag-green {
+  background: #e8f5e9 !important;
+  color: #388e3c !important;
+  border: none !important;
+}
+.ant-tag-orange {
+  background: #fff3e0 !important;
+  color: #f57c00 !important;
+  border: none !important;
+}
+.ant-tag-red {
+  background: #ffebee !important;
+  color: #d32f2f !important;
+  border: none !important;
+}
+.ant-tag-blue {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+  border: none !important;
+}
+
+/* Action buttons */
+.management-action-btn {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  min-width: 90px;
+  height: 38px;
+  margin-right: 6px;
+  transition: all 0.2s;
+}
+.management-action-btn:last-child {
+  margin-right: 0;
+}
+.management-action-btn.primary {
+  background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%) !important;
+  color: #fff !important;
+  border: none !important;
+}
+.management-action-btn.primary:hover {
+  background: linear-gradient(90deg, #1251a3 0%, #1976d2 100%) !important;
+  color: #fff !important;
+}
+.management-action-btn.danger {
+  background: #ffebee !important;
+  color: #d32f2f !important;
+  border: 1px solid #ffcdd2 !important;
+}
+.management-action-btn.danger:hover {
+  background: #ffcdd2 !important;
+  color: #b71c1c !important;
+}
+
+/* Modal styles */
+.ant-modal-content {
+  border-radius: 18px !important;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.13) !important;
+}
+.ant-modal-header {
+  border-radius: 18px 18px 0 0 !important;
+  background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%) !important;
+  color: #fff !important;
+}
+.ant-modal-title {
+  color: #fff !important;
+  font-size: 1.4rem !important;
+  font-weight: 700 !important;
+}
+.ant-modal-body {
+  background: #f8fafc !important;
+  border-radius: 0 0 18px 18px !important;
+  padding: 32px 18px 24px 18px !important;
+}
+
+/* Custom scrollbar - hide scrollbar for webkit browsers */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar - hide scrollbar for all browsers */
+.custom-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.search-toolbar {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.08);
+  padding: 18px 14px 14px 14px;
+}
+
+.search-toolbar .ant-input,
+.search-toolbar .ant-select-selector {
+  border-radius: 10px !important;
+  font-size: 1.08rem;
+  height: 44px !important;
+  box-shadow: none !important;
+  transition: border 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.search-toolbar .ant-input {
+  flex: 1 1 220px;
+  min-width: 160px;
+  max-width: 320px;
+}
+
+.search-toolbar .ant-select {
+  flex: 0 0 180px;
+  min-width: 160px;
+  max-width: 220px;
+}
+
+.search-toolbar .ant-input:focus,
+.search-toolbar .ant-input-focused,
+.search-toolbar .ant-select-focused .ant-select-selector {
+  border-color: #1976d2 !important;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1) !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .blood-donation-management-container {
+    padding: 12px 2vw 24px 2vw;
+  }
+  .ant-table-wrapper {
+    padding: 8px 0 12px 0;
+  }
+  .ant-modal-body {
+    padding: 16px 4px 10px 4px !important;
+  }
+  .search-toolbar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 2vw 8px 2vw;
+    margin-bottom: 18px;
+  }
+  .search-toolbar .ant-input,
+  .search-toolbar .ant-select,
+  .search-toolbar .ant-select-selector {
+    width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
+  }
+}

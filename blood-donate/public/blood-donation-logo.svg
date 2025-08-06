@@ -1,0 +1,19 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blood drop with heart shape -->
+  <g>
+    <!-- Heart shape -->
+    <path d="M16 28C16 28 6 20 6 13.5C6 9.91015 8.91015 7 12.5 7C14.0913 7 15.5187 7.65851 16.5 8.73824C17.4813 7.65851 18.9087 7 20.5 7C24.0899 7 27 9.91015 27 13.5C27 20 17 28 16 28Z" fill="#E91E63"/>
+    
+    <!-- Blood drop inside -->
+    <ellipse cx="16" cy="18" rx="4" ry="6" fill="#C2185B"/>
+    
+    <!-- Small highlight -->
+    <ellipse cx="15" cy="16" rx="1.5" ry="2" fill="#F8BBD9" opacity="0.8"/>
+    
+    <!-- Cross symbol -->
+    <g transform="translate(12, 11)">
+      <rect x="3" y="1" width="2" height="6" fill="white" rx="1"/>
+      <rect x="1" y="3" width="6" height="2" fill="white" rx="1"/>
+    </g>
+  </g>
+</svg>

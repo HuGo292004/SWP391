@@ -1,0 +1,900 @@
+// Import các thư viện React và hooks cần thiết
+import React, { useState, useEffect, useRef } from "react";
+
+// Import các component từ React Bootstrap
+import {
+  Container, // Container layout
+  Row, // Row grid
+  Col, // Column grid
+  Card, // Card component
+  Form, // Form component
+  Button, // Button component
+  Alert, // Alert component
+  Badge, // Badge component
+  Modal, // Modal component
+  Table, // Table component
+  Spinner, // Loading spinner
+} from "react-bootstrap";
+
+// Import các icon từ Font Awesome
+import {
+  FaExclamationTriangle, // Icon cảnh báo
+  FaHeart, // Icon trái tim
+  FaMedkit, // Icon y tế
+  FaUser, // Icon người dùng
+  FaPhone, // Icon điện thoại
+  FaCalendarAlt, // Icon lịch
+  FaClock, // Icon đồng hồ
+  FaSave, // Icon lưu
+  FaPlus, // Icon thêm
+  FaEye, // Icon xem
+  FaEdit,
+  FaTrash,
+  FaSearch,
+} from "react-icons/fa";
+import {
+  searchUserByIdCard,
+  createEmergencyRequest,
+  getAllBloodRequests,
+  getBloodTypeId,
+  cleanupTokens,
+  refreshAuthToken,
+  getAvailableQuantityByBloodType,
+  getAvailableQuantityByCompatibleBloodTypes,
+} from "../../services/emergencyRequestApi";
+import { healthCheckApi } from "../../services/healthCheckApi";
+import "../../styles/EmergencyRequest.css";
+
+const CreateEmergencyRequest = () => {
+  const [formData, setFormData] = useState({
+    patientName: "",
+    email: "",
+    userIdCard: "",
+    phone: "",
+    dateOfBirth: "",
+    bloodTypeRequired: "",
+    quantityNeeded: "",
+    urgencyLevel: "HIGH", // Default to HIGH for emergency
+    medicalCondition: "",
+    contactInfo: "",
+    description: "",
+  });
+
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSearchingUser, setIsSearchingUser] = useState(false);
+  const [userFound, setUserFound] = useState(null);
+  // const [savedRequests, setSavedRequests] = useState([]); // Removed: no emergency list
+  const [authStatus, setAuthStatus] = useState("checking"); // checking, authenticated, unauthenticated
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const modalRef = useRef(null);
+
+  // Validation functions
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    // Vietnamese phone number format: 0xxxxxxxxx (10-11 digits)
+    const phoneRegex = /^0[3-9]\d{8,9}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ""));
+  };
+
+  const validateDateOfBirth = (dateOfBirth) => {
+    if (!dateOfBirth) return false;
+
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    // Age must be between 0 and 120
+    return age >= 0 && age <= 120 && birthDate <= today;
+  };
+
+  const validatePatientName = (name) => {
+    // Name should be at least 2 characters and contain only letters, spaces, and Vietnamese characters
+    const nameRegex =
+      /^[a-zA-ZàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\s]{2,}$/;
+    return nameRegex.test(name.trim());
+  };
+
+  const validateQuantity = (quantity) => {
+    const qty = parseInt(quantity);
+    return Number.isInteger(qty) && qty >= 250 && qty <= 2000;
+  };
+
+  const validateField = (name, value) => {
+    const errors = { ...validationErrors };
+
+    switch (name) {
+      case "patientName":
+        if (!value.trim()) {
+          errors[name] = "Họ tên là bắt buộc";
+        } else if (!validatePatientName(value)) {
+          errors[name] = "Họ tên phải có ít nhất 2 ký tự và chỉ chứa chữ cái";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "email":
+        if (!value.trim()) {
+          errors[name] = "Email là bắt buộc";
+        } else if (!validateEmail(value)) {
+          errors[name] = "Email không hợp lệ";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "userIdCard":
+        if (!value.trim()) {
+          errors[name] = "CCCD/CMND là bắt buộc";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "phone":
+        if (!value.trim()) {
+          errors[name] = "Số điện thoại là bắt buộc";
+        } else if (!validatePhone(value)) {
+          errors[name] = "Số điện thoại không hợp lệ (VD: 0912345678)";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "dateOfBirth":
+        if (!value) {
+          errors[name] = "Ngày sinh là bắt buộc";
+        } else if (!validateDateOfBirth(value)) {
+          errors[name] = "Ngày sinh không hợp lệ";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "bloodTypeRequired":
+        if (!value) {
+          errors[name] = "Nhóm máu là bắt buộc";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      case "quantityNeeded":
+        if (!value.trim()) {
+          errors[name] = "Số lượng máu là bắt buộc";
+        } else if (!validateQuantity(value)) {
+          errors[name] = "Số lượng phải từ 250ml đến 2000ml";
+        } else {
+          delete errors[name];
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Removed debug useEffect for showPreview
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const validToken = cleanupTokens();
+
+      if (validToken) {
+        setAuthStatus("authenticated");
+      } else {
+        setAuthStatus("unauthenticated");
+      }
+    };
+
+    checkAuth();
+
+    // Listen for storage changes (when user logs in/out in another tab)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also check periodically in case token is set by JavaScript
+    const intervalId = setInterval(checkAuth, 2000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  // Removed: loadRecentRequests and related useEffect (no emergency list)
+
+  // Refresh authentication token
+  const handleRefreshAuth = async () => {
+    setAuthStatus("checking");
+    try {
+      const newToken = await refreshAuthToken();
+      if (newToken) {
+        setAuthStatus("authenticated");
+        setErrorMessage("");
+        setShowError(false);
+        setSuccessMessage("Token đã được làm mới thành công!");
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } else {
+        setAuthStatus("unauthenticated");
+        setErrorMessage("Không thể làm mới token. Vui lòng đăng nhập lại.");
+        setShowError(true);
+      }
+    } catch (error) {
+      setAuthStatus("unauthenticated");
+      setErrorMessage("Lỗi khi làm mới xác thực: " + error.message);
+      setShowError(true);
+    }
+  };
+
+  // Search user by ID Card
+  const handleSearchUser = async () => {
+    if (!formData.userIdCard) {
+      setErrorMessage("Vui lòng nhập số CCCD/CMND");
+      setShowError(true);
+      return;
+    }
+
+    setIsSearchingUser(true);
+    try {
+      const user = await searchUserByIdCard(formData.userIdCard);
+      if (user) {
+        // User found - auto-fill form
+        setUserFound(user);
+
+        // Basic user info auto-fill
+        let updatedFormData = {
+          ...formData,
+          patientName: user.fullName || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split("T")[0] : "",
+        };
+
+        // Try to get donor blood type info
+        try {
+          console.log("🔍 Searching for donor blood type info...");
+          const donorInfo = await healthCheckApi.getDonorByIdCard(
+            formData.userIdCard
+          );
+
+          if (donorInfo && donorInfo.bloodType) {
+            console.log("✅ Found donor blood type:", donorInfo.bloodType);
+            // Auto-fill blood type if found
+            updatedFormData.bloodTypeRequired = donorInfo.bloodType;
+
+            setFormData(updatedFormData);
+            setSuccessMessage(
+              `Đã tìm thấy tài khoản: ${user.fullName}. Nhóm máu ${donorInfo.bloodType} đã được tự động điền.`
+            );
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 5000);
+          } else {
+            console.log(
+              "ℹ️ No donor blood type found, using basic user info only"
+            );
+            setFormData(updatedFormData);
+            setSuccessMessage(
+              `Đã tìm thấy tài khoản: ${user.fullName}. Vui lòng chọn nhóm máu cần thiết.`
+            );
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+          }
+        } catch (donorError) {
+          console.log(
+            "ℹ️ Could not get donor blood type info:",
+            donorError.message
+          );
+          // Still use basic user info even if donor info fails
+          setFormData(updatedFormData);
+          setSuccessMessage(
+            `Đã tìm thấy tài khoản: ${user.fullName}. Không tìm thấy thông tin nhóm máu, vui lòng chọn nhóm máu cần thiết.`
+          );
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 3000);
+        }
+      } else {
+        // User not found or auth issue
+        setUserFound(null);
+        setErrorMessage(
+          "Không tìm thấy tài khoản với CCCD/CMND này hoặc bạn chưa đăng nhập. Hệ thống sẽ tự động tạo tài khoản mới khi tạo yêu cầu."
+        );
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
+      }
+    } catch (error) {
+      setErrorMessage(error.message || "Lỗi khi tìm kiếm thông tin người dùng");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 5000);
+    } finally {
+      setIsSearchingUser(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Real-time validation
+    validateField(name, value);
+
+    // Reset user found status when ID card changes
+    if (name === "userIdCard") {
+      setUserFound(null);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate all fields
+    const requiredFields = [
+      "patientName",
+      "email",
+      "userIdCard",
+      "phone",
+      "dateOfBirth",
+      "bloodTypeRequired",
+      "quantityNeeded",
+    ];
+
+    let hasErrors = false;
+    const newErrors = {};
+
+    // Validate each required field
+    requiredFields.forEach((field) => {
+      const isValid = validateField(field, formData[field]);
+      if (!isValid) {
+        hasErrors = true;
+      }
+    });
+
+    // Check if there are any validation errors
+    if (hasErrors || Object.keys(validationErrors).length > 0) {
+      setErrorMessage("Vui lòng sửa các lỗi trong form trước khi gửi");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 5000);
+      return;
+    }
+
+    // Additional validation for quantity (already covered in validateField but keeping for safety)
+    const quantityNeeded = parseInt(formData.quantityNeeded);
+    if (
+      !Number.isInteger(quantityNeeded) ||
+      quantityNeeded < 250 ||
+      quantityNeeded > 2000
+    ) {
+      setErrorMessage("Số lượng máu phải từ 250ml đến 2000ml");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // 1. Lấy bloodTypeId
+      const bloodTypeId = getBloodTypeId(formData.bloodTypeRequired);
+
+      // 2. Kiểm tra số lượng máu từ tất cả nhóm máu tương thích trong kho
+      console.log(
+        `Checking blood availability for needed type: ${formData.bloodTypeRequired} (ID: ${bloodTypeId})`
+      );
+      const availableQuantity =
+        await getAvailableQuantityByCompatibleBloodTypes(bloodTypeId);
+      console.log(
+        `Total compatible blood available: ${availableQuantity}ml, needed: ${quantityNeeded}ml`
+      );
+
+      // 3. Xác định trạng thái dựa trên tổng số lượng máu tương thích
+      let status = "Opened";
+      if (availableQuantity >= quantityNeeded) {
+        status = "Pending";
+        console.log(
+          `Status set to Pending - sufficient compatible blood available`
+        );
+      } else {
+        console.log(
+          `Status set to Opened - insufficient compatible blood (shortage: ${
+            quantityNeeded - availableQuantity
+          }ml)`
+        );
+      }
+
+      // 4. Chuẩn bị dữ liệu gửi lên API
+      const requestData = {
+        patientName: formData.patientName,
+        email: formData.email,
+        userIdCard: formData.userIdCard,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        bloodTypeRequired: bloodTypeId, // Convert to blood type ID
+        quantityNeeded,
+        urgencyLevel: "HIGH",
+        medicalCondition: formData.description,
+        contactInfo: formData.phone,
+        description: formData.description,
+        status, // Thêm trạng thái vào request
+      };
+
+      const result = await createEmergencyRequest(requestData);
+      if (result) {
+        setSuccessMessage("Yêu cầu khẩn cấp đã được tạo thành công!");
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+        // Reset form
+        setFormData({
+          patientName: "",
+          email: "",
+          userIdCard: "",
+          phone: "",
+          dateOfBirth: "",
+          bloodTypeRequired: "",
+          quantityNeeded: "",
+          urgencyLevel: "HIGH",
+          medicalCondition: "",
+          contactInfo: "",
+          description: "",
+        });
+        setUserFound(null);
+        setValidationErrors({});
+      }
+    } catch (error) {
+      setErrorMessage("Lỗi khi tạo yêu cầu khẩn cấp: " + error.message);
+      setShowError(true);
+      setTimeout(() => setShowError(false), 5000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Removed: getStatusBadgeVariant, getStatusText, formatDate (no emergency list)
+
+  return (
+    <Container fluid className="p-4">
+      {/* Header */}
+      <Row justify="center" className="mb-4">
+        <Col>
+          <div style={{ textAlign: "center" }}>
+            <h2 className="text-danger mb-2">
+              <FaExclamationTriangle className="me-2" />
+              Tạo Yêu Cầu Hiến Máu Khẩn Cấp
+            </h2>
+            <p className="text-muted mb-0">
+              Tạo yêu cầu hiến máu khẩn cấp cho các trường hợp cần máu gấp
+            </p>
+          </div>
+        </Col>
+      </Row>
+
+      {/* Success Alert */}
+      {showSuccess && (
+        <Alert
+          variant="success"
+          dismissible
+          onClose={() => setShowSuccess(false)}
+        >
+          <FaHeart className="me-2" />
+          {successMessage ||
+            (userFound
+              ? "Đã tìm thấy thông tin người dùng và tự động điền vào form!"
+              : "Yêu cầu khẩn cấp đã được tạo thành công!")}
+        </Alert>
+      )}
+
+      {/* Error Alert */}
+      {showError && (
+        <Alert
+          variant="warning"
+          dismissible
+          onClose={() => setShowError(false)}
+        >
+          <FaExclamationTriangle className="me-2" />
+          {errorMessage}
+        </Alert>
+      )}
+
+      {/* Info Alert for Authentication */}
+      {authStatus === "unauthenticated" && (
+        <Alert variant="warning" className="mb-4">
+          <FaExclamationTriangle className="me-2" />
+          <strong>Cảnh báo:</strong> Bạn chưa đăng nhập hoặc token không hợp lệ.
+          Vui lòng đăng nhập lại.
+          <div className="mt-2">
+            <Button
+              variant="outline-success"
+              size="sm"
+              className="me-2"
+              onClick={handleRefreshAuth}
+            >
+              <FaHeart className="me-1" />
+              Làm mới Token
+            </Button>
+            <Button
+              variant="outline-primary"
+              size="sm"
+              className="me-2"
+              onClick={() => {
+                cleanupTokens();
+                window.location.reload();
+              }}
+            >
+              Làm sạch Token
+            </Button>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
+              Làm mới trang
+            </Button>
+          </div>
+        </Alert>
+      )}
+
+      <Row>
+        {/* Form Section - now full width */}
+        <Col lg={{ span: 8, offset: 2 }}>
+          <Card className="shadow-sm mb-4">
+            <Card.Header className="bg-danger text-white">
+              <h5 className="mb-0">
+                <FaPlus className="me-2" />
+                Thông tin yêu cầu khẩn cấp
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              <Form onSubmit={handleSubmit}>
+                {/* Patient Information */}
+                <div className="mb-4">
+                  <h6 className="text-primary mb-3">
+                    <FaUser className="me-2" />
+                    Thông tin bệnh nhân
+                  </h6>
+                  <Row>
+                    <Col md={12}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Họ và tên bệnh nhân *</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="patientName"
+                          value={formData.patientName}
+                          onChange={handleInputChange}
+                          placeholder="Nhập họ và tên đầy đủ của bệnh nhân"
+                          required
+                          isInvalid={!!validationErrors.patientName}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.patientName}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Email *</Form.Label>
+                        <Form.Control
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          placeholder="Nhập địa chỉ email"
+                          required
+                          isInvalid={!!validationErrors.email}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.email}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>CCCD/CMND *</Form.Label>
+                        <div className="d-flex gap-2">
+                          <Form.Control
+                            type="text"
+                            name="userIdCard"
+                            value={formData.userIdCard}
+                            onChange={handleInputChange}
+                            placeholder="Nhập số CCCD hoặc CMND"
+                            required
+                            isInvalid={!!validationErrors.userIdCard}
+                          />
+                          <Button
+                            variant="outline-primary"
+                            onClick={handleSearchUser}
+                            disabled={isSearchingUser || !formData.userIdCard}
+                          >
+                            {isSearchingUser ? (
+                              <Spinner animation="border" size="sm" />
+                            ) : (
+                              <FaSearch />
+                            )}
+                          </Button>
+                        </div>
+                        {userFound && (
+                          <Form.Text className="text-success">
+                            ✓ Đã tìm thấy tài khoản: {userFound.fullName}
+                          </Form.Text>
+                        )}
+                        {validationErrors.userIdCard && (
+                          <Form.Control.Feedback
+                            type="invalid"
+                            style={{ display: "block" }}
+                          >
+                            {validationErrors.userIdCard}
+                          </Form.Control.Feedback>
+                        )}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Số điện thoại *</Form.Label>
+                        <Form.Control
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          placeholder="Nhập số điện thoại bệnh nhân"
+                          required
+                          isInvalid={!!validationErrors.phone}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.phone}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Ngày sinh *</Form.Label>
+                        <Form.Control
+                          type="date"
+                          name="dateOfBirth"
+                          value={formData.dateOfBirth}
+                          onChange={handleInputChange}
+                          required
+                          isInvalid={!!validationErrors.dateOfBirth}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.dateOfBirth}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </div>
+
+                {/* Blood Requirements */}
+                <div className="mb-4">
+                  <h6 className="text-primary mb-3">
+                    <FaHeart className="me-2" />
+                    Yêu cầu về máu
+                  </h6>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Nhóm máu cần *</Form.Label>
+                        <Form.Select
+                          name="bloodTypeRequired"
+                          value={formData.bloodTypeRequired}
+                          onChange={handleInputChange}
+                          required
+                          isInvalid={!!validationErrors.bloodTypeRequired}
+                        >
+                          <option value="">Chọn nhóm máu</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                        </Form.Select>
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.bloodTypeRequired}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Số lượng cần (ml) *</Form.Label>
+                        <Form.Control
+                          type="number"
+                          name="quantityNeeded"
+                          value={formData.quantityNeeded}
+                          onChange={handleInputChange}
+                          placeholder="Nhập số ml (VD: 450, 900)"
+                          min="250"
+                          max="2000"
+                          step="1"
+                          required
+                          isInvalid={!!validationErrors.quantityNeeded}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {validationErrors.quantityNeeded}
+                        </Form.Control.Feedback>
+                        <Form.Text className="text-muted">
+                          Tối thiểu: 250ml (≈ 0.5 đơn vị) - Tối đa: 2000ml (≈
+                          4.4 đơn vị)
+                        </Form.Text>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </div>
+
+                {/* Description */}
+                <div className="mb-4">
+                  <h6 className="text-primary mb-3">
+                    <FaMedkit className="me-2" />
+                    Mô tả yêu cầu
+                  </h6>
+                  <Row>
+                    <Col md={12}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Mô tả chi tiết</Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={4}
+                          name="description"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          placeholder="Mô tả chi tiết về yêu cầu máu (lý do, tình trạng bệnh nhân, ghi chú đặc biệt...)"
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="d-flex justify-content-end gap-3">
+                  <Button variant="danger" type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Spinner
+                          animation="border"
+                          size="sm"
+                          className="me-2"
+                        />
+                        Đang tạo yêu cầu...
+                      </>
+                    ) : (
+                      <>
+                        <FaSave className="me-2" />
+                        Tạo yêu cầu khẩn cấp
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </Form>
+
+              {/* Xem trước ngoài form */}
+              <div className="mt-3 d-flex justify-content-end gap-2">
+                <Button
+                  variant="outline-info"
+                  type="button"
+                  onClick={() => setShowPreview(true)}
+                >
+                  <FaEye className="me-2" />
+                  Xem trước
+                </Button>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Preview Modal */}
+      <Modal
+        ref={modalRef}
+        show={showPreview === true}
+        onHide={() => setShowPreview(false)}
+        size="lg"
+        backdrop="static"
+        keyboard={false}
+        centered
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FaEye className="me-2" />
+            Xem trước yêu cầu khẩn cấp
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="p-3">
+            <h5 className="text-danger mb-3">Thông tin yêu cầu khẩn cấp</h5>
+            <div className="mb-3">
+              <strong>Họ tên bệnh nhân:</strong>{" "}
+              {formData.patientName || (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
+            </div>
+            <div className="mb-3">
+              <strong>Email:</strong>{" "}
+              {formData.email || (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
+            </div>
+            <div className="mb-3">
+              <strong>Số điện thoại:</strong>{" "}
+              {formData.phone || (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
+            </div>
+            <div className="mb-3">
+              <strong>Ngày sinh:</strong>{" "}
+              {formData.dateOfBirth || (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
+            </div>
+            <div className="mb-3">
+              <strong>Nhóm máu cần:</strong>{" "}
+              {formData.bloodTypeRequired || (
+                <span className="text-muted">(Chưa chọn)</span>
+              )}
+            </div>
+            <div className="mb-3">
+              <strong>Số lượng cần:</strong>{" "}
+              {formData.quantityNeeded ? (
+                `${formData.quantityNeeded} ml (≈ ${(
+                  formData.quantityNeeded / 450
+                ).toFixed(1)} đơn vị)`
+              ) : (
+                <span className="text-muted">(Chưa nhập)</span>
+              )}
+            </div>
+            <div className="mb-3">
+              <strong>Mức độ khẩn cấp:</strong> <Badge bg="danger">HIGH</Badge>
+            </div>
+            <div className="mb-3">
+              <strong>Mô tả chi tiết:</strong>{" "}
+              {formData.description ? (
+                <span>{formData.description}</span>
+              ) : (
+                <span className="text-muted">(Không có)</span>
+              )}
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowPreview(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
+  );
+};
+
+export default CreateEmergencyRequest;
